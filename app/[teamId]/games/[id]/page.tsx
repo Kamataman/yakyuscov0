@@ -248,15 +248,15 @@ export default function GameDetailPage() {
         {/* 打撃結果一覧 */}
         <div className="rounded-2xl bg-white p-4 shadow-lg">
           <h2 className="mb-3 text-sm font-bold text-slate-600">打撃結果</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-center text-sm">
+          <div className="relative overflow-x-auto">
+            <table className="min-w-[700px] text-center text-sm border-collapse">
               <thead>
                 <tr className="border-b bg-slate-50">
-                  <th className="sticky left-0 z-10 bg-slate-50 px-2 py-2 text-left">打順</th>
-                  <th className="sticky left-10 z-10 bg-slate-50 px-2 py-2 text-left">選手</th>
-                  <th className="px-1 py-2">守</th>
+                  <th className="sticky left-0 z-20 bg-slate-50 w-10 min-w-[40px] px-2 py-2 text-left border-r border-slate-200">打順</th>
+                  <th className="sticky left-10 z-20 bg-slate-50 w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-200">選手</th>
+                  <th className="w-10 min-w-[40px] px-1 py-2">守</th>
                   {Array.from({ length: maxInning }, (_, i) => (
-                    <th key={i} className="w-12 px-1 py-2">{i + 1}</th>
+                    <th key={i} className="w-14 min-w-[56px] px-1 py-2">{i + 1}</th>
                   ))}
                 </tr>
               </thead>
@@ -268,22 +268,24 @@ export default function GameDetailPage() {
                   
                   return (
                     <tr key={order} className="border-b">
-                      <td className="sticky left-0 z-10 bg-white px-2 py-2 text-left font-bold">{order}</td>
-                      <td className="sticky left-10 z-10 bg-white px-2 py-2 text-left">
-                        {mainEntry?.player_name || "-"}
-                        {entries.length > 1 && (
-                          <span className="ml-1 text-xs text-orange-600">
-                            +{entries.length - 1}
-                          </span>
-                        )}
+                      <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 text-left font-bold border-r border-slate-100">{order}</td>
+                      <td className="sticky left-10 z-10 bg-white w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-100">
+                        <div className="truncate">
+                          {mainEntry?.player_name || "-"}
+                          {entries.length > 1 && (
+                            <span className="ml-1 text-xs text-orange-600">
+                              +{entries.length - 1}
+                            </span>
+                          )}
+                        </div>
                       </td>
-                      <td className="px-1 py-2 text-slate-500">{mainEntry?.position || "-"}</td>
+                      <td className="w-10 min-w-[40px] px-1 py-2 text-slate-500">{mainEntry?.position || "-"}</td>
                       {Array.from({ length: maxInning }, (_, inningIndex) => {
                         const inning = inningIndex + 1
                         const result = resultsMap.get(`${order}-${inning}`)
                         
                         if (!result) {
-                          return <td key={inning} className="px-1 py-2 text-slate-300">-</td>
+                          return <td key={inning} className="w-14 min-w-[56px] px-1 py-2 text-slate-300">-</td>
                         }
 
                         const resultObj: BattingResult = {
@@ -299,7 +301,7 @@ export default function GameDetailPage() {
                           <td
                             key={inning}
                             className={cn(
-                              "px-1 py-2 text-xs font-medium",
+                              "w-14 min-w-[56px] px-1 py-2 text-xs font-medium whitespace-nowrap",
                               hit && "text-green-700 bg-green-50",
                               !hit && onBase && "text-blue-700 bg-blue-50",
                               !hit && !onBase && "text-slate-600"

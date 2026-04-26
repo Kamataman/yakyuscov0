@@ -16,7 +16,7 @@ interface PlayerSelectDialogProps {
   onOpenChange: (open: boolean) => void
   order: number
   currentEntries: LineupEntry[]
-  registeredPlayers: Player[]  // 登録済み選手一覧（将来用）
+  registeredPlayers: Player[]
   onSave: (entries: LineupEntry[]) => void
 }
 
@@ -40,13 +40,34 @@ export function PlayerSelectDialog({
     }
   }, [open, currentEntries])
 
+  const handlePlayerSelect = (index: number, playerId: string) => {
+    const player = registeredPlayers.find(p => p.id === playerId)
+    setEntries((prev) => {
+      const newEntries = [...prev]
+      if (player) {
+        newEntries[index] = { 
+          ...newEntries[index], 
+          playerId: player.id,
+          playerName: player.name,
+        }
+      } else {
+        newEntries[index] = { 
+          ...newEntries[index], 
+          playerId: "",
+          playerName: "",
+        }
+      }
+      return newEntries
+    })
+  }
+
   const handleNameChange = (index: number, name: string) => {
     setEntries((prev) => {
       const newEntries = [...prev]
       newEntries[index] = { 
         ...newEntries[index], 
         playerName: name,
-        playerId: name // 一時的にnameをIDとして使用
+        playerId: "" // 手入力の場合はIDをクリア
       }
       return newEntries
     })
@@ -70,18 +91,6 @@ export function PlayerSelectDialog({
   const handleRemoveEntry = (index: number) => {
     if (entries.length <= 1) return
     setEntries((prev) => prev.filter((_, i) => i !== index))
-  }
-
-  const handleSelectRegisteredPlayer = (index: number, player: Player) => {
-    setEntries((prev) => {
-      const newEntries = [...prev]
-      newEntries[index] = {
-        ...newEntries[index],
-        playerId: player.id,
-        playerName: player.name,
-      }
-      return newEntries
-    })
   }
 
   const handleSave = () => {
@@ -122,41 +131,56 @@ export function PlayerSelectDialog({
                 </div>
               )}
 
-              {/* 選手名入力 */}
+              {/* 選手名 - 登録済み選手から選択 */}
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-2">
                   選手名
                 </label>
-                <input
-                  type="text"
-                  value={entry.playerName}
-                  onChange={(e) => handleNameChange(index, e.target.value)}
-                  placeholder="名前を入力"
-                  className={cn(
-                    "w-full h-12 px-4 text-lg rounded-lg",
-                    "bg-white border border-slate-200",
-                    "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
-                  )}
-                />
-
-                {/* 登録済み選手から選択（将来用） */}
-                {registeredPlayers.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {registeredPlayers.slice(0, 5).map((player) => (
-                      <button
-                        key={player.id}
-                        onClick={() => handleSelectRegisteredPlayer(index, player)}
+                {registeredPlayers.length > 0 ? (
+                  <div className="space-y-2">
+                    <select
+                      value={entry.playerId}
+                      onChange={(e) => handlePlayerSelect(index, e.target.value)}
+                      className={cn(
+                        "w-full h-12 px-4 text-base rounded-xl",
+                        "bg-white border border-slate-200",
+                        "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                      )}
+                    >
+                      <option value="">選手を選択...</option>
+                      {registeredPlayers.map((player) => (
+                        <option key={player.id} value={player.id}>
+                          {player.number ? `${player.number} ` : ""}{player.name}
+                        </option>
+                      ))}
+                    </select>
+                    {/* または手入力 */}
+                    {!entry.playerId && (
+                      <input
+                        type="text"
+                        value={entry.playerName}
+                        onChange={(e) => handleNameChange(index, e.target.value)}
+                        placeholder="または名前を直接入力"
                         className={cn(
-                          "px-3 py-1 text-sm rounded-full transition-all",
-                          entry.playerId === player.id
-                            ? "bg-blue-500 text-white"
-                            : "bg-white border border-slate-200 hover:border-blue-300"
+                          "w-full h-10 px-4 text-sm rounded-lg",
+                          "bg-white border border-slate-200",
+                          "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
                         )}
-                      >
-                        {player.name}
-                      </button>
-                    ))}
+                      />
+                    )}
                   </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={entry.playerName}
+                    onChange={(e) => handleNameChange(index, e.target.value)}
+                    placeholder="名前を入力"
+                    className={cn(
+                      "w-full h-12 px-4 text-lg rounded-lg",
+                      "bg-white border border-slate-200",
+                      "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                    )}
+                  />
                 )}
               </div>
 

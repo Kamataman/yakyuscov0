@@ -7,7 +7,7 @@ import { PlusCircle, Users, Loader2, X, Pencil, Trash2, Check } from "lucide-rea
 interface Player {
   id: string
   name: string
-  number?: number
+  number?: string
 }
 
 export default function PlayersPage() {
@@ -54,7 +54,7 @@ export default function PlayersPage() {
         body: JSON.stringify({
           teamId,
           name: newName.trim(),
-          number: newNumber ? parseInt(newNumber) : null,
+          number: newNumber.trim() || null,
         }),
       })
 
@@ -92,7 +92,7 @@ export default function PlayersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: editName.trim(),
-          number: editNumber ? parseInt(editNumber) : null,
+          number: editNumber.trim() || null,
         }),
       })
 
@@ -169,10 +169,11 @@ export default function PlayersPage() {
                 className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               <input
-                type="number"
+                type="text"
                 value={newNumber}
                 onChange={(e) => setNewNumber(e.target.value)}
                 placeholder="背番号"
+                maxLength={3}
                 className="w-24 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               <button
@@ -212,10 +213,11 @@ export default function PlayersPage() {
                     // 編集モード
                     <>
                       <input
-                        type="number"
+                        type="text"
                         value={editNumber}
                         onChange={(e) => setEditNumber(e.target.value)}
                         placeholder="番号"
+                        maxLength={3}
                         className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm text-center"
                       />
                       <input

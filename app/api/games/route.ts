@@ -32,7 +32,7 @@ export async function GET(request: Request) {
 // 新しい試合を作成（管理者のみ）
 export async function POST(request: Request) {
   const body = await request.json()
-  const { teamId, date, opponent, location, memo, inningScores, lineupSlots, battingResults, pitchers } = body
+  const { teamId, date, opponent, location, memo, isFirstBatting, totalInnings, inningScores, lineupSlots, battingResults, pitchers } = body
 
   // 管理者権限チェック
   const session = await requireTeamAdmin(teamId)
@@ -51,6 +51,8 @@ export async function POST(request: Request) {
       opponent,
       location,
       memo,
+      is_first_batting: isFirstBatting ?? true,
+      total_innings: totalInnings ?? 9,
     })
     .select()
     .single()

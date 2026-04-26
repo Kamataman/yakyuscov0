@@ -44,6 +44,8 @@ export default function GameResultPage() {
   // 試合情報
   const [gameDate, setGameDate] = useState(new Date().toISOString().split("T")[0])
   const [opponent, setOpponent] = useState("")
+  const [isFirstBatting, setIsFirstBatting] = useState(true)
+  const [totalInnings, setTotalInnings] = useState(9)
 
   // 選手一覧を取得
   useEffect(() => {
@@ -78,6 +80,8 @@ export default function GameResultPage() {
           teamId,
           date: gameDate,
           opponent,
+          isFirstBatting,
+          totalInnings,
           inningScores,
           lineupSlots,
           battingResults: results,
@@ -133,6 +137,8 @@ export default function GameResultPage() {
           teamId,
           date: gameDate,
           opponent,
+          isFirstBatting,
+          totalInnings,
           inningScores,
           lineupSlots,
           battingResults: results,
@@ -279,7 +285,11 @@ export default function GameResultPage() {
         
         <ScoreInput 
           inningScores={inningScores} 
-          onScoresChange={setInningScores} 
+          onScoresChange={setInningScores}
+          isFirstBatting={isFirstBatting}
+          onFirstBattingChange={setIsFirstBatting}
+          totalInnings={totalInnings}
+          onTotalInningsChange={setTotalInnings}
         />
         
         <BattingGrid 
