@@ -19,14 +19,19 @@ export default function GamesListPage() {
   
   const [games, setGames] = useState<GameWithScores[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/games?teamId=${teamId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setGames(data)
+    // 認証状態と試合データを並行して取得
+    Promise.all([
+      fetch(`/api/games?teamId=${teamId}`).then((res) => res.json()),
+      fetch(`/api/auth/status?teamId=${teamId}`).then((res) => res.json()),
+    ])
+      .then(([gamesData, authData]) => {
+        if (Array.isArray(gamesData)) {
+          setGames(gamesData)
         }
+        setIsAdmin(authData.isAdmin === true)
       })
       .catch(console.error)
       .finally(() => setIsLoading(false))
@@ -51,14 +56,16 @@ export default function GamesListPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       <div className="mx-auto max-w-6xl p-4 md:p-6">
-        {/* 新規作成ボタン */}
-        <Link
-          href={`/${teamId}/games/new`}
-          className="mb-6 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-white shadow-md transition-all hover:bg-blue-700 active:scale-[0.98]"
-        >
-          <PlusCircle className="h-5 w-5" />
-          <span className="font-bold">新しい試合を記録</span>
-        </Link>
+        {/* 新規作成ボタン（管理者のみ表示） */}
+        {isAdmin && (
+          <Link
+            href={`/${teamId}/games/new`}
+            className="mb-6 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-white shadow-md transition-all hover:bg-blue-700 active:scale-[0.98]"
+          >
+            <PlusCircle className="h-5 w-5" />
+            <span className="font-bold">新しい試合を記録</span>
+          </Link>
+        )}
 
         {/* ローディング */}
         {isLoading ? (
