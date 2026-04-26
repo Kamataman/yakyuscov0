@@ -9,7 +9,7 @@ export async function POST(
 ) {
   const { id: gameId } = await params
   const body = await request.json()
-  const { date, opponent, location, memo, shareToken } = body
+  const { date, opponent, location, memo, isFirstBatting, totalInnings, shareToken } = body
 
   // アクセス権チェック
   const session = await requireGameAccess(gameId, shareToken)
@@ -27,6 +27,8 @@ export async function POST(
   if (opponent !== undefined) updateData.opponent = opponent
   if (location !== undefined) updateData.location = location
   if (memo !== undefined) updateData.memo = memo
+  if (isFirstBatting !== undefined) updateData.is_first_batting = isFirstBatting
+  if (totalInnings !== undefined) updateData.total_innings = totalInnings
 
   const { error } = await supabase
     .from("games")
