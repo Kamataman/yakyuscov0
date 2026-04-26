@@ -87,8 +87,10 @@ export default function GameResultPage() {
         throw new Error("保存に失敗しました")
       }
 
-      alert("保存しました")
-      router.push(`/${teamId}/games`)
+      const data = await response.json()
+      
+      // 作成した試合の編集ページにリダイレクト（共有URLを発行できるように）
+      router.push(`/${teamId}/games/${data.id}/edit`)
     } catch (error) {
       console.error(error)
       alert("保存に失敗しました")
