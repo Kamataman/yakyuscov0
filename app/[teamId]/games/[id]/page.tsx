@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Edit, Trash2, Loader2 } from "lucide-react"
@@ -65,10 +65,11 @@ export default function GameDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
+    setIsLoading(true)
     Promise.all([
-      fetch(`/api/games/${gameId}`).then((res) => res.json()),
-      fetch(`/api/auth/status?teamId=${teamId}`).then((res) => res.json()),
+      fetch(`/api/games/${gameId}`, { cache: "no-store" }).then((res) => res.json()),
+      fetch(`/api/auth/status?teamId=${teamId}`, { cache: "no-store" }).then((res) => res.json()),
     ])
       .then(([gameData, authData]) => {
         setData(gameData)
@@ -77,6 +78,23 @@ export default function GameDetailPage() {
       .catch(console.error)
       .finally(() => setIsLoading(false))
   }, [gameId, teamId])
+
+  // 初回読み込み
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  // ブラウザの「戻る」操作でも再取得する（bfcache対応）
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        // bfcacheから復元された場合は再取得
+        fetchData()
+      }
+    }
+    window.addEventListener("pageshow", handlePageShow)
+    return () => window.removeEventListener("pageshow", handlePageShow)
+  }, [fetchData])
 
   const handleDelete = async () => {
     if (!confirm("この試合を削除しますか？")) return
