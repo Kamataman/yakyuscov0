@@ -73,7 +73,7 @@ export default function LandingPage() {
             <div className="mb-4 inline-flex rounded-xl bg-purple-500/20 p-3">
               <Users className="h-8 w-8 text-purple-400" />
             </div>
-            <h4 className="mb-2 text-xl font-bold text-white">選手管理</h4>
+            <h4 className="mb-2 text-xl font-bold text-white">選手一覧</h4>
             <p className="text-slate-400">
               チームメンバーを登録して、試合ごとの出場選手を簡単選択。
               背番号やポジションも管理。

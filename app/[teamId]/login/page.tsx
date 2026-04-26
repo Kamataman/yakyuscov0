@@ -55,7 +55,7 @@ export default function TeamLoginPage() {
           </div>
           <h1 className="text-2xl font-bold text-slate-800">管理者ログイン</h1>
           <p className="text-slate-500 mt-2">
-            チーム設定や選手管理を行うにはログインが必要です
+            試合の追加や選手の編集を行うにはログインが必要です
           </p>
         </div>
 

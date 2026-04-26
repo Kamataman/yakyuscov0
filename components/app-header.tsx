@@ -69,11 +69,10 @@ export function AppHeader() {
     { href: `/${teamId}`, label: "ホーム", icon: Home },
     { href: `/${teamId}/games`, label: "試合一覧", icon: List },
     { href: `/${teamId}/stats`, label: "個人成績", icon: BarChart3 },
-    { href: `/${teamId}/players`, label: "選手管理", icon: Users, adminOnly: true },
+    { href: `/${teamId}/players`, label: "選手一覧", icon: Users },
   ]
 
-  // 管理者専用ページをフィルタリング
-  const visibleNavItems = navItems.filter(item => !item.adminOnly || isTeamAdmin)
+  const visibleNavItems = navItems
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">

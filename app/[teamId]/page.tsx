@@ -122,7 +122,7 @@ export default function TeamDashboardPage() {
             </div>
           </Link>
 
-          {/* 選手管理 */}
+          {/* 選手一覧 */}
           <Link
             href={`/${teamId}/players`}
             className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg"
@@ -133,10 +133,10 @@ export default function TeamDashboardPage() {
               </div>
               <div className="flex-1">
                 <h2 className="text-lg font-bold text-slate-800 group-hover:text-purple-600">
-                  選手管理
+                  選手一覧
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  選手の登録・編集
+                  登録選手の確認
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
                   {isLoading ? (
