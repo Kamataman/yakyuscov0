@@ -1,17 +1,28 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useParams } from "next/navigation"
-import { Home, List, BarChart3, Users, Menu, X } from "lucide-react"
+import { usePathname, useParams, useRouter } from "next/navigation"
+import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 
 export function AppHeader() {
   const pathname = usePathname()
   const params = useParams()
+  const router = useRouter()
   const teamId = params.teamId as string | undefined
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [teamName, setTeamName] = useState<string | null>(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [loggedInTeamId, setLoggedInTeamId] = useState<string | null>(null)
 
   // チームが指定されていない場合（ランディングページ等）はヘッダーを表示しない
   const isTeamPage = teamId && !pathname.startsWith("/register")
@@ -28,14 +39,40 @@ export function AppHeader() {
     }
   }, [teamId])
 
+  // ログイン状態を確認
+  useEffect(() => {
+    fetch("/api/auth/status")
+      .then(res => res.json())
+      .then(data => {
+        setIsLoggedIn(data.isLoggedIn)
+        setLoggedInTeamId(data.teamId)
+      })
+      .catch(() => {
+        setIsLoggedIn(false)
+        setLoggedInTeamId(null)
+      })
+  }, [pathname])
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" })
+    setIsLoggedIn(false)
+    setLoggedInTeamId(null)
+    router.refresh()
+  }
+
   if (!isTeamPage) return null
+
+  // このチームの管理者としてログインしているか
+  const isTeamAdmin = isLoggedIn && loggedInTeamId === teamId
 
   const navItems = [
     { href: `/${teamId}`, label: "ホーム", icon: Home },
     { href: `/${teamId}/games`, label: "試合一覧", icon: List },
     { href: `/${teamId}/stats`, label: "個人成績", icon: BarChart3 },
-    { href: `/${teamId}/players`, label: "選手管理", icon: Users },
+    { href: `/${teamId}/players`, label: "選手一覧", icon: Users },
   ]
+
+  const visibleNavItems = navItems
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
@@ -53,7 +90,7 @@ export function AppHeader() {
 
         {/* デスクトップナビ */}
         <nav className="hidden md:flex items-center gap-1">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href || 
               (item.href !== `/${teamId}` && pathname.startsWith(item.href))
@@ -74,6 +111,55 @@ export function AppHeader() {
               </Link>
             )
           })}
+
+          {/* ログイン/ログアウトボタン */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className={cn(
+                  "ml-2 gap-2",
+                  isTeamAdmin ? "text-emerald-600 hover:text-emerald-700" : "text-slate-500"
+                )}
+              >
+                {isTeamAdmin ? (
+                  <>
+                    <Shield className="h-4 w-4" />
+                    <span className="hidden lg:inline">管理者</span>
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-4 w-4" />
+                    <span className="hidden lg:inline">ログイン</span>
+                  </>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {isTeamAdmin ? (
+                <>
+                  <DropdownMenuItem disabled className="text-xs text-slate-500">
+                    {teamName || teamId} の管理者
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    ログアウト
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/${teamId}/login`} className="flex items-center">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      管理者ログイン
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
         {/* モバイルメニューボタン */}
@@ -88,7 +174,7 @@ export function AppHeader() {
       {/* モバイルナビ */}
       {isMenuOpen && (
         <nav className="md:hidden border-t bg-white px-4 py-2">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href || 
               (item.href !== `/${teamId}` && pathname.startsWith(item.href))
@@ -110,6 +196,37 @@ export function AppHeader() {
               </Link>
             )
           })}
+          
+          {/* モバイル用ログイン/ログアウト */}
+          <div className="border-t mt-2 pt-2">
+            {isTeamAdmin ? (
+              <>
+                <div className="flex items-center gap-2 px-3 py-2 text-sm text-emerald-600">
+                  <Shield className="h-4 w-4" />
+                  管理者としてログイン中
+                </div>
+                <button
+                  onClick={() => {
+                    handleLogout()
+                    setIsMenuOpen(false)
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="h-5 w-5" />
+                  ログアウト
+                </button>
+              </>
+            ) : (
+              <Link
+                href={`/${teamId}/login`}
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+              >
+                <LogIn className="h-5 w-5" />
+                管理者ログイン
+              </Link>
+            )}
+          </div>
         </nav>
       )}
     </header>

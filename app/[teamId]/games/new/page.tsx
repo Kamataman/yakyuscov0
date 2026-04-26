@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Save, Loader2 } from "lucide-react"
+import { Save, Loader2, Share2 } from "lucide-react"
 import { BattingGrid } from "@/components/batting-grid"
 import { BattingInputDialog } from "@/components/batting-input-dialog"
 import { ScoreInput } from "@/components/score-input"
@@ -16,6 +16,7 @@ export default function GameResultPage() {
   const teamId = params.teamId as string
   
   const [isSaving, setIsSaving] = useState(false)
+  const [isCreatingShareLink, setIsCreatingShareLink] = useState(false)
   const [results, setResults] = useState<Record<string, BattingResult>>({})
   const [selectedCell, setSelectedCell] = useState<CellPosition | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -60,6 +61,62 @@ export default function GameResultPage() {
       .catch(console.error)
   }, [teamId])
 
+  // 共有リンク作成（試合を保存してから共有URLを発行）
+  const handleCreateShareLink = async () => {
+    if (!opponent.trim()) {
+      alert("対戦相手を入力してください")
+      return
+    }
+
+    setIsCreatingShareLink(true)
+    try {
+      // まず試合を保存
+      const response = await fetch("/api/games", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamId,
+          date: gameDate,
+          opponent,
+          inningScores,
+          lineupSlots,
+          battingResults: results,
+          pitchers,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("保存に失敗しました")
+      }
+
+      const data = await response.json()
+      
+      // 共有トークンを作成
+      const tokenResponse = await fetch(`/api/games/${data.id}/share-token`, {
+        method: "POST",
+      })
+
+      if (!tokenResponse.ok) {
+        throw new Error("共有リンクの作成に失敗しました")
+      }
+
+      const tokenData = await tokenResponse.json()
+      const shareUrl = `${window.location.origin}/share/${tokenData.token}`
+
+      // クリップボードにコピー
+      await navigator.clipboard.writeText(shareUrl)
+      alert("共有リンクをコピーしました！LINEなどで共有してください。\n\n" + shareUrl)
+
+      // 編集ページにリダイレクト
+      router.push(`/${teamId}/games/${data.id}/edit`)
+    } catch (error) {
+      console.error(error)
+      alert("共有リンクの作成に失敗しました")
+    } finally {
+      setIsCreatingShareLink(false)
+    }
+  }
+
   // 保存処理
   const handleSave = async () => {
     if (!opponent.trim()) {
@@ -87,8 +144,10 @@ export default function GameResultPage() {
         throw new Error("保存に失敗しました")
       }
 
-      alert("保存しました")
-      router.push(`/${teamId}/games`)
+      const data = await response.json()
+      
+      // 作成した試合の編集ページにリダイレクト（共有URLを発行できるように）
+      router.push(`/${teamId}/games/${data.id}/edit`)
     } catch (error) {
       console.error(error)
       alert("保存に失敗しました")
@@ -161,21 +220,35 @@ export default function GameResultPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       <div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
-        {/* ページタイトルと保存ボタン */}
+        {/* ページタイトルとボタン */}
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-slate-800">試合結果入力</h1>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50"
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            {isSaving ? "保存中..." : "保存"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCreateShareLink}
+              disabled={isCreatingShareLink || isSaving}
+              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50"
+            >
+              {isCreatingShareLink ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Share2 className="h-4 w-4" />
+              )}
+              {isCreatingShareLink ? "作成中..." : "共有して入力"}
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving || isCreatingShareLink}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50"
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {isSaving ? "保存中..." : "保存"}
+            </button>
+          </div>
         </div>
         
         {/* 試合情報 */}

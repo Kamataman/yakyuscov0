@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { requireTeamAdmin } from "@/lib/auth"
 
 // 試合一覧を取得
 export async function GET(request: Request) {
@@ -28,12 +29,18 @@ export async function GET(request: Request) {
   return NextResponse.json(games)
 }
 
-// 新しい試合を作成
+// 新しい試合を作成（管理者のみ）
 export async function POST(request: Request) {
-  const supabase = await createClient()
   const body = await request.json()
-  
   const { teamId, date, opponent, location, memo, inningScores, lineupSlots, battingResults, pitchers } = body
+
+  // 管理者権限チェック
+  const session = await requireTeamAdmin(teamId)
+  if (!session) {
+    return NextResponse.json({ error: "管理者権限が必要です" }, { status: 401 })
+  }
+
+  const supabase = await createClient()
 
   // 試合を作成
   const { data: game, error: gameError } = await supabase

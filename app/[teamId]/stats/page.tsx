@@ -82,6 +82,7 @@ export default function StatsPage() {
   const [battingStats, setBattingStats] = useState<PlayerBattingStats[]>([])
   const [pitchingStats, setPitchingStats] = useState<PlayerPitchingStats[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [activeTab, setActiveTab] = useState<StatsTab>("batting")
   const [battingSortKey, setBattingSortKey] = useState<BattingSortKey>("battingAverage")
   const [pitchingSortKey, setPitchingSortKey] = useState<PitchingSortKey>("era")
@@ -89,11 +90,14 @@ export default function StatsPage() {
   const [showAllColumns, setShowAllColumns] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/stats?teamId=${teamId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.batting) setBattingStats(data.batting)
-        if (data.pitching) setPitchingStats(data.pitching)
+    Promise.all([
+      fetch(`/api/stats?teamId=${teamId}`).then(res => res.json()),
+      fetch(`/api/auth/status?teamId=${teamId}`).then(res => res.json()),
+    ])
+      .then(([statsData, authData]) => {
+        if (statsData.batting) setBattingStats(statsData.batting)
+        if (statsData.pitching) setPitchingStats(statsData.pitching)
+        setIsAdmin(authData.isAdmin === true)
         setIsLoading(false)
       })
       .catch((err) => {
@@ -226,12 +230,14 @@ export default function StatsPage() {
           battingStats.length === 0 ? (
             <div className="rounded-2xl bg-white p-8 text-center shadow-lg">
               <p className="text-slate-500">まだ打撃成績データがありません</p>
-              <Link
-                href={`/${teamId}/games/new`}
-                className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
-              >
-                試合を記録する
-              </Link>
+              {isAdmin && (
+                <Link
+                  href={`/${teamId}/games/new`}
+                  className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+                >
+                  試合を記録する
+                </Link>
+              )}
             </div>
           ) : (
             <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
@@ -302,12 +308,14 @@ export default function StatsPage() {
           pitchingStats.length === 0 ? (
             <div className="rounded-2xl bg-white p-8 text-center shadow-lg">
               <p className="text-slate-500">まだ投手成績データがありません</p>
-              <Link
-                href={`/${teamId}/games/new`}
-                className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
-              >
-                試合を記録する
-              </Link>
+              {isAdmin && (
+                <Link
+                  href={`/${teamId}/games/new`}
+                  className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+                >
+                  試合を記録する
+                </Link>
+              )}
             </div>
           ) : (
             <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
