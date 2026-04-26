@@ -61,19 +61,20 @@ export default function GameDetailPage() {
   const [data, setData] = useState<GameDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/games/${gameId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data)
-        setIsLoading(false)
+    Promise.all([
+      fetch(`/api/games/${gameId}`).then((res) => res.json()),
+      fetch(`/api/auth/status?teamId=${teamId}`).then((res) => res.json()),
+    ])
+      .then(([gameData, authData]) => {
+        setData(gameData)
+        setIsAdmin(authData.isAdmin === true)
       })
-      .catch((err) => {
-        console.error(err)
-        setIsLoading(false)
-      })
-  }, [gameId])
+      .catch(console.error)
+      .finally(() => setIsLoading(false))
+  }, [gameId, teamId])
 
   const handleDelete = async () => {
     if (!confirm("この試合を削除しますか？")) return
@@ -84,7 +85,8 @@ export default function GameDetailPage() {
       if (res.ok) {
         router.push(`/${teamId}/games`)
       } else {
-        alert("削除に失敗しました")
+        const errorData = await res.json()
+        alert(errorData.error || "削除に失敗しました")
       }
     } catch {
       alert("削除に失敗しました")
@@ -154,23 +156,25 @@ export default function GameDetailPage() {
         {/* アクションバー */}
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-slate-800">試合結果</h1>
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/${teamId}/games/${gameId}/edit`}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-blue-700"
-            >
-              <Edit className="h-4 w-4" />
-              編集
-            </Link>
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-red-700 disabled:opacity-50"
-            >
-              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-              削除
-            </button>
-          </div>
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/${teamId}/games/${gameId}/edit`}
+                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-blue-700"
+              >
+                <Edit className="h-4 w-4" />
+                編集
+              </Link>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-red-700 disabled:opacity-50"
+              >
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                削除
+              </button>
+            </div>
+          )}
         </div>
         {/* 試合情報 */}
         <div className="rounded-2xl bg-white p-4 shadow-lg">

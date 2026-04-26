@@ -19,15 +19,18 @@ export default function TeamDashboardPage() {
   const [games, setGames] = useState<GameSummary[]>([])
   const [playerCount, setPlayerCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     Promise.all([
       fetch(`/api/games?teamId=${teamId}`).then(res => res.json()),
       fetch(`/api/players?teamId=${teamId}`).then(res => res.json()),
+      fetch(`/api/auth/status?teamId=${teamId}`).then(res => res.json()),
     ])
-      .then(([gamesData, playersData]) => {
+      .then(([gamesData, playersData, authData]) => {
         if (Array.isArray(gamesData)) setGames(gamesData)
         if (Array.isArray(playersData)) setPlayerCount(playersData.length)
+        setIsAdmin(authData.isAdmin === true)
       })
       .catch(console.error)
       .finally(() => setIsLoading(false))
@@ -50,16 +53,18 @@ export default function TeamDashboardPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       <div className="mx-auto max-w-6xl p-4 md:p-6">
-        {/* クイックアクション */}
-        <div className="mb-8">
-          <Link
-            href={`/${teamId}/games/new`}
-            className="flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white shadow-lg transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow-xl active:scale-[0.98]"
-          >
-            <PlusCircle className="h-6 w-6" />
-            <span className="text-lg font-bold">新しい試合を記録</span>
-          </Link>
-        </div>
+        {/* クイックアクション（管理者のみ表示） */}
+        {isAdmin && (
+          <div className="mb-8">
+            <Link
+              href={`/${teamId}/games/new`}
+              className="flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white shadow-lg transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow-xl active:scale-[0.98]"
+            >
+              <PlusCircle className="h-6 w-6" />
+              <span className="text-lg font-bold">新しい試合を記録</span>
+            </Link>
+          </div>
+        )}
 
         {/* ナビゲーションカード */}
         <div className="grid gap-4 md:grid-cols-2">
@@ -157,12 +162,14 @@ export default function TeamDashboardPage() {
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <Calendar className="mb-3 h-12 w-12 text-slate-300" />
                 <p className="text-slate-500">まだ試合が記録されていません</p>
-                <Link
-                  href={`/${teamId}/games/new`}
-                  className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700"
-                >
-                  最初の試合を記録する
-                </Link>
+                {isAdmin && (
+                  <Link
+                    href={`/${teamId}/games/new`}
+                    className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700"
+                  >
+                    最初の試合を記録する
+                  </Link>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
