@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import { Loader2, ChevronDown, ChevronUp } from "lucide-react"
 import { formatRate, type BattingStats, type PitchingStats } from "@/lib/stats"
 import { cn } from "@/lib/utils"
@@ -75,6 +76,9 @@ const PITCHING_COLUMNS: Array<{
 ]
 
 export default function StatsPage() {
+  const params = useParams()
+  const teamId = params.teamId as string
+  
   const [battingStats, setBattingStats] = useState<PlayerBattingStats[]>([])
   const [pitchingStats, setPitchingStats] = useState<PlayerPitchingStats[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -85,7 +89,7 @@ export default function StatsPage() {
   const [showAllColumns, setShowAllColumns] = useState(false)
 
   useEffect(() => {
-    fetch("/api/stats")
+    fetch(`/api/stats?teamId=${teamId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.batting) setBattingStats(data.batting)
@@ -96,7 +100,7 @@ export default function StatsPage() {
         console.error(err)
         setIsLoading(false)
       })
-  }, [])
+  }, [teamId])
 
   const handleBattingSort = (key: BattingSortKey) => {
     if (battingSortKey === key) {
@@ -112,7 +116,6 @@ export default function StatsPage() {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))
     } else {
       setPitchingSortKey(key)
-      // 防御率は低いほうが良いのでascデフォルト
       setSortDirection(key === "era" || key === "whip" || key === "walkRate" ? "asc" : "desc")
     }
   }
@@ -220,12 +223,11 @@ export default function StatsPage() {
             <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
           </div>
         ) : activeTab === "batting" ? (
-          // 打撃成績テーブル
           battingStats.length === 0 ? (
             <div className="rounded-2xl bg-white p-8 text-center shadow-lg">
               <p className="text-slate-500">まだ打撃成績データがありません</p>
               <Link
-                href="/games/new"
+                href={`/${teamId}/games/new`}
                 className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
               >
                 試合を記録する
@@ -297,12 +299,11 @@ export default function StatsPage() {
             </div>
           )
         ) : (
-          // 投手成績テーブル
           pitchingStats.length === 0 ? (
             <div className="rounded-2xl bg-white p-8 text-center shadow-lg">
               <p className="text-slate-500">まだ投手成績データがありません</p>
               <Link
-                href="/games/new"
+                href={`/${teamId}/games/new`}
                 className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
               >
                 試合を記録する

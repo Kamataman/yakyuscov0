@@ -13,6 +13,7 @@ import type { BattingResult, CellPosition, LineupSlot, InningScore, Player, Pitc
 export default function GameEditPage() {
   const params = useParams()
   const router = useRouter()
+  const teamId = params.teamId as string
   const gameId = params.id as string
   
   const [isLoading, setIsLoading] = useState(true)
@@ -52,7 +53,7 @@ export default function GameEditPage() {
   useEffect(() => {
     Promise.all([
       fetch(`/api/games/${gameId}`).then(res => res.json()),
-      fetch("/api/players").then(res => res.json()),
+      fetch(`/api/players?teamId=${teamId}`).then(res => res.json()),
     ])
       .then(([gameData, playersData]) => {
         if (gameData.game) {
@@ -176,7 +177,7 @@ export default function GameEditPage() {
         console.error(err)
         setIsLoading(false)
       })
-  }, [gameId])
+  }, [gameId, teamId])
 
   // 保存処理
   const handleSave = async () => {
@@ -205,7 +206,7 @@ export default function GameEditPage() {
       }
 
       alert("保存しました")
-      router.push(`/games/${gameId}`)
+      router.push(`/${teamId}/games/${gameId}`)
     } catch (error) {
       console.error(error)
       alert("保存に失敗しました")

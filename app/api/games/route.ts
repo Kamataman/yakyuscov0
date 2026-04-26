@@ -2,16 +2,24 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 // 試合一覧を取得
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient()
-  
-  const { data: games, error } = await supabase
+  const { searchParams } = new URL(request.url)
+  const teamId = searchParams.get("teamId")
+
+  let query = supabase
     .from("games")
     .select(`
       *,
       inning_scores (inning, our_score, opponent_score)
     `)
     .order("date", { ascending: false })
+
+  if (teamId) {
+    query = query.eq("team_id", teamId)
+  }
+
+  const { data: games, error } = await query
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -25,12 +33,13 @@ export async function POST(request: Request) {
   const supabase = await createClient()
   const body = await request.json()
   
-  const { date, opponent, location, memo, inningScores, lineupSlots, battingResults, pitchers } = body
+  const { teamId, date, opponent, location, memo, inningScores, lineupSlots, battingResults, pitchers } = body
 
   // 試合を作成
   const { data: game, error: gameError } = await supabase
     .from("games")
     .insert({
+      team_id: teamId || null,
       date,
       opponent,
       location,

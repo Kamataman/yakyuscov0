@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Save, Loader2 } from "lucide-react"
 import { BattingGrid } from "@/components/batting-grid"
 import { BattingInputDialog } from "@/components/batting-input-dialog"
@@ -11,7 +11,10 @@ import { PitcherInput } from "@/components/pitcher-input"
 import type { BattingResult, CellPosition, LineupSlot, InningScore, Player, PitcherResult } from "@/lib/batting-types"
 
 export default function GameResultPage() {
+  const params = useParams()
   const router = useRouter()
+  const teamId = params.teamId as string
+  
   const [isSaving, setIsSaving] = useState(false)
   const [results, setResults] = useState<Record<string, BattingResult>>({})
   const [selectedCell, setSelectedCell] = useState<CellPosition | null>(null)
@@ -43,7 +46,7 @@ export default function GameResultPage() {
 
   // 選手一覧を取得
   useEffect(() => {
-    fetch("/api/players")
+    fetch(`/api/players?teamId=${teamId}`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -55,7 +58,7 @@ export default function GameResultPage() {
         }
       })
       .catch(console.error)
-  }, [])
+  }, [teamId])
 
   // 保存処理
   const handleSave = async () => {
@@ -70,6 +73,7 @@ export default function GameResultPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          teamId,
           date: gameDate,
           opponent,
           inningScores,
@@ -84,7 +88,7 @@ export default function GameResultPage() {
       }
 
       alert("保存しました")
-      router.push("/games")
+      router.push(`/${teamId}/games`)
     } catch (error) {
       console.error(error)
       alert("保存に失敗しました")
@@ -119,8 +123,6 @@ export default function GameResultPage() {
     setIsDialogOpen(false)
     setSelectedCell(null)
   }
-
-
 
   const handlePlayerClick = (order: number) => {
     setSelectedOrder(order)

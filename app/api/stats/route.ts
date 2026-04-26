@@ -15,22 +15,43 @@ export interface PlayerPitchingStatsResponse {
   stats: PitchingStats
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient()
+  const { searchParams } = new URL(request.url)
+  const teamId = searchParams.get("teamId")
+
+  // チームの試合IDを取得
+  let gameIds: string[] = []
+  if (teamId) {
+    const { data: games } = await supabase
+      .from("games")
+      .select("id")
+      .eq("team_id", teamId)
+    gameIds = games?.map(g => g.id) || []
+  }
 
   // 全打撃結果を取得
-  const { data: allResults, error: resultsError } = await supabase
-    .from("batting_results")
-    .select("*")
+  let resultsQuery = supabase.from("batting_results").select("*")
+  if (teamId && gameIds.length > 0) {
+    resultsQuery = resultsQuery.in("game_id", gameIds)
+  } else if (teamId) {
+    // チームに試合がない場合は空を返す
+    return NextResponse.json({ batting: [], pitching: [] })
+  }
+  const { data: allResults, error: resultsError } = await resultsQuery
 
   if (resultsError) {
     return NextResponse.json({ error: resultsError.message }, { status: 500 })
   }
 
   // 打順エントリーを取得
-  const { data: lineupEntries, error: lineupError } = await supabase
+  let lineupQuery = supabase
     .from("lineup_entries")
     .select("player_id, player_name, game_id, batting_order")
+  if (teamId && gameIds.length > 0) {
+    lineupQuery = lineupQuery.in("game_id", gameIds)
+  }
+  const { data: lineupEntries, error: lineupError } = await lineupQuery
 
   if (lineupError) {
     return NextResponse.json({ error: lineupError.message }, { status: 500 })
@@ -104,9 +125,11 @@ export async function GET() {
   battingStatsResponse.sort((a, b) => b.stats.plateAppearances - a.stats.plateAppearances)
 
   // 投手成績を取得
-  const { data: pitcherResults, error: pitcherError } = await supabase
-    .from("pitcher_results")
-    .select("*")
+  let pitcherQuery = supabase.from("pitcher_results").select("*")
+  if (teamId && gameIds.length > 0) {
+    pitcherQuery = pitcherQuery.in("game_id", gameIds)
+  }
+  const { data: pitcherResults, error: pitcherError } = await pitcherQuery
 
   if (pitcherError) {
     return NextResponse.json({ error: pitcherError.message }, { status: 500 })

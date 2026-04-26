@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import { PlusCircle, Calendar, MapPin, Loader2 } from "lucide-react"
 
 interface GameWithScores {
@@ -13,11 +14,14 @@ interface GameWithScores {
 }
 
 export default function GamesListPage() {
+  const params = useParams()
+  const teamId = params.teamId as string
+  
   const [games, setGames] = useState<GameWithScores[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/games")
+    fetch(`/api/games?teamId=${teamId}`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -26,7 +30,7 @@ export default function GamesListPage() {
       })
       .catch(console.error)
       .finally(() => setIsLoading(false))
-  }, [])
+  }, [teamId])
 
   // 試合の合計スコアを計算
   const getTotalScore = (scores: GameWithScores["inning_scores"]) => {
@@ -49,7 +53,7 @@ export default function GamesListPage() {
       <div className="mx-auto max-w-6xl p-4 md:p-6">
         {/* 新規作成ボタン */}
         <Link
-          href="/games/new"
+          href={`/${teamId}/games/new`}
           className="mb-6 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-white shadow-md transition-all hover:bg-blue-700 active:scale-[0.98]"
         >
           <PlusCircle className="h-5 w-5" />
@@ -74,7 +78,7 @@ export default function GamesListPage() {
               return (
                 <Link
                   key={game.id}
-                  href={`/games/${game.id}`}
+                  href={`/${teamId}/games/${game.id}`}
                   className="block rounded-xl bg-white p-4 shadow-md transition-all hover:shadow-lg"
                 >
                   <div className="flex items-center justify-between">

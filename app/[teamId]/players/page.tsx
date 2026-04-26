@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { PlusCircle, Users, Loader2, X } from "lucide-react"
 
 interface Player {
@@ -10,6 +11,9 @@ interface Player {
 }
 
 export default function PlayersPage() {
+  const params = useParams()
+  const teamId = params.teamId as string
+  
   const [players, setPlayers] = useState<Player[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
@@ -19,10 +23,10 @@ export default function PlayersPage() {
 
   useEffect(() => {
     fetchPlayers()
-  }, [])
+  }, [teamId])
 
   const fetchPlayers = () => {
-    fetch("/api/players")
+    fetch(`/api/players?teamId=${teamId}`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -45,6 +49,7 @@ export default function PlayersPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          teamId,
           name: newName.trim(),
           number: newNumber ? parseInt(newNumber) : null,
         }),

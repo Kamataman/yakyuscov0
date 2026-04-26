@@ -1,32 +1,54 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useParams } from "next/navigation"
 import { Home, List, BarChart3, Users, Menu, X } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
-
-const navItems = [
-  { href: "/", label: "ホーム", icon: Home },
-  { href: "/games", label: "試合一覧", icon: List },
-  { href: "/stats", label: "個人成績", icon: BarChart3 },
-  { href: "/players", label: "選手管理", icon: Users },
-]
 
 export function AppHeader() {
   const pathname = usePathname()
+  const params = useParams()
+  const teamId = params.teamId as string | undefined
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [teamName, setTeamName] = useState<string | null>(null)
+
+  // チームが指定されていない場合（ランディングページ等）はヘッダーを表示しない
+  const isTeamPage = teamId && !pathname.startsWith("/register")
+
+  // チーム名を取得
+  useEffect(() => {
+    if (teamId) {
+      fetch(`/api/teams?id=${teamId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.name) setTeamName(data.name)
+        })
+        .catch(console.error)
+    }
+  }, [teamId])
+
+  if (!isTeamPage) return null
+
+  const navItems = [
+    { href: `/${teamId}`, label: "ホーム", icon: Home },
+    { href: `/${teamId}/games`, label: "試合一覧", icon: List },
+    { href: `/${teamId}/stats`, label: "個人成績", icon: BarChart3 },
+    { href: `/${teamId}/players`, label: "選手管理", icon: Users },
+  ]
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        {/* ロゴ */}
+        {/* チーム名/ロゴ */}
         <Link
-          href="/"
+          href={`/${teamId}`}
           className="flex items-center gap-2 text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
         >
           <span className="text-2xl">&#9918;</span>
-          野球スコア
+          <span className="max-w-[150px] truncate sm:max-w-none">
+            {teamName || teamId}
+          </span>
         </Link>
 
         {/* デスクトップナビ */}
@@ -34,7 +56,7 @@ export function AppHeader() {
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href || 
-              (item.href !== "/" && pathname.startsWith(item.href))
+              (item.href !== `/${teamId}` && pathname.startsWith(item.href))
             
             return (
               <Link
@@ -69,7 +91,7 @@ export function AppHeader() {
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href || 
-              (item.href !== "/" && pathname.startsWith(item.href))
+              (item.href !== `/${teamId}` && pathname.startsWith(item.href))
             
             return (
               <Link

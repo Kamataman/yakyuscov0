@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Edit, Trash2, Loader2 } from "lucide-react"
-import type { BattingResult, LineupSlot, InningScore, PitcherResult } from "@/lib/batting-types"
+import type { BattingResult } from "@/lib/batting-types"
 import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
 import { cn } from "@/lib/utils"
 
@@ -55,6 +55,7 @@ interface GameDetail {
 export default function GameDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const teamId = params.teamId as string
   const gameId = params.id as string
   
   const [data, setData] = useState<GameDetail | null>(null)
@@ -81,7 +82,7 @@ export default function GameDetailPage() {
     try {
       const res = await fetch(`/api/games/${gameId}`, { method: "DELETE" })
       if (res.ok) {
-        router.push("/games")
+        router.push(`/${teamId}/games`)
       } else {
         alert("削除に失敗しました")
       }
@@ -104,7 +105,7 @@ export default function GameDetailPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gradient-to-b from-slate-100 to-slate-200">
         <p className="text-slate-600">試合が見つかりません</p>
-        <Link href="/games" className="text-blue-600 hover:underline">
+        <Link href={`/${teamId}/games`} className="text-blue-600 hover:underline">
           試合一覧に戻る
         </Link>
       </div>
@@ -155,7 +156,7 @@ export default function GameDetailPage() {
           <h1 className="text-lg font-bold text-slate-800">試合結果</h1>
           <div className="flex items-center gap-2">
             <Link
-              href={`/games/${gameId}/edit`}
+              href={`/${teamId}/games/${gameId}/edit`}
               className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-blue-700"
             >
               <Edit className="h-4 w-4" />

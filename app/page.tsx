@@ -1,214 +1,112 @@
-"use client"
-
-import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Calendar, Users, PlusCircle, TrendingUp, Loader2 } from "lucide-react"
+import { Users, BarChart3, Calendar, ChevronRight } from "lucide-react"
 
-interface GameSummary {
-  id: string
-  date: string
-  opponent: string
-  inning_scores: { our_score: number; opponent_score: number }[]
-}
-
-export default function HomePage() {
-  const [games, setGames] = useState<GameSummary[]>([])
-  const [playerCount, setPlayerCount] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/games").then(res => res.json()),
-      fetch("/api/players").then(res => res.json()),
-    ])
-      .then(([gamesData, playersData]) => {
-        if (Array.isArray(gamesData)) setGames(gamesData)
-        if (Array.isArray(playersData)) setPlayerCount(playersData.length)
-      })
-      .catch(console.error)
-      .finally(() => setIsLoading(false))
-  }, [])
-
-  const getTotalScore = (scores: GameSummary["inning_scores"]) => ({
-    our: scores?.reduce((sum, s) => sum + (s.our_score || 0), 0) || 0,
-    opponent: scores?.reduce((sum, s) => sum + (s.opponent_score || 0), 0) || 0,
-  })
-
-  const getResult = (scores: GameSummary["inning_scores"]) => {
-    const total = getTotalScore(scores)
-    if (total.our > total.opponent) return "win"
-    if (total.our < total.opponent) return "lose"
-    return "draw"
-  }
-
-  const recentGames = games.slice(0, 3)
-
+export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-      <div className="mx-auto max-w-6xl p-4 md:p-6">
-        {/* クイックアクション */}
-        <div className="mb-8">
+    <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
+      {/* ヘッダー */}
+      <header className="mx-auto max-w-6xl px-4 py-6">
+        <nav className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-white">野球スコア</h1>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/register"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+            >
+              チーム登録
+            </Link>
+          </div>
+        </nav>
+      </header>
+
+      {/* ヒーローセクション */}
+      <section className="mx-auto max-w-6xl px-4 py-16 text-center md:py-24">
+        <h2 className="text-4xl font-bold leading-tight text-white md:text-5xl">
+          チームの試合結果と<br />個人成績を簡単管理
+        </h2>
+        <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-300">
+          野球チームの試合スコア、打撃成績、投手成績を一元管理。
+          スマートフォンからいつでも簡単に記録・確認できます。
+        </p>
+        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
-            href="/games/new"
-            className="flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white shadow-lg transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow-xl active:scale-[0.98]"
+            href="/register"
+            className="flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"
           >
-            <PlusCircle className="h-6 w-6" />
-            <span className="text-lg font-bold">新しい試合を記録</span>
+            無料でチームを作成
+            <ChevronRight className="h-5 w-5" />
+          </Link>
+          <Link
+            href="/demo"
+            className="rounded-xl border border-slate-600 px-8 py-4 text-lg font-bold text-white transition-all hover:bg-slate-700"
+          >
+            デモを見る
           </Link>
         </div>
+      </section>
 
-        {/* ナビゲーションカード */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* 試合一覧 */}
-          <Link
-            href="/games"
-            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg"
-          >
-            <div className="flex items-start gap-4">
-              <div className="rounded-xl bg-emerald-100 p-3">
-                <Calendar className="h-7 w-7 text-emerald-600" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-bold text-slate-800 group-hover:text-emerald-600">
-                  試合一覧
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  過去の試合結果を確認・編集
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <span>{games.length} 試合</span>
-                  )}
-                </div>
-              </div>
+      {/* 機能紹介 */}
+      <section className="mx-auto max-w-6xl px-4 py-16">
+        <h3 className="mb-12 text-center text-2xl font-bold text-white">主な機能</h3>
+        <div className="grid gap-8 md:grid-cols-3">
+          <div className="rounded-2xl bg-slate-800/50 p-6">
+            <div className="mb-4 inline-flex rounded-xl bg-blue-500/20 p-3">
+              <Calendar className="h-8 w-8 text-blue-400" />
             </div>
-          </Link>
-
-          {/* 個人成績 */}
-          <Link
-            href="/stats"
-            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg"
-          >
-            <div className="flex items-start gap-4">
-              <div className="rounded-xl bg-amber-100 p-3">
-                <TrendingUp className="h-7 w-7 text-amber-600" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-bold text-slate-800 group-hover:text-amber-600">
-                  個人成績
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  選手ごとの打撃・投手成績を確認
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <span>{playerCount} 選手</span>
-                  )}
-                </div>
-              </div>
+            <h4 className="mb-2 text-xl font-bold text-white">試合結果の記録</h4>
+            <p className="text-slate-400">
+              スコアボード形式で各イニングのスコアを記録。
+              打撃結果もタップ操作で簡単入力。
+            </p>
+          </div>
+          <div className="rounded-2xl bg-slate-800/50 p-6">
+            <div className="mb-4 inline-flex rounded-xl bg-emerald-500/20 p-3">
+              <BarChart3 className="h-8 w-8 text-emerald-400" />
             </div>
-          </Link>
-
-          {/* 選手管理 */}
-          <Link
-            href="/players"
-            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg"
-          >
-            <div className="flex items-start gap-4">
-              <div className="rounded-xl bg-purple-100 p-3">
-                <Users className="h-7 w-7 text-purple-600" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-bold text-slate-800 group-hover:text-purple-600">
-                  選手管理
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  選手の登録・編集
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <span>{playerCount} 選手登録済み</span>
-                  )}
-                </div>
-              </div>
+            <h4 className="mb-2 text-xl font-bold text-white">個人成績の自動集計</h4>
+            <p className="text-slate-400">
+              打率、出塁率、OPS、防御率などを自動計算。
+              選手ごとの成績を一覧で確認。
+            </p>
+          </div>
+          <div className="rounded-2xl bg-slate-800/50 p-6">
+            <div className="mb-4 inline-flex rounded-xl bg-purple-500/20 p-3">
+              <Users className="h-8 w-8 text-purple-400" />
             </div>
-          </Link>
-        </div>
-
-        {/* 直近の試合 */}
-        <div className="mt-8">
-          <h2 className="mb-4 text-lg font-bold text-slate-800">直近の試合</h2>
-          <div className="rounded-2xl bg-white p-6 shadow-md">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-              </div>
-            ) : recentGames.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Calendar className="mb-3 h-12 w-12 text-slate-300" />
-                <p className="text-slate-500">まだ試合が記録されていません</p>
-                <Link
-                  href="/games/new"
-                  className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700"
-                >
-                  最初の試合を記録する
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {recentGames.map((game) => {
-                  const total = getTotalScore(game.inning_scores || [])
-                  const result = getResult(game.inning_scores || [])
-                  return (
-                    <Link
-                      key={game.id}
-                      href={`/games/${game.id}`}
-                      className="flex items-center justify-between rounded-lg border border-slate-100 p-3 transition-all hover:bg-slate-50"
-                    >
-                      <div>
-                        <p className="text-sm text-slate-500">{game.date}</p>
-                        <p className="font-bold text-slate-800">vs {game.opponent}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`rounded px-2 py-0.5 text-xs font-bold ${
-                            result === "win"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : result === "lose"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-slate-100 text-slate-700"
-                          }`}
-                        >
-                          {result === "win" ? "勝" : result === "lose" ? "敗" : "分"}
-                        </div>
-                        <span className="text-lg font-bold">
-                          <span className="text-blue-600">{total.our}</span>
-                          <span className="mx-1 text-slate-400">-</span>
-                          <span className="text-red-600">{total.opponent}</span>
-                        </span>
-                      </div>
-                    </Link>
-                  )
-                })}
-                {games.length > 3 && (
-                  <Link
-                    href="/games"
-                    className="block text-center text-sm font-medium text-blue-600 hover:text-blue-700"
-                  >
-                    すべての試合を見る
-                  </Link>
-                )}
-              </div>
-            )}
+            <h4 className="mb-2 text-xl font-bold text-white">選手管理</h4>
+            <p className="text-slate-400">
+              チームメンバーを登録して、試合ごとの出場選手を簡単選択。
+              背番号やポジションも管理。
+            </p>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mx-auto max-w-6xl px-4 py-16 text-center">
+        <div className="rounded-3xl bg-gradient-to-r from-blue-600 to-blue-700 p-8 md:p-12">
+          <h3 className="text-2xl font-bold text-white md:text-3xl">
+            今すぐチームを作成して始めましょう
+          </h3>
+          <p className="mt-4 text-blue-100">
+            無料で使えます。クレジットカード不要。
+          </p>
+          <Link
+            href="/register"
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-blue-600 shadow-lg transition-all hover:bg-slate-100"
+          >
+            チーム登録
+            <ChevronRight className="h-5 w-5" />
+          </Link>
+        </div>
+      </section>
+
+      {/* フッター */}
+      <footer className="border-t border-slate-700 py-8">
+        <div className="mx-auto max-w-6xl px-4 text-center text-sm text-slate-500">
+          <p>野球スコア - チームの記録を管理するアプリ</p>
+        </div>
+      </footer>
     </main>
   )
 }
