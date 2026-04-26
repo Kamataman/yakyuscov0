@@ -517,7 +517,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
           isFirstBatting={isFirstBatting}
           onFirstBattingChange={(value) => handleGameInfoChange("isFirstBatting", value)}
           totalInnings={totalInnings}
-          onTotalInningsChange={(value) => {
+onTotalInningsChange={(value) => {
             handleGameInfoChange("totalInnings", value)
             // イニングスコア配列も調整
             if (value > inningScores.length) {
@@ -526,6 +526,9 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
                 newScores.push({ our: 0, opponent: 0 })
               }
               setInningScores(newScores)
+            } else if (value < inningScores.length) {
+              // イニング数を減らす場合はスコア配列を縮小
+              setInningScores(inningScores.slice(0, value))
             }
           }}
         />
