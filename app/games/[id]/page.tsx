@@ -137,6 +137,16 @@ export default function GameDetailPage() {
   const maxInning = Math.max(9, ...inningScores.map(s => s.inning))
   const maxOrder = Math.max(9, ...lineupEntries.map(e => e.batting_order))
 
+  // 投球回を整数と分数で表示
+  const formatInnings = (innings: number) => {
+    const whole = Math.floor(innings)
+    const fraction = innings - whole
+    if (fraction < 0.17) return `${whole}`
+    if (fraction < 0.5) return `${whole} 1/3`
+    if (fraction < 0.84) return `${whole} 2/3`
+    return `${whole + 1}`
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       <div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
@@ -303,9 +313,9 @@ export default function GameDetailPage() {
         </div>
 
         {/* 投手成績 */}
-        {pitcherResults.length > 0 && (
-          <div className="rounded-2xl bg-white p-4 shadow-lg">
-            <h2 className="mb-3 text-sm font-bold text-slate-600">投手成績</h2>
+        <div className="rounded-2xl bg-white p-4 shadow-lg">
+          <h2 className="mb-3 text-sm font-bold text-slate-600">投手成績</h2>
+          {pitcherResults.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-center text-sm">
                 <thead>
@@ -324,7 +334,7 @@ export default function GameDetailPage() {
                   {pitcherResults.map((pitcher, index) => (
                     <tr key={index} className="border-b">
                       <td className="px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
-                      <td className="px-2 py-2">{pitcher.innings_pitched}</td>
+                      <td className="px-2 py-2">{formatInnings(pitcher.innings_pitched)}</td>
                       <td className="px-2 py-2">{pitcher.hits}</td>
                       <td className="px-2 py-2">{pitcher.strikeouts}</td>
                       <td className="px-2 py-2">{pitcher.walks}</td>
@@ -341,8 +351,10 @@ export default function GameDetailPage() {
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="py-8 text-center text-slate-400">投手成績が登録されていません</p>
+          )}
+        </div>
 
         {/* メモ */}
         {game.memo && (
