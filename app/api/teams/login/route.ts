@@ -46,9 +46,9 @@ export async function POST(request: Request) {
     )
   }
 
-  // セッションCookieを設定
+  // セッションCookieを設定（共通のCookie名を使用）
   const cookieStore = await cookies()
-  cookieStore.set(`team_session_${teamId}`, JSON.stringify({
+  cookieStore.set("team_session", JSON.stringify({
     teamId: team.id,
     teamName: team.name,
     isAdmin: true,
