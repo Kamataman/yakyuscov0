@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Edit, Trash2, Loader2 } from "lucide-react"
 import type { BattingResult, LineupSlot, InningScore, PitcherResult } from "@/lib/batting-types"
-import { getSummaryText, isHit, isOnBase } from "@/lib/batting-types"
+import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
 import { cn } from "@/lib/utils"
 
 interface GameDetail {
@@ -287,7 +287,7 @@ export default function GameDetailPage() {
                           direction: result.direction as BattingResult["direction"],
                           rbiCount: result.rbi_count,
                         }
-                        const summary = getSummaryText(resultObj)
+                        const summary = getResultSummary(resultObj)
                         const hit = isHit(result.hit_result as BattingResult["hitResult"])
                         const onBase = isOnBase(result.hit_result as BattingResult["hitResult"])
 
