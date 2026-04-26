@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { PlusCircle, Users, Loader2, X, Pencil, Trash2, Check } from "lucide-react"
+import { sortPlayersByNumber } from "@/lib/sort-utils"
 
 interface Player {
   id: string
@@ -32,7 +33,7 @@ export default function PlayersPage() {
     ])
       .then(([playersData, authData]) => {
         if (Array.isArray(playersData)) {
-          setPlayers(playersData)
+          setPlayers(sortPlayersByNumber(playersData))
         }
         setIsAdmin(authData.isAdmin === true)
       })

@@ -569,7 +569,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Link className="h-5 w-5" />
+              <Share2 className="h-5 w-5" />
               共有URLを発行
             </DialogTitle>
             <DialogDescription>

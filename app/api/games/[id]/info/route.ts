@@ -30,19 +30,14 @@ export async function POST(
   if (isFirstBatting !== undefined) updateData.is_first_batting = isFirstBatting
   if (totalInnings !== undefined) updateData.total_innings = totalInnings
 
-  console.log("[v0] Updating game info:", gameId, updateData)
-
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("games")
     .update(updateData)
     .eq("id", gameId)
-    .select()
-
-  console.log("[v0] Update result:", { data, error })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true, data })
+  return NextResponse.json({ success: true })
 }
