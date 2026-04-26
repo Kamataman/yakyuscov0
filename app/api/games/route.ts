@@ -1,5 +1,3 @@
-"use server"
-
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
@@ -79,15 +77,17 @@ export async function POST(request: Request) {
     
     lineupSlots.forEach((slot: { order: number; entries: Array<{ playerId: string; playerName: string; position?: string; isSubstitute?: boolean; enteredInning?: number }> }) => {
       slot.entries.forEach((entry) => {
-        lineupData.push({
-          game_id: gameId,
-          batting_order: slot.order,
-          player_id: entry.playerId || null,
-          player_name: entry.playerName,
-          position: entry.position || null,
-          is_substitute: entry.isSubstitute || false,
-          entered_inning: entry.enteredInning || null,
-        })
+        if (entry.playerName && entry.playerName.trim() !== "") {
+          lineupData.push({
+            game_id: gameId,
+            batting_order: slot.order,
+            player_id: entry.playerId || null,
+            player_name: entry.playerName,
+            position: entry.position || null,
+            is_substitute: entry.isSubstitute || false,
+            entered_inning: entry.enteredInning || null,
+          })
+        }
       })
     })
 
@@ -142,48 +142,52 @@ export async function POST(request: Request) {
 
   // 投手成績を保存
   if (pitchers && pitchers.length > 0) {
-    const pitchersData = pitchers.map((p: {
-      playerId: string
-      playerName: string
-      inningsPitched: number
-      hits: number
-      runs: number
-      earnedRuns: number
-      strikeouts: number
-      walks: number
-      hitByPitch: number
-      homeRuns: number
-      pitchCount?: number
-      isWin?: boolean
-      isLose?: boolean
-      isSave?: boolean
-      isHold?: boolean
-    }, index: number) => ({
-      game_id: gameId,
-      player_id: p.playerId || null,
-      player_name: p.playerName,
-      innings_pitched: p.inningsPitched || 0,
-      hits: p.hits || 0,
-      runs: p.runs || 0,
-      earned_runs: p.earnedRuns || 0,
-      strikeouts: p.strikeouts || 0,
-      walks: p.walks || 0,
-      hit_by_pitch: p.hitByPitch || 0,
-      home_runs: p.homeRuns || 0,
-      pitch_count: p.pitchCount || null,
-      is_win: p.isWin || false,
-      is_lose: p.isLose || false,
-      is_save: p.isSave || false,
-      is_hold: p.isHold || false,
-      order_index: index,
-    }))
+    const pitchersData = pitchers
+      .filter((p: { playerName?: string }) => p.playerName && p.playerName.trim() !== "")
+      .map((p: {
+        playerId: string
+        playerName: string
+        inningsPitched: number
+        hits: number
+        runs: number
+        earnedRuns: number
+        strikeouts: number
+        walks: number
+        hitByPitch: number
+        homeRuns: number
+        pitchCount?: number
+        isWin?: boolean
+        isLose?: boolean
+        isSave?: boolean
+        isHold?: boolean
+      }, index: number) => ({
+        game_id: gameId,
+        player_id: p.playerId || null,
+        player_name: p.playerName,
+        innings_pitched: p.inningsPitched || 0,
+        hits: p.hits || 0,
+        runs: p.runs || 0,
+        earned_runs: p.earnedRuns || 0,
+        strikeouts: p.strikeouts || 0,
+        walks: p.walks || 0,
+        hit_by_pitch: p.hitByPitch || 0,
+        home_runs: p.homeRuns || 0,
+        pitch_count: p.pitchCount || null,
+        is_win: p.isWin || false,
+        is_lose: p.isLose || false,
+        is_save: p.isSave || false,
+        is_hold: p.isHold || false,
+        order_index: index,
+      }))
 
-    const { error: pitchersError } = await supabase
-      .from("pitcher_results")
-      .insert(pitchersData)
+    if (pitchersData.length > 0) {
+      const { error: pitchersError } = await supabase
+        .from("pitcher_results")
+        .insert(pitchersData)
 
-    if (pitchersError) {
-      console.error("Error saving pitchers:", pitchersError)
+      if (pitchersError) {
+        console.error("Error saving pitchers:", pitchersError)
+      }
     }
   }
 

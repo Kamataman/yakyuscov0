@@ -12,44 +12,32 @@ export interface PlayerStatsResponse {
 export async function GET() {
   const supabase = await createClient()
 
-  // 全選手を取得
-  const { data: players, error: playersError } = await supabase
-    .from("players")
-    .select("id, name")
-    .order("name")
-
-  if (playersError) {
-    return NextResponse.json({ error: playersError.message }, { status: 500 })
-  }
-
   // 全打撃結果を取得
   const { data: allResults, error: resultsError } = await supabase
     .from("batting_results")
-    .select(`
-      hit_result,
-      rbi_count,
-      stolen_second,
-      stolen_third,
-      stolen_home,
-      game_id,
-      lineup_entries!inner (
-        player_id,
-        player_name,
-        batting_order
-      )
-    `)
+    .select("*")
 
   if (resultsError) {
     return NextResponse.json({ error: resultsError.message }, { status: 500 })
   }
 
-  // 打順エントリーから選手IDと結果を紐付け
+  // 打順エントリーを取得
   const { data: lineupEntries, error: lineupError } = await supabase
     .from("lineup_entries")
     .select("player_id, player_name, game_id, batting_order")
 
   if (lineupError) {
     return NextResponse.json({ error: lineupError.message }, { status: 500 })
+  }
+
+  // 打順エントリーから選手とゲームの紐付けを作成
+  const battingOrderMap = new Map<string, { playerId: string; playerName: string }>()
+  for (const entry of lineupEntries || []) {
+    const key = `${entry.game_id}-${entry.batting_order}`
+    battingOrderMap.set(key, {
+      playerId: entry.player_id || entry.player_name,
+      playerName: entry.player_name,
+    })
   }
 
   // 選手ごとの結果をグループ化
@@ -65,28 +53,15 @@ export async function GET() {
     gameIds: Set<string>
   }>()
 
-  // 打順エントリーから選手とゲームの紐付けを作成
-  const battingOrderMap = new Map<string, { playerId: string; playerName: string }>()
-  for (const entry of lineupEntries || []) {
-    const key = `${entry.game_id}-${entry.batting_order}`
-    battingOrderMap.set(key, {
-      playerId: entry.player_id || entry.player_name,
-      playerName: entry.player_name,
-    })
-  }
-
   // 打撃結果を選手ごとに集計
   for (const result of allResults || []) {
-    const lineup = result.lineup_entries as unknown as {
-      player_id: string | null
-      player_name: string
-      batting_order: number
-    }
+    const key = `${result.game_id}-${result.batting_order}`
+    const lineup = battingOrderMap.get(key)
     
     if (!lineup) continue
     
-    const playerId = lineup.player_id || lineup.player_name
-    const playerName = lineup.player_name
+    const playerId = lineup.playerId
+    const playerName = lineup.playerName
 
     if (!playerResultsMap.has(playerId)) {
       playerResultsMap.set(playerId, {
