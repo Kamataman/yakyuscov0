@@ -1,9 +1,48 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Calendar, Users, PlusCircle, TrendingUp } from "lucide-react"
+import { Calendar, Users, PlusCircle, TrendingUp, Loader2 } from "lucide-react"
+
+interface GameSummary {
+  id: string
+  date: string
+  opponent: string
+  inning_scores: { our_score: number; opponent_score: number }[]
+}
 
 export default function HomePage() {
+  const [games, setGames] = useState<GameSummary[]>([])
+  const [playerCount, setPlayerCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/games").then(res => res.json()),
+      fetch("/api/players").then(res => res.json()),
+    ])
+      .then(([gamesData, playersData]) => {
+        if (Array.isArray(gamesData)) setGames(gamesData)
+        if (Array.isArray(playersData)) setPlayerCount(playersData.length)
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  const getTotalScore = (scores: GameSummary["inning_scores"]) => ({
+    our: scores?.reduce((sum, s) => sum + (s.our_score || 0), 0) || 0,
+    opponent: scores?.reduce((sum, s) => sum + (s.opponent_score || 0), 0) || 0,
+  })
+
+  const getResult = (scores: GameSummary["inning_scores"]) => {
+    const total = getTotalScore(scores)
+    if (total.our > total.opponent) return "win"
+    if (total.our < total.opponent) return "lose"
+    return "draw"
+  }
+
+  const recentGames = games.slice(0, 3)
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       {/* ヘッダー */}
@@ -46,7 +85,11 @@ export default function HomePage() {
                   過去の試合結果を確認・編集
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  <span>0 試合</span>
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <span>{games.length} 試合</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -69,7 +112,11 @@ export default function HomePage() {
                   選手ごとの打撃・投手成績を確認
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  <span>0 選手</span>
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <span>{playerCount} 選手</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -92,7 +139,11 @@ export default function HomePage() {
                   選手の登録・編集
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  <span>0 選手登録済み</span>
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <span>{playerCount} 選手登録済み</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -103,16 +154,67 @@ export default function HomePage() {
         <div className="mt-8">
           <h2 className="mb-4 text-lg font-bold text-slate-800">直近の試合</h2>
           <div className="rounded-2xl bg-white p-6 shadow-md">
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Calendar className="mb-3 h-12 w-12 text-slate-300" />
-              <p className="text-slate-500">まだ試合が記録されていません</p>
-              <Link
-                href="/games/new"
-                className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700"
-              >
-                最初の試合を記録する
-              </Link>
-            </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              </div>
+            ) : recentGames.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Calendar className="mb-3 h-12 w-12 text-slate-300" />
+                <p className="text-slate-500">まだ試合が記録されていません</p>
+                <Link
+                  href="/games/new"
+                  className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700"
+                >
+                  最初の試合を記録する
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentGames.map((game) => {
+                  const total = getTotalScore(game.inning_scores || [])
+                  const result = getResult(game.inning_scores || [])
+                  return (
+                    <Link
+                      key={game.id}
+                      href={`/games/${game.id}`}
+                      className="flex items-center justify-between rounded-lg border border-slate-100 p-3 transition-all hover:bg-slate-50"
+                    >
+                      <div>
+                        <p className="text-sm text-slate-500">{game.date}</p>
+                        <p className="font-bold text-slate-800">vs {game.opponent}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`rounded px-2 py-0.5 text-xs font-bold ${
+                            result === "win"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : result === "lose"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          {result === "win" ? "勝" : result === "lose" ? "敗" : "分"}
+                        </div>
+                        <span className="text-lg font-bold">
+                          <span className="text-blue-600">{total.our}</span>
+                          <span className="mx-1 text-slate-400">-</span>
+                          <span className="text-red-600">{total.opponent}</span>
+                        </span>
+                      </div>
+                    </Link>
+                  )
+                })}
+                {games.length > 3 && (
+                  <Link
+                    href="/games"
+                    className="block text-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                  >
+                    すべての試合を見る
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
