@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, PlusCircle, Calendar, MapPin, Loader2 } from "lucide-react"
+import { PlusCircle, Calendar, MapPin, Loader2 } from "lucide-react"
 
 interface GameWithScores {
   id: string
@@ -46,24 +46,6 @@ export default function GamesListPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm">
-        <div className="mx-auto max-w-6xl px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-slate-800">試合一覧</h1>
-              <p className="text-sm text-slate-500">{games.length} 試合</p>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className="mx-auto max-w-6xl p-4 md:p-6">
         {/* 新規作成ボタン */}
         <Link

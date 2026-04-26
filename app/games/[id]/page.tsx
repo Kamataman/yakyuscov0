@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Edit, Trash2, Loader2 } from "lucide-react"
+import { Edit, Trash2, Loader2 } from "lucide-react"
 import type { BattingResult, LineupSlot, InningScore, PitcherResult } from "@/lib/batting-types"
 import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
 import { cn } from "@/lib/utils"
@@ -139,18 +139,10 @@ export default function GameDetailPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-      {/* ヘッダー */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/games"
-              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <h1 className="text-lg font-bold text-slate-800">試合結果</h1>
-          </div>
+      <div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
+        {/* アクションバー */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-bold text-slate-800">試合結果</h1>
           <div className="flex items-center gap-2">
             <Link
               href={`/games/${gameId}/edit`}
@@ -169,9 +161,6 @@ export default function GameDetailPage() {
             </button>
           </div>
         </div>
-      </header>
-
-      <div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
         {/* 試合情報 */}
         <div className="rounded-2xl bg-white p-4 shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-4">

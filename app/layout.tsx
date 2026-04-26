@@ -1,14 +1,15 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { AppHeader } from '@/components/app-header'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: '打撃結果記録',
-  description: '野球の打撃結果を記録するアプリ',
+  title: '野球スコア',
+  description: '野球の試合結果・打撃成績・投手成績を記録するアプリ',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -37,6 +38,7 @@ export default function RootLayout({
   return (
     <html lang="ja" className="bg-background">
       <body className="font-sans antialiased">
+        <AppHeader />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

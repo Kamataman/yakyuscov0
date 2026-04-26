@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
-import { ArrowLeft, PlusCircle, Users, Loader2, X } from "lucide-react"
+import { PlusCircle, Users, Loader2, X } from "lucide-react"
 
 interface Player {
   id: string
@@ -68,24 +67,6 @@ export default function PlayersPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm">
-        <div className="mx-auto max-w-6xl px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-slate-800">選手管理</h1>
-              <p className="text-sm text-slate-500">{players.length} 選手</p>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className="mx-auto max-w-6xl p-4 md:p-6">
         {/* 新規追加ボタン */}
         {!isAdding && (

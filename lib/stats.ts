@@ -147,6 +147,96 @@ export function calculateBattingStats(
 }
 
 /**
+ * 投手成績の統計情報
+ */
+export interface PitchingStats {
+  games: number              // 登板数
+  wins: number               // 勝利
+  losses: number             // 敗北
+  saves: number              // セーブ
+  holds: number              // ホールド
+  inningsPitched: number     // 投球回
+  hits: number               // 被安打
+  runs: number               // 失点
+  earnedRuns: number         // 自責点
+  strikeouts: number         // 奪三振
+  walks: number              // 与四球
+  hitByPitch: number         // 与死球
+  homeRuns: number           // 被本塁打
+  
+  // 計算指標
+  era: number                // 防御率
+  whip: number               // WHIP
+  strikeoutRate: number      // 奪三振率 (K/9)
+  walkRate: number           // 与四球率 (BB/9)
+}
+
+/**
+ * 投手成績の計算
+ */
+export function calculatePitchingStats(
+  pitcherResults: Array<{
+    innings_pitched: number
+    hits: number
+    runs: number
+    earned_runs: number
+    strikeouts: number
+    walks: number
+    hit_by_pitch: number
+    home_runs: number
+    is_win: boolean
+    is_lose: boolean
+    is_save: boolean
+    is_hold: boolean
+  }>
+): PitchingStats {
+  const stats: PitchingStats = {
+    games: pitcherResults.length,
+    wins: 0,
+    losses: 0,
+    saves: 0,
+    holds: 0,
+    inningsPitched: 0,
+    hits: 0,
+    runs: 0,
+    earnedRuns: 0,
+    strikeouts: 0,
+    walks: 0,
+    hitByPitch: 0,
+    homeRuns: 0,
+    era: 0,
+    whip: 0,
+    strikeoutRate: 0,
+    walkRate: 0,
+  }
+
+  for (const result of pitcherResults) {
+    if (result.is_win) stats.wins++
+    if (result.is_lose) stats.losses++
+    if (result.is_save) stats.saves++
+    if (result.is_hold) stats.holds++
+    stats.inningsPitched += result.innings_pitched || 0
+    stats.hits += result.hits || 0
+    stats.runs += result.runs || 0
+    stats.earnedRuns += result.earned_runs || 0
+    stats.strikeouts += result.strikeouts || 0
+    stats.walks += result.walks || 0
+    stats.hitByPitch += result.hit_by_pitch || 0
+    stats.homeRuns += result.home_runs || 0
+  }
+
+  // 防御率 = 自責点 * 9 / 投球回
+  if (stats.inningsPitched > 0) {
+    stats.era = (stats.earnedRuns * 9) / stats.inningsPitched
+    stats.whip = (stats.walks + stats.hits) / stats.inningsPitched
+    stats.strikeoutRate = (stats.strikeouts * 9) / stats.inningsPitched
+    stats.walkRate = (stats.walks * 9) / stats.inningsPitched
+  }
+
+  return stats
+}
+
+/**
  * 統計値のフォーマット
  */
 export function formatRate(value: number, digits: number = 3): string {

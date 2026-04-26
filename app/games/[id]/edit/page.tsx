@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, Save, Loader2 } from "lucide-react"
+import { Save, Loader2 } from "lucide-react"
 import { BattingGrid } from "@/components/batting-grid"
 import { BattingInputDialog } from "@/components/batting-input-dialog"
 import { ScoreInput } from "@/components/score-input"
@@ -282,18 +281,10 @@ export default function GameEditPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-      {/* ヘッダー */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/games/${gameId}`}
-              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <h1 className="text-lg font-bold text-slate-800">試合結果編集</h1>
-          </div>
+      <div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
+        {/* ページタイトルと保存ボタン */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-bold text-slate-800">試合結果編集</h1>
           <button
             onClick={handleSave}
             disabled={isSaving}
@@ -307,9 +298,6 @@ export default function GameEditPage() {
             {isSaving ? "保存中..." : "保存"}
           </button>
         </div>
-      </header>
-
-      <div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
         {/* 試合情報 */}
         <div className="rounded-2xl bg-white p-4 shadow-lg">
           <h2 className="mb-3 text-sm font-bold text-slate-600">試合情報</h2>

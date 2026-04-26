@@ -45,15 +45,6 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm">
-        <div className="mx-auto max-w-6xl px-4 py-6">
-          <h1 className="text-2xl font-bold text-slate-800">野球スコア管理</h1>
-          <p className="mt-1 text-sm text-slate-500">試合結果と個人成績を記録・管理</p>
-        </div>
-      </header>
-
-      {/* メインコンテンツ */}
       <div className="mx-auto max-w-6xl p-4 md:p-6">
         {/* クイックアクション */}
         <div className="mb-8">

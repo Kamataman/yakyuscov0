@@ -1,12 +1,18 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { calculateBattingStats, type BattingStats } from "@/lib/stats"
+import { calculateBattingStats, calculatePitchingStats, type BattingStats, type PitchingStats } from "@/lib/stats"
 import type { HitResult } from "@/lib/batting-types"
 
-export interface PlayerStatsResponse {
+export interface PlayerBattingStatsResponse {
   playerId: string
   playerName: string
   stats: BattingStats
+}
+
+export interface PlayerPitchingStatsResponse {
+  playerId: string
+  playerName: string
+  stats: PitchingStats
 }
 
 export async function GET() {
@@ -83,11 +89,11 @@ export async function GET() {
   }
 
   // 各選手の統計を計算
-  const statsResponse: PlayerStatsResponse[] = []
+  const battingStatsResponse: PlayerBattingStatsResponse[] = []
 
   for (const [playerId, data] of playerResultsMap) {
     const stats = calculateBattingStats(data.results, data.gameIds.size)
-    statsResponse.push({
+    battingStatsResponse.push({
       playerId,
       playerName: data.name,
       stats,
@@ -95,7 +101,80 @@ export async function GET() {
   }
 
   // 打席数でソート
-  statsResponse.sort((a, b) => b.stats.plateAppearances - a.stats.plateAppearances)
+  battingStatsResponse.sort((a, b) => b.stats.plateAppearances - a.stats.plateAppearances)
 
-  return NextResponse.json(statsResponse)
+  // 投手成績を取得
+  const { data: pitcherResults, error: pitcherError } = await supabase
+    .from("pitcher_results")
+    .select("*")
+
+  if (pitcherError) {
+    return NextResponse.json({ error: pitcherError.message }, { status: 500 })
+  }
+
+  // 投手ごとにグループ化
+  const pitcherResultsMap = new Map<string, {
+    name: string
+    results: Array<{
+      innings_pitched: number
+      hits: number
+      runs: number
+      earned_runs: number
+      strikeouts: number
+      walks: number
+      hit_by_pitch: number
+      home_runs: number
+      is_win: boolean
+      is_lose: boolean
+      is_save: boolean
+      is_hold: boolean
+    }>
+  }>()
+
+  for (const result of pitcherResults || []) {
+    const pitcherId = result.player_id || result.player_name
+    const pitcherName = result.player_name
+
+    if (!pitcherResultsMap.has(pitcherId)) {
+      pitcherResultsMap.set(pitcherId, {
+        name: pitcherName,
+        results: [],
+      })
+    }
+
+    pitcherResultsMap.get(pitcherId)!.results.push({
+      innings_pitched: result.innings_pitched || 0,
+      hits: result.hits || 0,
+      runs: result.runs || 0,
+      earned_runs: result.earned_runs || 0,
+      strikeouts: result.strikeouts || 0,
+      walks: result.walks || 0,
+      hit_by_pitch: result.hit_by_pitch || 0,
+      home_runs: result.home_runs || 0,
+      is_win: result.is_win || false,
+      is_lose: result.is_lose || false,
+      is_save: result.is_save || false,
+      is_hold: result.is_hold || false,
+    })
+  }
+
+  // 各投手の統計を計算
+  const pitchingStatsResponse: PlayerPitchingStatsResponse[] = []
+
+  for (const [pitcherId, data] of pitcherResultsMap) {
+    const stats = calculatePitchingStats(data.results)
+    pitchingStatsResponse.push({
+      playerId: pitcherId,
+      playerName: data.name,
+      stats,
+    })
+  }
+
+  // 登板数でソート
+  pitchingStatsResponse.sort((a, b) => b.stats.games - a.stats.games)
+
+  return NextResponse.json({
+    batting: battingStatsResponse,
+    pitching: pitchingStatsResponse,
+  })
 }
