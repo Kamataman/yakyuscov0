@@ -79,7 +79,7 @@ export default function GameDetailPage() {
       })
       .catch(console.error)
       .finally(() => setIsLoading(false))
-  }, [gameId, teamId])
+  }, [gameId, teamId, timestamp])
 
   // 初回読み込み＆タイムスタンプが変わった時に再取得
   useEffect(() => {
@@ -159,8 +159,9 @@ export default function GameDetailPage() {
     resultsMap.set(`${result.batting_order}-${result.inning}`, result)
   }
 
+  // イニング数はgame.total_inningsを優先（イニングスコアデータの数に関係なく）
   const totalInnings = game.total_innings || 9
-  const maxInning = Math.max(totalInnings, ...inningScores.map(s => s.inning))
+  const maxInning = totalInnings
   const maxOrder = Math.max(9, ...lineupEntries.map(e => e.batting_order))
 
   // 投球回を整数と分数で表示
