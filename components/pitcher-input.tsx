@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils"
 import type { PitcherResult, Player } from "@/lib/batting-types"
 import { Plus, Trash2, Trophy, ThumbsDown, Shield, Star, Minus } from "lucide-react"
+import { sortPlayersByNumber } from "@/lib/sort-utils"
 
 interface PitcherInputProps {
   pitchers: PitcherResult[]
@@ -241,11 +242,11 @@ export function PitcherInput({
                   }}
                   className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all text-slate-800"
                 >
-                  <option value="">選手を選択</option>
-                  {registeredPlayers.map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.name}
-                    </option>
+<option value="">選手を選択</option>
+                {sortPlayersByNumber(registeredPlayers).map((player) => (
+                  <option key={player.id} value={player.id}>
+                    {player.number ? `${player.number} ` : ""}{player.name}
+                  </option>
                   ))}
                 </select>
               ) : (

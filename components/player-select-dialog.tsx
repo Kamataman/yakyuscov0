@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils"
 import type { LineupEntry, FieldPosition, Player } from "@/lib/batting-types"
 import { FIELD_POSITIONS } from "@/lib/batting-types"
+import { sortPlayersByNumber } from "@/lib/sort-utils"
 
 interface PlayerSelectDialogProps {
   open: boolean
@@ -148,7 +149,7 @@ export function PlayerSelectDialog({
                       )}
                     >
                       <option value="">選手を選択...</option>
-                      {registeredPlayers.map((player) => (
+                      {sortPlayersByNumber(registeredPlayers).map((player) => (
                         <option key={player.id} value={player.id}>
                           {player.number ? `${player.number} ` : ""}{player.name}
                         </option>

@@ -26,7 +26,8 @@ export default function GameEditPage() {
   }, [teamId])
 
   const handleBack = () => {
-    router.push(`/${teamId}/games/${gameId}`)
+    // タイムスタンプを追加してキャッシュを無効化
+    router.push(`/${teamId}/games/${gameId}?t=${Date.now()}`)
   }
 
   // 認証状態確認中

@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState, useCallback } from "react"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Edit, Trash2, Loader2 } from "lucide-react"
 import type { BattingResult } from "@/lib/batting-types"
@@ -57,18 +57,21 @@ interface GameDetail {
 export default function GameDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const teamId = params.teamId as string
   const gameId = params.id as string
+  const timestamp = searchParams.get("t") // キャッシュ無効化用
   
   const [data, setData] = useState<GameDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
+    setIsLoading(true)
     Promise.all([
-      fetch(`/api/games/${gameId}`).then((res) => res.json()),
-      fetch(`/api/auth/status?teamId=${teamId}`).then((res) => res.json()),
+      fetch(`/api/games/${gameId}`, { cache: "no-store" }).then((res) => res.json()),
+      fetch(`/api/auth/status?teamId=${teamId}`, { cache: "no-store" }).then((res) => res.json()),
     ])
       .then(([gameData, authData]) => {
         setData(gameData)
@@ -76,7 +79,24 @@ export default function GameDetailPage() {
       })
       .catch(console.error)
       .finally(() => setIsLoading(false))
-  }, [gameId, teamId])
+  }, [gameId, teamId, timestamp])
+
+  // 初回読み込み＆タイムスタンプが変わった時に再取得
+  useEffect(() => {
+    fetchData()
+  }, [fetchData, timestamp])
+
+  // ブラウザの「戻る」操作でも再取得する（bfcache対応）
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        // bfcacheから復元された場合は再取得
+        fetchData()
+      }
+    }
+    window.addEventListener("pageshow", handlePageShow)
+    return () => window.removeEventListener("pageshow", handlePageShow)
+  }, [fetchData])
 
   const handleDelete = async () => {
     if (!confirm("この試合を削除しますか？")) return
@@ -139,8 +159,9 @@ export default function GameDetailPage() {
     resultsMap.set(`${result.batting_order}-${result.inning}`, result)
   }
 
+  // イニング数はgame.total_inningsを優先（イニングスコアデータの数に関係なく）
   const totalInnings = game.total_innings || 9
-  const maxInning = Math.max(totalInnings, ...inningScores.map(s => s.inning))
+  const maxInning = totalInnings
   const maxOrder = Math.max(9, ...lineupEntries.map(e => e.batting_order))
 
   // 投球回を整数と分数で表示

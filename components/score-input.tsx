@@ -73,21 +73,14 @@ export function ScoreInput({
   const handleAddInning = () => {
     if (onTotalInningsChange && totalInnings < 15) {
       onTotalInningsChange(totalInnings + 1)
-      // スコア配列も拡張
-      const newScores = [...inningScores]
-      while (newScores.length < totalInnings + 1) {
-        newScores.push({ our: 0, opponent: 0 })
-      }
-      onScoresChange(newScores)
+      // 親コンポーネント側でスコア配列も調整する
     }
   }
 
   const handleRemoveInning = () => {
     if (onTotalInningsChange && totalInnings > 1) {
       onTotalInningsChange(totalInnings - 1)
-      // スコア配列を縮小（最後のイニングを削除）
-      const newScores = inningScores.slice(0, totalInnings - 1)
-      onScoresChange(newScores)
+      // 親コンポーネント側でスコア配列も調整する
     }
   }
 
