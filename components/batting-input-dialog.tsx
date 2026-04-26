@@ -138,15 +138,15 @@ export function BattingInputDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden max-h-[95vh] overflow-y-auto rounded-2xl border-0 shadow-2xl">
-        {/* ヘッダー */}
-        <DialogHeader className="px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-900 text-white">
+      <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden max-h-[95vh] rounded-2xl border-0 shadow-2xl flex flex-col">
+        {/* 固定ヘッダー */}
+        <DialogHeader className="sticky top-0 z-20 px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-900 text-white flex-shrink-0">
           <DialogTitle className="text-center text-xl font-bold tracking-wide">
             {position ? `${position.battingOrder}番打者 / ${position.inning}回` : "打席入力"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="p-5 space-y-6 bg-gradient-to-b from-slate-50 to-white">
+        <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-gradient-to-b from-slate-50 to-white">
           
           {/* フィールド - ランナー状況と打球方向を統合 */}
           <div className="relative mx-auto w-full max-w-[320px] aspect-[4/3.5]">
@@ -446,32 +446,33 @@ export function BattingInputDialog({
             </div>
           </div>
 
-          {/* アクションボタン */}
-          <div className="flex gap-3 pt-3">
-            {existingResult && (
-              <Button
-                variant="destructive"
-                onClick={onDelete}
-                className="flex-1 h-14 text-base font-bold rounded-xl"
-              >
-                削除
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1 h-14 text-base rounded-xl border-2"
-            >
-              キャンセル
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={!hitResult}
-              className="flex-1 h-14 text-base font-bold rounded-xl bg-slate-800 hover:bg-slate-700"
-            >
-              保存
-            </Button>
           </div>
+
+        {/* 固定フッター - アクションボタン */}
+        <div className="sticky bottom-0 z-20 flex gap-3 p-4 bg-white border-t border-slate-200 flex-shrink-0">
+          {existingResult && (
+            <Button
+              variant="destructive"
+              onClick={onDelete}
+              className="flex-1 h-12 text-base font-bold rounded-xl"
+            >
+              削除
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="flex-1 h-12 text-base rounded-xl border-2"
+          >
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={!hitResult}
+            className="flex-1 h-12 text-base font-bold rounded-xl bg-slate-800 hover:bg-slate-700"
+          >
+            保存
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

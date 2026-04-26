@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Loader2, CheckCircle2, AlertCircle, Share2, Copy, Link } from "lucide-react"
+import { Loader2, CheckCircle2, AlertCircle, Share2, Copy } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { BattingGrid } from "@/components/batting-grid"
 import { BattingInputDialog } from "@/components/batting-input-dialog"
 import { ScoreInput } from "@/components/score-input"
@@ -457,29 +458,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
           </div>
           
           <div className="flex items-center gap-3">
-            {/* 保存ステータス表示 */}
-            <div className="flex items-center gap-2 text-sm">
-              {saveStatus === "saving" && (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                  <span className="text-blue-600">保存中...</span>
-                </>
-              )}
-              {saveStatus === "saved" && (
-                <>
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  <span className="text-emerald-600">保存しました</span>
-                </>
-              )}
-              {saveStatus === "error" && (
-                <>
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                  <span className="text-red-600">保存に失敗</span>
-                </>
-              )}
-            </div>
-
-            {/* 共有ボタン（管��者のみ） */}
+            {/* 共有ボタン（管理者のみ） */}
             {isAdmin && (
               <Button
                 variant="outline"
@@ -637,6 +616,27 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* トースト風の保存ステータス */}
+      {saveStatus !== "idle" && (
+        <div className="fixed bottom-4 right-4 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg text-sm font-medium",
+            saveStatus === "saving" && "bg-blue-500 text-white",
+            saveStatus === "saved" && "bg-emerald-500 text-white",
+            saveStatus === "error" && "bg-red-500 text-white",
+          )}>
+            {saveStatus === "saving" && <Loader2 className="h-4 w-4 animate-spin" />}
+            {saveStatus === "saved" && <CheckCircle2 className="h-4 w-4" />}
+            {saveStatus === "error" && <AlertCircle className="h-4 w-4" />}
+            <span>
+              {saveStatus === "saving" && "保存中..."}
+              {saveStatus === "saved" && "保存しました"}
+              {saveStatus === "error" && "保存に失敗しました"}
+            </span>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
