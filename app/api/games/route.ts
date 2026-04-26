@@ -162,7 +162,7 @@ export async function POST(request: Request) {
         isHold?: boolean
       }, index: number) => ({
         game_id: gameId,
-        player_id: p.playerId || null,
+        player_id: p.playerId && p.playerId.trim() !== "" ? p.playerId : null,
         player_name: p.playerName,
         innings_pitched: p.inningsPitched || 0,
         hits: p.hits || 0,

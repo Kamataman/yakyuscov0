@@ -68,7 +68,8 @@ export function PitcherInput({
       newPitchers[editingIndex] = form
       onPitchersChange(newPitchers)
     } else {
-      onPitchersChange([...pitchers, { ...form, playerId: crypto.randomUUID() }])
+      // player_idは選手選択時のみセットし、それ以外はnullにする
+      onPitchersChange([...pitchers, { ...form, playerId: form.playerId || "" }])
     }
     setIsDialogOpen(false)
   }
@@ -97,21 +98,21 @@ export function PitcherInput({
     max?: number
     step?: number
   }) => (
-    <div className="flex flex-col items-center">
-      <span className="text-xs font-medium text-slate-500 mb-2">{label}</span>
-      <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-sm font-medium text-slate-600 min-w-[60px]">{label}</span>
+      <div className="flex items-center gap-1">
         <button
           onClick={() => onChange(Math.max(min, +(value - step).toFixed(2)))}
-          className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold transition-colors flex items-center justify-center"
+          className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
         >
           <Minus className="w-4 h-4" />
         </button>
-        <span className="w-12 text-center font-bold text-xl text-slate-800">
+        <span className="w-10 text-center font-bold text-lg text-slate-800">
           {step === 0.34 ? formatInnings(value) : value}
         </span>
         <button
           onClick={() => onChange(Math.min(max, +(value + step).toFixed(2)))}
-          className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold transition-colors flex items-center justify-center"
+          className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -269,9 +270,9 @@ export function PitcherInput({
               />
             </div>
 
-            {/* スタッツ - 4列 */}
+            {/* スタッツ - 2列 */}
             <div className="bg-slate-50 rounded-xl p-4">
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <StatButton
                   label="被安打"
                   value={form.hits}
@@ -292,12 +293,6 @@ export function PitcherInput({
                   value={form.hitByPitch}
                   onChange={(v) => setForm({ ...form, hitByPitch: v })}
                 />
-              </div>
-            </div>
-
-            {/* スタッツ - 3列 */}
-            <div className="bg-slate-50 rounded-xl p-4">
-              <div className="grid grid-cols-3 gap-4">
                 <StatButton
                   label="失点"
                   value={form.runs}

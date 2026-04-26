@@ -201,7 +201,7 @@ export async function PUT(
       isHold?: boolean
     }, index: number) => ({
       game_id: id,
-      player_id: p.playerId || null,
+      player_id: p.playerId && p.playerId.trim() !== "" ? p.playerId : null,
       player_name: p.playerName,
       innings_pitched: p.inningsPitched,
       hits: p.hits,
