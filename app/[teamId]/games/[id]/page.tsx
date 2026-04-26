@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Edit, Trash2, Loader2 } from "lucide-react"
 import type { BattingResult } from "@/lib/batting-types"
@@ -57,8 +57,10 @@ interface GameDetail {
 export default function GameDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const teamId = params.teamId as string
   const gameId = params.id as string
+  const timestamp = searchParams.get("t") // キャッシュ無効化用
   
   const [data, setData] = useState<GameDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -79,10 +81,10 @@ export default function GameDetailPage() {
       .finally(() => setIsLoading(false))
   }, [gameId, teamId])
 
-  // 初回読み込み
+  // 初回読み込み＆タイムスタンプが変わった時に再取得
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+  }, [fetchData, timestamp])
 
   // ブラウザの「戻る」操作でも再取得する（bfcache対応）
   useEffect(() => {
