@@ -152,19 +152,19 @@ export function ScoreInput({
         </div>
       )}
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[600px] border-collapse">
+        <table className="w-full border-collapse" style={{ minWidth: `${Math.max(400, 80 + totalInnings * 40 + 56)}px` }}>
           <thead>
             <tr className="bg-slate-800 text-white">
-              <th className="w-20 px-3 py-2 text-left text-xs font-semibold"></th>
+              <th className="sticky left-0 z-10 bg-slate-800 w-20 min-w-[80px] px-3 py-2 text-left text-xs font-semibold"></th>
               {innings.map((inning) => (
                 <th
                   key={inning}
-                  className="w-10 px-2 py-2 text-center text-xs font-semibold"
+                  className="w-10 min-w-[40px] px-1 py-2 text-center text-xs font-semibold"
                 >
                   {inning}
                 </th>
               ))}
-              <th className="w-14 px-3 py-2 text-center text-xs font-semibold bg-slate-700 sticky right-0">
+              <th className="sticky right-0 z-10 bg-slate-700 w-14 min-w-[56px] px-3 py-2 text-center text-xs font-semibold">
                 計
               </th>
             </tr>
@@ -173,7 +173,7 @@ export function ScoreInput({
             {/* 先攻チーム */}
             <tr className="border-b border-slate-200">
               <td className={cn(
-                "px-3 py-2 font-semibold text-sm",
+                "sticky left-0 z-10 w-20 min-w-[80px] px-3 py-2 font-semibold text-sm whitespace-nowrap",
                 isFirstBatting ? "bg-blue-50 text-blue-800" : "bg-red-50 text-red-800"
               )}>
                 {isFirstBatting ? "自チーム" : "相手"}
@@ -201,7 +201,7 @@ export function ScoreInput({
                 </td>
               ))}
               <td className={cn(
-                "px-3 py-2 text-center sticky right-0",
+                "sticky right-0 z-10 w-14 min-w-[56px] px-3 py-2 text-center",
                 isFirstBatting ? "bg-blue-100" : "bg-red-100"
               )}>
                 <span className={cn(
@@ -215,7 +215,7 @@ export function ScoreInput({
             {/* 後攻チーム */}
             <tr>
               <td className={cn(
-                "px-3 py-2 font-semibold text-sm",
+                "sticky left-0 z-10 w-20 min-w-[80px] px-3 py-2 font-semibold text-sm whitespace-nowrap",
                 !isFirstBatting ? "bg-blue-50 text-blue-800" : "bg-red-50 text-red-800"
               )}>
                 {!isFirstBatting ? "自チーム" : "相手"}
@@ -243,7 +243,7 @@ export function ScoreInput({
                 </td>
               ))}
               <td className={cn(
-                "px-3 py-2 text-center sticky right-0",
+                "sticky right-0 z-10 w-14 min-w-[56px] px-3 py-2 text-center",
                 !isFirstBatting ? "bg-blue-100" : "bg-red-100"
               )}>
                 <span className={cn(

@@ -479,7 +479,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
               )}
             </div>
 
-            {/* 共有ボタン（管理者のみ） */}
+            {/* 共有ボタン（管��者のみ） */}
             {isAdmin && (
               <Button
                 variant="outline"
@@ -490,10 +490,10 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
                     handleGenerateShareUrl()
                   }
                 }}
-                className="gap-2"
+                className="gap-2 bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
               >
                 <Share2 className="h-4 w-4" />
-                共有
+                URLを共有して入力
               </Button>
             )}
           </div>
@@ -557,6 +557,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
           lineupSlots={lineupSlots}
           onPlayerClick={handlePlayerClick}
           onAddBattingOrder={handleAddBattingOrder}
+          totalInnings={totalInnings}
         />
 
         <PitcherInput
