@@ -6,18 +6,27 @@ import type { InningScore } from "@/lib/batting-types"
 
 interface ScoreInputProps {
   inningScores: InningScore[]
-  onInningScoreChange: (inning: number, team: "our" | "opponent", value: number) => void
+  onScoresChange: (scores: InningScore[]) => void
 }
 
 const INNINGS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-export function ScoreInput({ inningScores, onInningScoreChange }: ScoreInputProps) {
+export function ScoreInput({ inningScores, onScoresChange }: ScoreInputProps) {
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
   const isLongPressRef = useRef(false)
 
   const getTotalScore = (team: "our" | "opponent") => {
     return inningScores.reduce((sum, score) => sum + (score?.[team] || 0), 0)
   }
+
+  const updateScore = useCallback((inning: number, team: "our" | "opponent", value: number) => {
+    const newScores = [...inningScores]
+    newScores[inning - 1] = {
+      ...newScores[inning - 1],
+      [team]: value,
+    }
+    onScoresChange(newScores)
+  }, [inningScores, onScoresChange])
 
   const handleScoreClick = (inning: number, team: "our" | "opponent") => {
     if (isLongPressRef.current) {
@@ -26,7 +35,7 @@ export function ScoreInput({ inningScores, onInningScoreChange }: ScoreInputProp
     }
     const currentScore = inningScores[inning - 1]?.[team] || 0
     const newScore = currentScore >= 9 ? 0 : currentScore + 1
-    onInningScoreChange(inning, team, newScore)
+    updateScore(inning, team, newScore)
   }
 
   const handleLongPressStart = useCallback((inning: number, team: "our" | "opponent") => {
@@ -35,10 +44,10 @@ export function ScoreInput({ inningScores, onInningScoreChange }: ScoreInputProp
       isLongPressRef.current = true
       const currentScore = inningScores[inning - 1]?.[team] || 0
       if (currentScore > 0) {
-        onInningScoreChange(inning, team, currentScore - 1)
+        updateScore(inning, team, currentScore - 1)
       }
     }, 500)
-  }, [inningScores, onInningScoreChange])
+  }, [inningScores, updateScore])
 
   const handleLongPressEnd = useCallback(() => {
     if (longPressTimerRef.current) {

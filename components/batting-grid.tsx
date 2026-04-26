@@ -7,11 +7,10 @@ import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
 
 interface BattingGridProps {
   results: Record<string, BattingResult>
-  onCellClick: (battingOrder: number, inning: number) => void
+  onCellClick: (position: { battingOrder: number; inning: number }) => void
   lineupSlots: LineupSlot[]
   onPlayerClick: (order: number) => void
-  onAddBattingOrder: () => void
-  maxBattingOrder: number
+  onAddBattingOrder?: () => void
 }
 
 const INNINGS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -21,9 +20,9 @@ export function BattingGrid({
   onCellClick, 
   lineupSlots, 
   onPlayerClick,
-  onAddBattingOrder,
-  maxBattingOrder
+  onAddBattingOrder
 }: BattingGridProps) {
+  const maxBattingOrder = Math.max(lineupSlots.length, 9)
   const battingOrders = Array.from({ length: maxBattingOrder }, (_, i) => i + 1)
 
   const getResult = (battingOrder: number, inning: number): BattingResult | undefined => {
@@ -122,7 +121,7 @@ export function BattingGrid({
                     return (
                       <td key={inning} className="p-1">
                         <button
-                          onClick={() => onCellClick(order, inning)}
+                          onClick={() => onCellClick({ battingOrder: order, inning })}
                           className={cn(
                             "flex h-10 w-full items-center justify-center text-xs font-bold rounded-lg transition-all",
                             "hover:ring-2 hover:ring-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400",
@@ -139,18 +138,20 @@ export function BattingGrid({
               )
             })}
             {/* 打順追加ボタン */}
-            <tr className="border-t border-slate-200">
-              <td colSpan={3} className="p-2">
-                <button
-                  onClick={onAddBattingOrder}
-                  className="w-full h-10 flex items-center justify-center gap-2 text-sm text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  打順を追加
-                </button>
-              </td>
-              <td colSpan={9}></td>
-            </tr>
+            {onAddBattingOrder && (
+              <tr className="border-t border-slate-200">
+                <td colSpan={3} className="p-2">
+                  <button
+                    onClick={onAddBattingOrder}
+                    className="w-full h-10 flex items-center justify-center gap-2 text-sm text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    打順を追加
+                  </button>
+                </td>
+                <td colSpan={9}></td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -360,7 +360,7 @@ export default function GameEditPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         position={selectedCell}
-        initialResult={currentResult}
+        existingResult={currentResult}
         onSave={handleResultSave}
         onDelete={handleResultDelete}
       />
@@ -368,8 +368,8 @@ export default function GameEditPage() {
       <PlayerSelectDialog
         open={playerDialogOpen}
         onOpenChange={setPlayerDialogOpen}
-        order={selectedLineupOrder}
-        initialEntries={currentLineupSlot?.entries || []}
+        order={selectedLineupOrder || 1}
+        currentEntries={currentLineupSlot?.entries || []}
         onSave={handleLineupSave}
         registeredPlayers={registeredPlayers}
       />

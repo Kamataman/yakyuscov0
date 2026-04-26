@@ -23,9 +23,6 @@ export default function GameResultPage() {
     Array(9).fill(null).map(() => ({ our: 0, opponent: 0 }))
   )
   
-  // 打順の最大数（初期9、増やせる）
-  const [maxBattingOrder, setMaxBattingOrder] = useState(9)
-  
   // 打順スロット（代打・途中交代対応）
   const [lineupSlots, setLineupSlots] = useState<LineupSlot[]>(
     Array(9).fill(null).map((_, i) => ({ order: i + 1, entries: [] }))
@@ -97,8 +94,8 @@ export default function GameResultPage() {
     }
   }
 
-  const handleCellClick = (battingOrder: number, inning: number) => {
-    setSelectedCell({ battingOrder, inning })
+  const handleCellClick = (position: CellPosition) => {
+    setSelectedCell(position)
     setIsDialogOpen(true)
   }
 
@@ -124,13 +121,7 @@ export default function GameResultPage() {
     setSelectedCell(null)
   }
 
-  const handleInningScoreChange = (inning: number, team: "our" | "opponent", value: number) => {
-    setInningScores((prev) => {
-      const newScores = [...prev]
-      newScores[inning - 1] = { ...newScores[inning - 1], [team]: value }
-      return newScores
-    })
-  }
+
 
   const handlePlayerClick = (order: number) => {
     setSelectedOrder(order)
@@ -150,8 +141,7 @@ export default function GameResultPage() {
   }
 
   const handleAddBattingOrder = () => {
-    const newOrder = maxBattingOrder + 1
-    setMaxBattingOrder(newOrder)
+    const newOrder = lineupSlots.length + 1
     setLineupSlots((prev) => [...prev, { order: newOrder, entries: [] }])
   }
 
@@ -226,7 +216,7 @@ export default function GameResultPage() {
         
         <ScoreInput 
           inningScores={inningScores} 
-          onInningScoreChange={handleInningScoreChange} 
+          onScoresChange={setInningScores} 
         />
         
         <BattingGrid 
@@ -235,7 +225,6 @@ export default function GameResultPage() {
           lineupSlots={lineupSlots}
           onPlayerClick={handlePlayerClick}
           onAddBattingOrder={handleAddBattingOrder}
-          maxBattingOrder={maxBattingOrder}
         />
 
         <PitcherInput
