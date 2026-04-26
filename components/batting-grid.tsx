@@ -11,19 +11,20 @@ interface BattingGridProps {
   lineupSlots: LineupSlot[]
   onPlayerClick: (order: number) => void
   onAddBattingOrder?: () => void
+  totalInnings?: number
 }
-
-const INNINGS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 export function BattingGrid({ 
   results, 
   onCellClick, 
   lineupSlots, 
   onPlayerClick,
-  onAddBattingOrder
+  onAddBattingOrder,
+  totalInnings = 9
 }: BattingGridProps) {
   const maxBattingOrder = Math.max(lineupSlots.length, 9)
   const battingOrders = Array.from({ length: maxBattingOrder }, (_, i) => i + 1)
+  const innings = Array.from({ length: totalInnings }, (_, i) => i + 1)
 
   const getResult = (battingOrder: number, inning: number): BattingResult | undefined => {
     return results[`${battingOrder}-${inning}`]
@@ -59,23 +60,24 @@ export function BattingGrid({
 
   return (
     <div className="rounded-xl bg-white shadow-sm border border-slate-200 overflow-hidden">
+      <h2 className="px-4 py-3 text-sm font-bold text-slate-600 border-b border-slate-200 bg-slate-50">打撃成績</h2>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[700px] border-collapse">
+        <table className="w-full border-collapse" style={{ minWidth: `${Math.max(500, 136 + totalInnings * 48)}px` }}>
           <thead>
             <tr className="bg-slate-800 text-white">
-              <th className="w-10 px-2 py-3 text-center text-xs font-semibold">
+              <th className="sticky left-0 z-20 bg-slate-800 w-10 min-w-[40px] px-2 py-3 text-center text-xs font-semibold border-r border-slate-700">
                 打順
               </th>
-              <th className="w-10 px-2 py-3 text-center text-xs font-semibold">
+              <th className="sticky left-10 z-20 bg-slate-800 w-10 min-w-[40px] px-2 py-3 text-center text-xs font-semibold border-r border-slate-700">
                 守
               </th>
-              <th className="w-24 px-2 py-3 text-center text-xs font-semibold">
+              <th className="sticky left-20 z-20 bg-slate-800 w-24 min-w-[96px] px-2 py-3 text-center text-xs font-semibold border-r border-slate-700">
                 選手名
               </th>
-              {INNINGS.map((inning) => (
+              {innings.map((inning) => (
                 <th
                   key={inning}
-                  className="w-12 px-1 py-3 text-center text-xs font-semibold"
+                  className="w-12 min-w-[48px] px-1 py-3 text-center text-xs font-semibold"
                 >
                   {inning}
                 </th>
@@ -87,12 +89,12 @@ export function BattingGrid({
               const { name, position, hasSubstitute } = getSlotDisplay(order)
               return (
                 <tr key={order} className="hover:bg-slate-50/50 transition-colors border-b border-slate-100">
-                  <td className="bg-slate-50 px-2 py-2 text-center">
+                  <td className="sticky left-0 z-10 bg-slate-50 w-10 min-w-[40px] px-2 py-2 text-center border-r border-slate-200">
                     <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-sm font-bold text-white">
                       {order}
                     </span>
                   </td>
-                  <td className="bg-slate-50 px-1 py-1 text-center">
+                  <td className="sticky left-10 z-10 bg-slate-50 w-10 min-w-[40px] px-1 py-1 text-center border-r border-slate-200">
                     <span className={cn(
                       "inline-flex h-7 w-7 items-center justify-center rounded text-xs font-bold",
                       position ? "bg-emerald-100 text-emerald-700" : "text-slate-300"
@@ -100,11 +102,11 @@ export function BattingGrid({
                       {position || "-"}
                     </span>
                   </td>
-                  <td className="px-1 py-1">
+                  <td className="sticky left-20 z-10 bg-white w-24 min-w-[96px] px-1 py-1 border-r border-slate-200">
                     <button
                       onClick={() => onPlayerClick(order)}
                       className={cn(
-                        "w-full h-10 px-2 text-sm rounded-lg text-left transition-all",
+                        "w-full h-10 px-2 text-sm rounded-lg text-left transition-all truncate",
                         "hover:bg-blue-50 hover:ring-2 hover:ring-blue-200",
                         "focus:outline-none focus:ring-2 focus:ring-blue-400",
                         hasSubstitute && "border-l-4 border-amber-400"
@@ -116,7 +118,7 @@ export function BattingGrid({
                       )}
                     </button>
                   </td>
-                  {INNINGS.map((inning) => {
+                  {innings.map((inning) => {
                     const result = getResult(order, inning)
                     return (
                       <td key={inning} className="p-1">
@@ -140,7 +142,7 @@ export function BattingGrid({
             {/* 打順追加ボタン */}
             {onAddBattingOrder && (
               <tr className="border-t border-slate-200">
-                <td colSpan={3} className="p-2">
+                <td colSpan={3} className="sticky left-0 z-10 bg-white p-2">
                   <button
                     onClick={onAddBattingOrder}
                     className="w-full h-10 flex items-center justify-center gap-2 text-sm text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -149,7 +151,7 @@ export function BattingGrid({
                     打順を追加
                   </button>
                 </td>
-                <td colSpan={9}></td>
+                <td colSpan={totalInnings}></td>
               </tr>
             )}
           </tbody>

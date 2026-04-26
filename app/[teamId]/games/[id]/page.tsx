@@ -15,6 +15,8 @@ interface GameDetail {
     opponent: string
     location?: string
     memo?: string
+    is_first_batting?: boolean
+    total_innings?: number
   }
   inningScores: Array<{
     inning: number
@@ -137,7 +139,8 @@ export default function GameDetailPage() {
     resultsMap.set(`${result.batting_order}-${result.inning}`, result)
   }
 
-  const maxInning = Math.max(9, ...inningScores.map(s => s.inning))
+  const totalInnings = game.total_innings || 9
+  const maxInning = Math.max(totalInnings, ...inningScores.map(s => s.inning))
   const maxOrder = Math.max(9, ...lineupEntries.map(e => e.batting_order))
 
   // 投球回を整数と分数で表示
@@ -205,40 +208,40 @@ export default function GameDetailPage() {
         <div className="rounded-2xl bg-white p-4 shadow-lg">
           <h2 className="mb-3 text-sm font-bold text-slate-600">スコアボード</h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-center text-sm">
+            <table className="text-center text-sm border-collapse" style={{ minWidth: `${Math.max(300, 80 + maxInning * 32 + 48)}px` }}>
               <thead>
-                <tr className="border-b">
-                  <th className="px-2 py-1 text-left"></th>
+                <tr className="border-b bg-slate-50">
+                  <th className="sticky left-0 z-10 bg-slate-50 w-20 min-w-[80px] px-2 py-1 text-left"></th>
                   {Array.from({ length: maxInning }, (_, i) => (
-                    <th key={i} className="w-8 px-1 py-1">{i + 1}</th>
+                    <th key={i} className="w-8 min-w-[32px] px-1 py-1">{i + 1}</th>
                   ))}
-                  <th className="w-10 px-2 py-1 font-bold">計</th>
+                  <th className="sticky right-0 z-10 bg-slate-100 w-12 min-w-[48px] px-2 py-1 font-bold">計</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b">
-                  <td className="px-2 py-2 text-left font-bold text-blue-700">自チーム</td>
+                  <td className="sticky left-0 z-10 bg-blue-50 w-20 min-w-[80px] px-2 py-2 text-left font-bold text-blue-700 whitespace-nowrap">自チーム</td>
                   {Array.from({ length: maxInning }, (_, i) => {
                     const score = inningScores.find(s => s.inning === i + 1)
                     return (
-                      <td key={i} className={cn("px-1 py-2", score?.our_score && score.our_score > 0 && "text-blue-700 font-bold")}>
+                      <td key={i} className={cn("w-8 min-w-[32px] px-1 py-2", score?.our_score && score.our_score > 0 && "text-blue-700 font-bold")}>
                         {score?.our_score ?? 0}
                       </td>
                     )
                   })}
-                  <td className="px-2 py-2 font-bold text-blue-700">{ourTotal}</td>
+                  <td className="sticky right-0 z-10 bg-blue-100 w-12 min-w-[48px] px-2 py-2 font-bold text-blue-700">{ourTotal}</td>
                 </tr>
                 <tr>
-                  <td className="px-2 py-2 text-left font-bold text-red-700">{game.opponent}</td>
+                  <td className="sticky left-0 z-10 bg-red-50 w-20 min-w-[80px] px-2 py-2 text-left font-bold text-red-700 whitespace-nowrap truncate max-w-[80px]">{game.opponent}</td>
                   {Array.from({ length: maxInning }, (_, i) => {
                     const score = inningScores.find(s => s.inning === i + 1)
                     return (
-                      <td key={i} className={cn("px-1 py-2", score?.opponent_score && score.opponent_score > 0 && "text-red-700 font-bold")}>
+                      <td key={i} className={cn("w-8 min-w-[32px] px-1 py-2", score?.opponent_score && score.opponent_score > 0 && "text-red-700 font-bold")}>
                         {score?.opponent_score ?? 0}
                       </td>
                     )
                   })}
-                  <td className="px-2 py-2 font-bold text-red-700">{opponentTotal}</td>
+                  <td className="sticky right-0 z-10 bg-red-100 w-12 min-w-[48px] px-2 py-2 font-bold text-red-700">{opponentTotal}</td>
                 </tr>
               </tbody>
             </table>
@@ -246,17 +249,17 @@ export default function GameDetailPage() {
         </div>
 
         {/* 打撃結果一覧 */}
-        <div className="rounded-2xl bg-white p-4 shadow-lg">
-          <h2 className="mb-3 text-sm font-bold text-slate-600">打撃結果</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-center text-sm">
+        <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
+          <h2 className="px-4 py-3 text-sm font-bold text-slate-600 border-b border-slate-200 bg-slate-50">打撃成績</h2>
+          <div className="relative overflow-x-auto">
+            <table className="text-center text-sm border-collapse" style={{ minWidth: `${Math.max(400, 136 + maxInning * 56)}px` }}>
               <thead>
-                <tr className="border-b bg-slate-50">
-                  <th className="sticky left-0 z-10 bg-slate-50 px-2 py-2 text-left">打順</th>
-                  <th className="sticky left-10 z-10 bg-slate-50 px-2 py-2 text-left">選手</th>
-                  <th className="px-1 py-2">守</th>
+                <tr className="border-b bg-slate-100">
+                  <th className="sticky left-0 z-20 bg-slate-100 w-10 min-w-[40px] px-2 py-2 text-center border-r border-slate-200">打順</th>
+                  <th className="sticky left-10 z-20 bg-slate-100 w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-200">選手</th>
+                  <th className="w-10 min-w-[40px] px-1 py-2">守</th>
                   {Array.from({ length: maxInning }, (_, i) => (
-                    <th key={i} className="w-12 px-1 py-2">{i + 1}</th>
+                    <th key={i} className="w-14 min-w-[56px] px-1 py-2">{i + 1}</th>
                   ))}
                 </tr>
               </thead>
@@ -267,23 +270,25 @@ export default function GameDetailPage() {
                   const mainEntry = entries.find(e => !e.is_substitute) || entries[0]
                   
                   return (
-                    <tr key={order} className="border-b">
-                      <td className="sticky left-0 z-10 bg-white px-2 py-2 text-left font-bold">{order}</td>
-                      <td className="sticky left-10 z-10 bg-white px-2 py-2 text-left">
-                        {mainEntry?.player_name || "-"}
-                        {entries.length > 1 && (
-                          <span className="ml-1 text-xs text-orange-600">
-                            +{entries.length - 1}
-                          </span>
-                        )}
+                    <tr key={order} className="border-b hover:bg-slate-50/50">
+                      <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 text-center font-bold border-r border-slate-100">{order}</td>
+                      <td className="sticky left-10 z-10 bg-white w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-100">
+                        <div className="truncate">
+                          {mainEntry?.player_name || "-"}
+                          {entries.length > 1 && (
+                            <span className="ml-1 text-xs text-orange-600">
+                              +{entries.length - 1}
+                            </span>
+                          )}
+                        </div>
                       </td>
-                      <td className="px-1 py-2 text-slate-500">{mainEntry?.position || "-"}</td>
+                      <td className="w-10 min-w-[40px] px-1 py-2 text-slate-500 text-center">{mainEntry?.position || "-"}</td>
                       {Array.from({ length: maxInning }, (_, inningIndex) => {
                         const inning = inningIndex + 1
                         const result = resultsMap.get(`${order}-${inning}`)
                         
                         if (!result) {
-                          return <td key={inning} className="px-1 py-2 text-slate-300">-</td>
+                          return <td key={inning} className="w-14 min-w-[56px] px-1 py-2 text-slate-300">-</td>
                         }
 
                         const resultObj: BattingResult = {
@@ -299,7 +304,7 @@ export default function GameDetailPage() {
                           <td
                             key={inning}
                             className={cn(
-                              "px-1 py-2 text-xs font-medium",
+                              "w-14 min-w-[56px] px-1 py-2 text-xs font-medium whitespace-nowrap",
                               hit && "text-green-700 bg-green-50",
                               !hit && onBase && "text-blue-700 bg-blue-50",
                               !hit && !onBase && "text-slate-600"
@@ -318,10 +323,10 @@ export default function GameDetailPage() {
         </div>
 
         {/* 投手成績 */}
-        <div className="rounded-2xl bg-white p-4 shadow-lg">
-          <h2 className="mb-3 text-sm font-bold text-slate-600">投手成績</h2>
+        <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
+          <h2 className="px-4 py-3 text-sm font-bold text-slate-600 border-b border-slate-200 bg-slate-50">投手成績</h2>
           {pitcherResults.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto p-4">
               <table className="w-full text-center text-sm">
                 <thead>
                   <tr className="border-b bg-slate-50">
@@ -357,7 +362,7 @@ export default function GameDetailPage() {
               </table>
             </div>
           ) : (
-            <p className="py-8 text-center text-slate-400">投手成績が登録されていません</p>
+            <p className="p-4 py-8 text-center text-slate-400">投手成績が登録されていません</p>
           )}
         </div>
 

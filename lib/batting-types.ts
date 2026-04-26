@@ -82,7 +82,7 @@ export const FIELD_POSITIONS: { value: FieldPosition; label: string }[] = [
 export interface Player {
   id: string
   name: string
-  number?: number  // 背番号
+  number?: string  // 背番号（00, 01なども対応）
 }
 
 // 打順のエントリー（代打・途中交代対応）

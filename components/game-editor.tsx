@@ -35,6 +35,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   // 試合情報
   const [gameDate, setGameDate] = useState("")
   const [opponent, setOpponent] = useState("")
+  const [isFirstBatting, setIsFirstBatting] = useState(true)
+  const [totalInnings, setTotalInnings] = useState(9)
 
   // 打撃結果
   const [results, setResults] = useState<Record<string, BattingResult>>({})
@@ -100,13 +102,16 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     ])
       .then(([gameData, playersData]) => {
         if (gameData.game) {
-          setGameDate(gameData.game.date)
-          setOpponent(gameData.game.opponent)
+          setGameDate(gameData.game.date || "")
+          setOpponent(gameData.game.opponent || "")
+          setIsFirstBatting(gameData.game.is_first_batting ?? true)
+          setTotalInnings(gameData.game.total_innings ?? 9)
         }
 
         // イニングスコア
         if (gameData.inningScores) {
-          const scores: InningScore[] = Array.from({ length: 9 }, () => ({ our: 0, opponent: 0 }))
+          const numInnings = gameData.game?.total_innings ?? 9
+          const scores: InningScore[] = Array.from({ length: numInnings }, () => ({ our: 0, opponent: 0 }))
           for (const score of gameData.inningScores) {
             if (score.inning >= 1 && score.inning <= scores.length) {
               scores[score.inning - 1] = {
@@ -343,11 +348,15 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   }
 
   // 試合情報を都度保存
-  const handleGameInfoChange = useCallback((field: "date" | "opponent", value: string) => {
+  const handleGameInfoChange = useCallback((field: "date" | "opponent" | "isFirstBatting" | "totalInnings", value: string | boolean | number) => {
     if (field === "date") {
-      setGameDate(value)
-    } else {
-      setOpponent(value)
+      setGameDate(value as string)
+    } else if (field === "opponent") {
+      setOpponent(value as string)
+    } else if (field === "isFirstBatting") {
+      setIsFirstBatting(value as boolean)
+    } else if (field === "totalInnings") {
+      setTotalInnings(value as number)
     }
 
     if (saveTimeoutRef.current) {
@@ -470,7 +479,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
               )}
             </div>
 
-            {/* 共有ボタン（管理者のみ） */}
+            {/* 共有ボタン（管��者のみ） */}
             {isAdmin && (
               <Button
                 variant="outline"
@@ -481,10 +490,10 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
                     handleGenerateShareUrl()
                   }
                 }}
-                className="gap-2"
+                className="gap-2 bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
               >
                 <Share2 className="h-4 w-4" />
-                共有
+                URLを共有して入力
               </Button>
             )}
           </div>
@@ -526,6 +535,20 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
         <ScoreInput
           inningScores={inningScores}
           onScoresChange={handleScoresChange}
+          isFirstBatting={isFirstBatting}
+          onFirstBattingChange={(value) => handleGameInfoChange("isFirstBatting", value)}
+          totalInnings={totalInnings}
+          onTotalInningsChange={(value) => {
+            handleGameInfoChange("totalInnings", value)
+            // イニングスコア配列も調整
+            if (value > inningScores.length) {
+              const newScores = [...inningScores]
+              while (newScores.length < value) {
+                newScores.push({ our: 0, opponent: 0 })
+              }
+              setInningScores(newScores)
+            }
+          }}
         />
 
         <BattingGrid 
@@ -534,6 +557,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
           lineupSlots={lineupSlots}
           onPlayerClick={handlePlayerClick}
           onAddBattingOrder={handleAddBattingOrder}
+          totalInnings={totalInnings}
         />
 
         <PitcherInput
