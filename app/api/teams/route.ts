@@ -52,6 +52,15 @@ export async function POST(request: Request) {
     )
   }
 
+  // identities が空 = 既存メールに対するobfuscated response（メール列挙攻撃対策）
+  // この場合 authData.user.id はDBに存在しないダミーIDなのでFK違反になる
+  if (!authData.session && authData.user.identities?.length === 0) {
+    return NextResponse.json(
+      { error: "このメールアドレスはすでに使用されています" },
+      { status: 400 }
+    )
+  }
+
   const { error } = await supabase
     .from("teams")
     .insert({
