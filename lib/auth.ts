@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export interface AuthSession {
@@ -14,35 +13,20 @@ export interface ShareTokenSession {
 
 export type Session = AuthSession | ShareTokenSession;
 
-/**
- * 管理者セッションを取得（Cookieベース）
- */
 export async function getAdminSession(): Promise<AuthSession | null> {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("team_session");
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!sessionCookie?.value) {
-    return null;
-  }
+  if (!user) return null;
 
-  try {
-    const session = JSON.parse(sessionCookie.value);
-    if (session?.teamId) {
-      return {
-        teamId: session.teamId,
-        isAdmin: true,
-      };
-    }
-  } catch {
-    return null;
-  }
+  const teamId = user.user_metadata?.team_id as string | undefined;
+  if (!teamId) return null;
 
-  return null;
+  return { teamId, isAdmin: true };
 }
 
-/**
- * 共有トークンからセッションを取得
- */
 export async function getShareTokenSession(
   token: string
 ): Promise<ShareTokenSession | null> {
@@ -66,17 +50,10 @@ export async function getShareTokenSession(
   };
 }
 
-/**
- * 管理者権限が必要なAPIで使用
- * 管理者でない場合はnullを返す
- */
 export async function requireAdmin(): Promise<AuthSession | null> {
   return getAdminSession();
 }
 
-/**
- * 特定のチームの管理者かどうかを確認
- */
 export async function requireTeamAdmin(
   teamId: string
 ): Promise<AuthSession | null> {
@@ -87,17 +64,12 @@ export async function requireTeamAdmin(
   return session;
 }
 
-/**
- * 特定の試合へのアクセス権を確認（管理者または共有トークン）
- */
 export async function requireGameAccess(
   gameId: string,
   shareToken?: string
 ): Promise<Session | null> {
-  // まず管理者セッションをチェック
   const adminSession = await getAdminSession();
   if (adminSession) {
-    // 管理者の場合、その試合がこのチームのものかどうか確認
     const supabase = await createClient();
     const { data } = await supabase
       .from("games")
@@ -110,7 +82,6 @@ export async function requireGameAccess(
     }
   }
 
-  // 共有トークンをチェック
   if (shareToken) {
     const tokenSession = await getShareTokenSession(shareToken);
     if (tokenSession && tokenSession.gameId === gameId) {
@@ -121,9 +92,6 @@ export async function requireGameAccess(
   return null;
 }
 
-/**
- * 共有トークンを生成
- */
 export function generateShareToken(): string {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

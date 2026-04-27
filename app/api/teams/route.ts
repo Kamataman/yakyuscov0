@@ -1,13 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import bcrypt from "bcryptjs"
 
 export async function POST(request: Request) {
   const supabase = await createClient()
   const body = await request.json()
   const { id, name, adminEmail, adminPassword } = body
 
-  // バリデーション
   if (!id || !name || !adminEmail || !adminPassword) {
     return NextResponse.json(
       { error: "すべての項目を入力してください" },
@@ -15,7 +13,6 @@ export async function POST(request: Request) {
     )
   }
 
-  // チームIDの形式チェック（英数字とハイフンのみ）
   if (!/^[a-z0-9-]+$/.test(id)) {
     return NextResponse.json(
       { error: "チームIDは英小文字、数字、ハイフンのみ使用できます" },
@@ -23,7 +20,6 @@ export async function POST(request: Request) {
     )
   }
 
-  // チームIDの重複チェック
   const { data: existingTeam } = await supabase
     .from("teams")
     .select("id")
@@ -37,17 +33,30 @@ export async function POST(request: Request) {
     )
   }
 
-  // パスワードハッシュ化
-  const passwordHash = await bcrypt.hash(adminPassword, 10)
+  // Supabase Auth でユーザーを作成（team_id をメタデータに保存）
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email: adminEmail,
+    password: adminPassword,
+    options: {
+      data: { team_id: id },
+    },
+  })
 
-  // チーム作成
+  if (authError || !authData.user) {
+    console.error("Error creating auth user:", authError)
+    return NextResponse.json(
+      { error: authError?.message || "ユーザーの作成に失敗しました" },
+      { status: 500 }
+    )
+  }
+
   const { error } = await supabase
     .from("teams")
     .insert({
       id,
       name,
       admin_email: adminEmail,
-      admin_password_hash: passwordHash,
+      user_id: authData.user.id,
     })
 
   if (error) {
@@ -80,7 +89,6 @@ export async function GET(request: Request) {
     return NextResponse.json(data)
   }
 
-  // 全チーム一覧（管理用）
   const { data, error } = await supabase
     .from("teams")
     .select("id, name, created_at")

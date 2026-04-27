@@ -1,9 +1,9 @@
-import { cookies } from "next/headers"
+import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 export async function POST() {
-  const cookieStore = await cookies()
-  cookieStore.delete("team_session")
-  
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+
   return NextResponse.json({ success: true })
 }

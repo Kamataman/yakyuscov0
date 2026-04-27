@@ -1,7 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import bcrypt from "bcryptjs"
-import { cookies } from "next/headers"
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -15,57 +13,40 @@ export async function POST(request: Request) {
     )
   }
 
-  // チーム取得
-  const { data: team, error } = await supabase
+  // Supabase Auth でログイン
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error || !data.user) {
+    return NextResponse.json(
+      { error: "メールアドレスまたはパスワードが正しくありません" },
+      { status: 401 }
+    )
+  }
+
+  // ログインユーザーが対象チームの管理者か確認
+  const userTeamId = data.user.user_metadata?.team_id as string | undefined
+  if (userTeamId !== teamId) {
+    await supabase.auth.signOut()
+    return NextResponse.json(
+      { error: "このチームの管理者ではありません" },
+      { status: 403 }
+    )
+  }
+
+  const { data: team } = await supabase
     .from("teams")
-    .select("*")
+    .select("id, name")
     .eq("id", teamId)
     .single()
-
-  if (error || !team) {
-    return NextResponse.json(
-      { error: "チームが見つかりません" },
-      { status: 404 }
-    )
-  }
-
-  // メールアドレス確認
-  if (team.admin_email !== email) {
-    return NextResponse.json(
-      { error: "メールアドレスまたはパスワードが正しくありません" },
-      { status: 401 }
-    )
-  }
-
-  // パスワード確認
-  const isValid = await bcrypt.compare(password, team.admin_password_hash)
-  if (!isValid) {
-    return NextResponse.json(
-      { error: "メールアドレスまたはパスワードが正しくありません" },
-      { status: 401 }
-    )
-  }
-
-  // セッションCookieを設定（共通のCookie名を使用）
-  const cookieStore = await cookies()
-  cookieStore.set("team_session", JSON.stringify({
-    teamId: team.id,
-    teamName: team.name,
-    isAdmin: true,
-    loginAt: new Date().toISOString(),
-  }), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 1週間
-    path: "/",
-  })
 
   return NextResponse.json({
     success: true,
     team: {
-      id: team.id,
-      name: team.name,
+      id: team?.id ?? teamId,
+      name: team?.name ?? "",
     },
   })
 }
