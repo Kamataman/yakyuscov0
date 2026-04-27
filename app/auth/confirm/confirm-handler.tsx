@@ -1,14 +1,19 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
 export default function ConfirmHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const exchanged = useRef(false)
 
   useEffect(() => {
+    // PKCEのcodeは一度しか使えないため、2回目以降の実行を防ぐ
+    if (exchanged.current) return
+    exchanged.current = true
+
     const supabase = createClient()
 
     async function exchange() {
