@@ -5,6 +5,7 @@ export async function POST(request: Request) {
   const supabase = await createClient()
   const body = await request.json()
   const { id, name, adminEmail, adminPassword } = body
+  const origin = request.headers.get("origin") ?? "http://localhost:3000"
 
   if (!id || !name || !adminEmail || !adminPassword) {
     return NextResponse.json(
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
     password: adminPassword,
     options: {
       data: { team_id: id },
+      emailRedirectTo: `${origin}/auth/confirm`,
     },
   })
 
