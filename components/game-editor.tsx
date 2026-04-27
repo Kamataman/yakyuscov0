@@ -140,6 +140,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
               position: entry.position,
               isSubstitute: entry.is_substitute,
               enteredInning: entry.entered_inning,
+              isHelper: entry.is_helper,
             })
           }
           

@@ -8,6 +8,7 @@ interface LineupEntry {
   position?: string
   isSubstitute?: boolean
   enteredInning?: number
+  isHelper?: boolean
 }
 
 // 打順を保存（都度保存用）
@@ -51,6 +52,7 @@ export async function POST(
         position: entry.position || null,
         is_substitute: entry.isSubstitute || false,
         entered_inning: entry.enteredInning || null,
+        is_helper: entry.isHelper || false,
       }))
 
       const { error } = await supabase

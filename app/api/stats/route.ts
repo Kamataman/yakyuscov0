@@ -44,10 +44,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: resultsError.message }, { status: 500 })
   }
 
-  // 打順エントリーを取得
+  // 打順エントリーを取得（助っ人を除く）
   let lineupQuery = supabase
     .from("lineup_entries")
-    .select("player_id, player_name, game_id, batting_order")
+    .select("player_id, player_name, game_id, batting_order, is_helper")
+    .eq("is_helper", false)
   if (teamId && gameIds.length > 0) {
     lineupQuery = lineupQuery.in("game_id", gameIds)
   }
