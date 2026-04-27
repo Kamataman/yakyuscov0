@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Users, BarChart3, Calendar, ChevronRight } from "lucide-react"
+import { APP_NAME } from "@/lib/constants"
 
 export default function LandingPage() {
   return (
@@ -7,7 +8,7 @@ export default function LandingPage() {
       {/* ヘッダー */}
       <header className="mx-auto max-w-6xl px-4 py-6">
         <nav className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">野球スコア</h1>
+          <h1 className="text-2xl font-bold text-white">{APP_NAME}</h1>
           <div className="flex items-center gap-4">
             <Link
               href="/register"
@@ -104,7 +105,7 @@ export default function LandingPage() {
       {/* フッター */}
       <footer className="border-t border-slate-700 py-8">
         <div className="mx-auto max-w-6xl px-4 text-center text-sm text-slate-500">
-          <p>野球スコア - チームの記録を管理するアプリ</p>
+          <p>{APP_NAME} - チームの記録を管理するアプリ</p>
         </div>
       </footer>
     </main>

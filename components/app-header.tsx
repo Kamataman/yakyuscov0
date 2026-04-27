@@ -5,6 +5,7 @@ import { usePathname, useParams, useRouter } from "next/navigation"
 import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import { APP_NAME } from "@/lib/constants"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,8 +84,11 @@ export function AppHeader() {
           className="flex items-center gap-2 text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
         >
           <span className="text-2xl">&#9918;</span>
-          <span className="max-w-[150px] truncate sm:max-w-none">
-            {teamName || teamId}
+          <span className="flex flex-col">
+            <span className="max-w-[150px] truncate sm:max-w-none leading-tight">
+              {teamName || teamId}
+            </span>
+            <span className="text-xs font-normal text-slate-400 leading-tight">{APP_NAME}</span>
           </span>
         </Link>
 
