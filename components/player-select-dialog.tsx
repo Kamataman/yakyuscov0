@@ -153,54 +153,41 @@ export function PlayerSelectDialog({
                 <label className="block text-xs font-semibold text-slate-500 mb-2">
                   選手名
                 </label>
-                {/* 助っ人ボタン */}
-                <button
-                  onClick={() => handleHelperSelect(index)}
-                  className={cn(
-                    "w-full h-10 rounded-xl font-bold text-sm mb-2 transition-all",
-                    entry.isHelper
-                      ? "bg-purple-500 text-white shadow-md"
-                      : "bg-white border border-slate-200 text-slate-600 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700"
-                  )}
-                >
-                  助っ人
-                </button>
-                {/* 助っ人でない場合のみ通常の選手選択を表示 */}
-                {!entry.isHelper && (
-                  registeredPlayers.length > 0 ? (
-                    <div className="space-y-2">
-                      <select
-                        value={entry.playerId}
-                        onChange={(e) => handlePlayerSelect(index, e.target.value)}
+                {registeredPlayers.length > 0 ? (
+                  <div className="space-y-2">
+                    <select
+                      value={entry.isHelper ? "" : entry.playerId}
+                      onChange={(e) => handlePlayerSelect(index, e.target.value)}
+                      className={cn(
+                        "w-full h-12 px-4 text-base rounded-xl",
+                        "bg-white border border-slate-200",
+                        "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                      )}
+                    >
+                      <option value="">選手を選択...</option>
+                      {sortPlayersByNumber(registeredPlayers).map((player) => (
+                        <option key={player.id} value={player.id}>
+                          {player.number ? `${player.number} ` : ""}{player.name}
+                        </option>
+                      ))}
+                    </select>
+                    {/* または手入力（助っ人でなく、IDが未選択の場合） */}
+                    {!entry.isHelper && !entry.playerId && (
+                      <input
+                        type="text"
+                        value={entry.playerName}
+                        onChange={(e) => handleNameChange(index, e.target.value)}
+                        placeholder="または名前を直接入力"
                         className={cn(
-                          "w-full h-12 px-4 text-base rounded-xl",
+                          "w-full h-10 px-4 text-sm rounded-lg",
                           "bg-white border border-slate-200",
                           "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
                         )}
-                      >
-                        <option value="">選手を選択...</option>
-                        {sortPlayersByNumber(registeredPlayers).map((player) => (
-                          <option key={player.id} value={player.id}>
-                            {player.number ? `${player.number} ` : ""}{player.name}
-                          </option>
-                        ))}
-                      </select>
-                      {/* または手入力 */}
-                      {!entry.playerId && (
-                        <input
-                          type="text"
-                          value={entry.playerName}
-                          onChange={(e) => handleNameChange(index, e.target.value)}
-                          placeholder="または名前を直接入力"
-                          className={cn(
-                            "w-full h-10 px-4 text-sm rounded-lg",
-                            "bg-white border border-slate-200",
-                            "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
-                          )}
-                        />
-                      )}
-                    </div>
-                  ) : (
+                      />
+                    )}
+                  </div>
+                ) : (
+                  !entry.isHelper && (
                     <input
                       type="text"
                       value={entry.playerName}
@@ -214,6 +201,18 @@ export function PlayerSelectDialog({
                     />
                   )
                 )}
+                {/* 助っ人トグル（選手選択の下、控えめなデザイン） */}
+                <button
+                  onClick={() => entry.isHelper ? handlePlayerSelect(index, "") : handleHelperSelect(index)}
+                  className={cn(
+                    "mt-2 text-xs px-3 py-1.5 rounded-lg transition-all",
+                    entry.isHelper
+                      ? "bg-purple-50 text-purple-600 border border-purple-300 font-medium"
+                      : "text-slate-400 border border-dashed border-slate-300 hover:border-slate-400 hover:text-slate-500"
+                  )}
+                >
+                  {entry.isHelper ? "✓ 助っ人" : "助っ人として登録"}
+                </button>
               </div>
 
               {/* 守備位置 */}
