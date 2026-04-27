@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
-import { AppHeader } from '@/components/app-header'
 import { APP_NAME } from '@/lib/constants'
 import './globals.css'
 
@@ -39,7 +38,6 @@ export default function RootLayout({
   return (
     <html lang="ja" className="bg-background">
       <body className="font-sans antialiased">
-        <AppHeader />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

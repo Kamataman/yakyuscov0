@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { AppHeader } from "@/components/app-header"
 
 interface Props {
   children: React.ReactNode
@@ -20,5 +21,10 @@ export default async function TeamLayout({ children, params }: Props) {
     notFound()
   }
 
-  return <>{children}</>
+  return (
+    <>
+      <AppHeader />
+      {children}
+    </>
+  )
 }
