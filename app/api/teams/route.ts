@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   if (error) {
     console.error("Error creating team:", error)
     return NextResponse.json(
-      { error: "チームの作成に失敗しました" },
+      { error: `チームの作成に失敗しました: ${error.message}` },
       { status: 500 }
     )
   }
