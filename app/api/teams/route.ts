@@ -4,10 +4,10 @@ import { NextResponse } from "next/server"
 export async function POST(request: Request) {
   const supabase = await createClient()
   const body = await request.json()
-  const { id, name, adminEmail, adminPassword } = body
-  const { origin } = new URL(request.url)
+  // userId はクライアント側でsupabase.auth.signUp()を実行した後に取得したもの
+  const { id, name, adminEmail, userId } = body
 
-  if (!id || !name || !adminEmail || !adminPassword) {
+  if (!id || !name || !adminEmail || !userId) {
     return NextResponse.json(
       { error: "すべての項目を入力してください" },
       { status: 400 }
@@ -34,55 +34,24 @@ export async function POST(request: Request) {
     )
   }
 
-  // Supabase Auth でユーザーを作成（team_id をメタデータに保存）
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: adminEmail,
-    password: adminPassword,
-    options: {
-      data: { team_id: id },
-      emailRedirectTo: `${origin}/auth/confirm`,
-    },
-  })
-
-  if (authError || !authData.user) {
-    console.error("Error creating auth user:", authError)
-    return NextResponse.json(
-      { error: authError?.message || "ユーザーの作成に失敗しました" },
-      { status: 500 }
-    )
-  }
-
-  // identities が空 = 既存メールに対するobfuscated response（メール列挙攻撃対策）
-  // この場合 authData.user.id はDBに存在しないダミーIDなのでFK違反になる
-  if (!authData.session && authData.user.identities?.length === 0) {
-    return NextResponse.json(
-      { error: "このメールアドレスはすでに使用されています" },
-      { status: 400 }
-    )
-  }
-
   const { error } = await supabase
     .from("teams")
     .insert({
       id,
       name,
       admin_email: adminEmail,
-      user_id: authData.user.id,
+      user_id: userId,
     })
 
   if (error) {
     console.error("Error creating team:", error)
     return NextResponse.json(
-      { error: `チームの作成に失敗しました: ${error.message}` },
+      { error: "チームの作成に失敗しました" },
       { status: 500 }
     )
   }
 
-  return NextResponse.json({
-    success: true,
-    teamId: id,
-    emailConfirmationRequired: !authData.session,
-  })
+  return NextResponse.json({ success: true, teamId: id })
 }
 
 export async function GET(request: Request) {

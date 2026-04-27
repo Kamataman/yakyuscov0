@@ -2,8 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
-  // Supabaseがallowlist未登録のredirect URLをSite URL（ルート）にフォールバックする場合、
-  // ?code= パラメータ付きでルートに来るため /auth/confirm に転送する
+  // メール確認後、Supabaseが ?code= 付きでルートにリダイレクトしてくる場合に /auth/confirm へ転送
   const code = request.nextUrl.searchParams.get("code")
   if (code && request.nextUrl.pathname !== "/auth/confirm") {
     const confirmUrl = new URL("/auth/confirm", request.url)
