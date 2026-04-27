@@ -3,14 +3,15 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react"
+import { ArrowLeft, Loader2, Eye, EyeOff, Mail } from "lucide-react"
 
 export default function RegisterPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
-  
+  const [registeredTeamId, setRegisteredTeamId] = useState("")
+
   const [form, setForm] = useState({
     teamId: "",
     teamName: "",
@@ -21,8 +22,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    
-    // バリデーション
+
     if (!form.teamId.trim()) {
       setError("チームIDを入力してください")
       return
@@ -64,8 +64,11 @@ export default function RegisterPage() {
         return
       }
 
-      // 登録成功後、チームダッシュボードへ遷移
-      router.push(`/${form.teamId}`)
+      if (data.emailConfirmationRequired) {
+        setRegisteredTeamId(data.teamId)
+      } else {
+        router.push(`/${form.teamId}`)
+      }
     } catch {
       setError("通信エラーが発生しました")
     } finally {
@@ -73,10 +76,36 @@ export default function RegisterPage() {
     }
   }
 
+  if (registeredTeamId) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
+        <div className="mx-auto max-w-lg px-4 py-8">
+          <div className="rounded-2xl bg-white p-6 shadow-lg md:p-8 text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-blue-600" />
+            </div>
+            <h1 className="mb-3 text-2xl font-bold text-slate-800">確認メールを送信しました</h1>
+            <p className="text-slate-600 mb-2">
+              登録したメールアドレスに確認メールを送信しました。
+            </p>
+            <p className="text-slate-600 mb-6">
+              メール内のリンクをクリックして認証を完了してから、ログインしてください。
+            </p>
+            <Link
+              href={`/${registeredTeamId}/login`}
+              className="inline-flex items-center justify-center w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+            >
+              ログインページへ
+            </Link>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       <div className="mx-auto max-w-lg px-4 py-8">
-        {/* 戻るリンク */}
         <Link
           href="/"
           className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800"
@@ -89,7 +118,6 @@ export default function RegisterPage() {
           <h1 className="mb-6 text-2xl font-bold text-slate-800">チーム登録</h1>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* チームID */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
                 チームID
@@ -106,7 +134,6 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* チーム名 */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
                 チーム名
@@ -123,7 +150,6 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* 管理者メールアドレス */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
                 管理者メールアドレス
@@ -137,7 +163,6 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* 管理者パスワード */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
                 管理者パスワード
@@ -160,14 +185,12 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* エラーメッセージ */}
             {error && (
               <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
                 {error}
               </div>
             )}
 
-            {/* 登録ボタン */}
             <button
               type="submit"
               disabled={isSubmitting}
@@ -184,7 +207,6 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          {/* 将来的なGoogle認証 */}
           <div className="mt-6 border-t pt-6">
             <p className="mb-4 text-center text-sm text-slate-500">
               または

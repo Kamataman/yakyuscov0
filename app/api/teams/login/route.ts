@@ -20,10 +20,11 @@ export async function POST(request: Request) {
   })
 
   if (error || !data.user) {
-    return NextResponse.json(
-      { error: "メールアドレスまたはパスワードが正しくありません" },
-      { status: 401 }
-    )
+    const message =
+      error?.message === "Email not confirmed"
+        ? "メールアドレスの確認が完了していません。登録時に送信されたメールのリンクをクリックしてください。"
+        : "メールアドレスまたはパスワードが正しくありません"
+    return NextResponse.json({ error: message }, { status: 401 })
   }
 
   // ログインユーザーが対象チームの管理者か確認

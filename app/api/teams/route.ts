@@ -67,7 +67,11 @@ export async function POST(request: Request) {
     )
   }
 
-  return NextResponse.json({ success: true, teamId: id })
+  return NextResponse.json({
+    success: true,
+    teamId: id,
+    emailConfirmationRequired: !authData.session,
+  })
 }
 
 export async function GET(request: Request) {
