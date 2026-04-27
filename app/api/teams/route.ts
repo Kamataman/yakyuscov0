@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   const supabase = await createClient()
   const body = await request.json()
   const { id, name, adminEmail, adminPassword } = body
-  const origin = request.headers.get("origin") ?? "http://localhost:3000"
+  const { origin } = new URL(request.url)
 
   if (!id || !name || !adminEmail || !adminPassword) {
     return NextResponse.json(
