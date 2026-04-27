@@ -79,18 +79,18 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* チーム名/ロゴ */}
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/${teamId}`}
-            className="flex items-center gap-2 text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
-          >
-            <span className="text-2xl">&#9918;</span>
-            <span className="max-w-[150px] truncate sm:max-w-none">
+        <Link
+          href={`/${teamId}`}
+          className="flex items-center gap-2 text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
+        >
+          <span className="text-2xl">&#9918;</span>
+          <span className="flex flex-col">
+            <span className="max-w-[150px] truncate sm:max-w-none leading-tight">
               {teamName || teamId}
             </span>
-          </Link>
-          <span className="text-xs text-slate-400 hidden sm:inline">| {APP_NAME}</span>
-        </div>
+            <span className="text-xs font-normal text-slate-400 leading-tight">{APP_NAME}</span>
+          </span>
+        </Link>
 
         {/* デスクトップナビ */}
         <nav className="hidden md:flex items-center gap-1">
