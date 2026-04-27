@@ -92,6 +92,7 @@ export interface LineupEntry {
   position?: FieldPosition
   isSubstitute?: boolean  // 代打・途中出場
   enteredInning?: number  // 何回から出場したか
+  isHelper?: boolean      // 助っ人（個人成績に含めない）
 }
 
 // 打順のスロット（1試合で複数選手が入る可能性）

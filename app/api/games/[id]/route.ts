@@ -127,8 +127,9 @@ export async function PUT(
       position: string | null
       is_substitute: boolean
       entered_inning: number | null
+      is_helper: boolean
     }> = []
-    
+
     for (const slot of lineupSlots) {
       for (const entry of slot.entries) {
         lineupInserts.push({
@@ -139,6 +140,7 @@ export async function PUT(
           position: entry.position || null,
           is_substitute: entry.isSubstitute || false,
           entered_inning: entry.enteredInning || null,
+          is_helper: entry.isHelper || false,
         })
       }
     }
