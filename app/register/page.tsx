@@ -1,77 +1,90 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
-  
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+
   const [form, setForm] = useState({
     teamId: "",
     teamName: "",
     adminEmail: "",
     adminPassword: "",
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    
+    e.preventDefault();
+    setError("");
+
     // バリデーション
     if (!form.teamId.trim()) {
-      setError("チームIDを入力してください")
-      return
+      setError("チームIDを入力してください");
+      return;
     }
     if (!/^[a-z0-9-]+$/.test(form.teamId)) {
-      setError("チームIDは英小文字、数字、ハイフンのみ使用できます")
-      return
+      setError("チームIDは英小文字、数字、ハイフンのみ使用できます");
+      return;
     }
     if (!form.teamName.trim()) {
-      setError("チーム名を入力してください")
-      return
+      setError("チーム名を入力してください");
+      return;
     }
     if (!form.adminEmail.trim()) {
-      setError("メールアドレスを入力してください")
-      return
+      setError("メールアドレスを入力してください");
+      return;
     }
     if (!form.adminPassword || form.adminPassword.length < 8) {
-      setError("パスワードは8文字以上で入力してください")
-      return
+      setError("パスワードは8文字以上で入力してください");
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const response = await fetch("/api/teams", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: form.teamId,
-          name: form.teamName,
-          adminEmail: form.adminEmail,
-          adminPassword: form.adminPassword,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || "登録に失敗しました")
-        return
+      // チームIDの重複チェック（既存APIルート経由）
+      const checkRes = await fetch(`/api/teams?id=${encodeURIComponent(form.teamId)}`);
+      if (checkRes.ok) {
+        setError("このチームIDはすでに使用されています");
+        return;
       }
 
-      // 登録成功後、チームダッシュボードへ遷移
-      router.push(`/${form.teamId}`)
+      // Supabase Auth でユーザー登録
+      const supabase = createClient();
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: form.adminEmail,
+        password: form.adminPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            teamId: form.teamId,
+            teamName: form.teamName,
+          },
+        },
+      });
+
+      if (signUpError) {
+        if (signUpError.message.includes("already registered")) {
+          setError("このメールアドレスはすでに登録されています");
+        } else {
+          setError(signUpError.message || "登録に失敗しました");
+        }
+        return;
+      }
+
+      // 確認メール送信完了ページへ
+      router.push("/auth/confirm");
     } catch {
-      setError("通信エラーが発生しました")
+      setError("通信エラーが発生しました");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
@@ -97,7 +110,9 @@ export default function RegisterPage() {
               <input
                 type="text"
                 value={form.teamId}
-                onChange={(e) => setForm({ ...form, teamId: e.target.value.toLowerCase() })}
+                onChange={(e) =>
+                  setForm({ ...form, teamId: e.target.value.toLowerCase() })
+                }
                 placeholder="my-team"
                 className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
@@ -114,7 +129,9 @@ export default function RegisterPage() {
               <input
                 type="text"
                 value={form.teamName}
-                onChange={(e) => setForm({ ...form, teamName: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, teamName: e.target.value })
+                }
                 placeholder="○○ベースボールクラブ"
                 className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
@@ -131,7 +148,9 @@ export default function RegisterPage() {
               <input
                 type="email"
                 value={form.adminEmail}
-                onChange={(e) => setForm({ ...form, adminEmail: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, adminEmail: e.target.value })
+                }
                 placeholder="admin@example.com"
                 className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
@@ -146,7 +165,9 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={form.adminPassword}
-                  onChange={(e) => setForm({ ...form, adminPassword: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, adminPassword: e.target.value })
+                  }
                   placeholder="8文字以上"
                   className="w-full rounded-lg border border-slate-300 px-4 py-3 pr-12 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
@@ -155,7 +176,11 @@ export default function RegisterPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -183,40 +208,8 @@ export default function RegisterPage() {
               )}
             </button>
           </form>
-
-          {/* 将来的なGoogle認証 */}
-          <div className="mt-6 border-t pt-6">
-            <p className="mb-4 text-center text-sm text-slate-500">
-              または
-            </p>
-            <button
-              type="button"
-              disabled
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-400 cursor-not-allowed"
-            >
-              <svg className="h-5 w-5" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
-              Googleで登録（近日対応予定）
-            </button>
-          </div>
         </div>
       </div>
     </main>
-  )
+  );
 }

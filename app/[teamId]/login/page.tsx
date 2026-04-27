@@ -1,50 +1,72 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Loader2, Shield, ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Loader2, Shield, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { createClient } from "@/lib/supabase/client";
 
 export default function TeamLoginPage() {
-  const params = useParams()
-  const router = useRouter()
-  const teamId = params.teamId as string
+  const params = useParams();
+  const router = useRouter();
+  const teamId = params.teamId as string;
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
-      const response = await fetch("/api/teams/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamId, email, password }),
-      })
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || "ログインに失敗しました")
-        return
+      if (signInError) {
+        if (
+          signInError.message.includes("Invalid login credentials") ||
+          signInError.message.includes("invalid_credentials")
+        ) {
+          setError("メールアドレスまたはパスワードが正しくありません");
+        } else if (signInError.message.includes("Email not confirmed")) {
+          setError(
+            "メールアドレスの確認が完了していません。確認メールをご確認ください"
+          );
+        } else {
+          setError(signInError.message || "ログインに失敗しました");
+        }
+        return;
       }
 
-      // ログイン成功
-      router.push(`/${teamId}`)
-      router.refresh()
+      // ログインしたユーザーがこのチームの管理者か確認
+      const { data: team } = await supabase
+        .from("teams")
+        .select("id")
+        .eq("id", teamId)
+        .single();
+
+      if (!team) {
+        await supabase.auth.signOut();
+        setError("このチームの管理者ではありません");
+        return;
+      }
+
+      router.push(`/${teamId}`);
+      router.refresh();
     } catch {
-      setError("ログインに失敗しました")
+      setError("ログインに失敗しました");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex items-center justify-center p-4">
@@ -121,5 +143,5 @@ export default function TeamLoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
