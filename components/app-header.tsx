@@ -25,9 +25,6 @@ export function AppHeader() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [loggedInTeamId, setLoggedInTeamId] = useState<string | null>(null)
 
-  // チームが指定されていない場合（ランディングページ等）はヘッダーを表示しない
-  const isTeamPage = teamId && !pathname.startsWith("/register")
-
   // チーム名を取得
   useEffect(() => {
     if (teamId) {
@@ -60,8 +57,6 @@ export function AppHeader() {
     setLoggedInTeamId(null)
     router.refresh()
   }
-
-  if (!isTeamPage) return null
 
   // このチームの管理者としてログインしているか
   const isTeamAdmin = isLoggedIn && loggedInTeamId === teamId
