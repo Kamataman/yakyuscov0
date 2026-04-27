@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export interface AuthSession {
@@ -15,29 +14,30 @@ export interface ShareTokenSession {
 export type Session = AuthSession | ShareTokenSession;
 
 /**
- * 管理者セッションを取得（Cookieベース）
+ * 管理者セッションを取得（Supabase Auth ベース）
  */
 export async function getAdminSession(): Promise<AuthSession | null> {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("team_session");
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-  if (!sessionCookie?.value) {
+  if (error || !user) {
     return null;
   }
 
-  try {
-    const session = JSON.parse(sessionCookie.value);
-    if (session?.teamId) {
-      return {
-        teamId: session.teamId,
-        isAdmin: true,
-      };
-    }
-  } catch {
+  const { data: team } = await supabase
+    .from("teams")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!team) {
     return null;
   }
 
-  return null;
+  return { teamId: team.id, isAdmin: true };
 }
 
 /**
@@ -68,7 +68,6 @@ export async function getShareTokenSession(
 
 /**
  * 管理者権限が必要なAPIで使用
- * 管理者でない場合はnullを返す
  */
 export async function requireAdmin(): Promise<AuthSession | null> {
   return getAdminSession();
@@ -80,11 +79,27 @@ export async function requireAdmin(): Promise<AuthSession | null> {
 export async function requireTeamAdmin(
   teamId: string
 ): Promise<AuthSession | null> {
-  const session = await getAdminSession();
-  if (!session || session.teamId !== teamId) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
     return null;
   }
-  return session;
+
+  const { data: team } = await supabase
+    .from("teams")
+    .select("id")
+    .eq("id", teamId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!team) {
+    return null;
+  }
+
+  return { teamId, isAdmin: true };
 }
 
 /**
@@ -94,10 +109,8 @@ export async function requireGameAccess(
   gameId: string,
   shareToken?: string
 ): Promise<Session | null> {
-  // まず管理者セッションをチェック
   const adminSession = await getAdminSession();
   if (adminSession) {
-    // 管理者の場合、その試合がこのチームのものかどうか確認
     const supabase = await createClient();
     const { data } = await supabase
       .from("games")
@@ -110,7 +123,6 @@ export async function requireGameAccess(
     }
   }
 
-  // 共有トークンをチェック
   if (shareToken) {
     const tokenSession = await getShareTokenSession(shareToken);
     if (tokenSession && tokenSession.gameId === gameId) {
