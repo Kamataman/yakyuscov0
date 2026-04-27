@@ -5,6 +5,7 @@ import { usePathname, useParams, useRouter } from "next/navigation"
 import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import { APP_NAME } from "@/lib/constants"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,15 +79,18 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* チーム名/ロゴ */}
-        <Link
-          href={`/${teamId}`}
-          className="flex items-center gap-2 text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          <span className="text-2xl">&#9918;</span>
-          <span className="max-w-[150px] truncate sm:max-w-none">
-            {teamName || teamId}
-          </span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/${teamId}`}
+            className="flex items-center gap-2 text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
+          >
+            <span className="text-2xl">&#9918;</span>
+            <span className="max-w-[150px] truncate sm:max-w-none">
+              {teamName || teamId}
+            </span>
+          </Link>
+          <span className="text-xs text-slate-400 hidden sm:inline">| {APP_NAME}</span>
+        </div>
 
         {/* デスクトップナビ */}
         <nav className="hidden md:flex items-center gap-1">

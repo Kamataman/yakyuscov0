@@ -2,14 +2,15 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AppHeader } from '@/components/app-header'
+import { APP_NAME } from '@/lib/constants'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: '野球スコア',
-  description: '野球の試合結果・打撃成績・投手成績を記録するアプリ',
+  title: APP_NAME,
+  description: `${APP_NAME} - 野球の試合結果・打撃成績・投手成績を記録するアプリ`,
   generator: 'v0.app',
   icons: {
     icon: [
