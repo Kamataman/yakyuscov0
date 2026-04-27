@@ -2,6 +2,15 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
+  // Supabaseがallowlist未登録のredirect URLをSite URL（ルート）にフォールバックする場合、
+  // ?code= パラメータ付きでルートに来るため /auth/confirm に転送する
+  const code = request.nextUrl.searchParams.get("code")
+  if (code && request.nextUrl.pathname !== "/auth/confirm") {
+    const confirmUrl = new URL("/auth/confirm", request.url)
+    confirmUrl.searchParams.set("code", code)
+    return NextResponse.redirect(confirmUrl)
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
