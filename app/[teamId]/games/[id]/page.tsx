@@ -225,6 +225,14 @@ export default function GameDetailPage() {
           </div>
         </div>
 
+        {/* メモ */}
+        {game.memo && (
+          <div className="rounded-2xl bg-white p-4 shadow-lg">
+            <h2 className="mb-2 text-sm font-bold text-slate-600">メモ</h2>
+            <p className="whitespace-pre-wrap text-sm text-slate-700">{game.memo}</p>
+          </div>
+        )}
+
         {/* スコアボード */}
         <div className="rounded-2xl bg-white p-4 shadow-lg">
           <h2 className="mb-3 text-sm font-bold text-slate-600">スコアボード</h2>
@@ -387,13 +395,6 @@ export default function GameDetailPage() {
           )}
         </div>
 
-        {/* メモ */}
-        {game.memo && (
-          <div className="rounded-2xl bg-white p-4 shadow-lg">
-            <h2 className="mb-2 text-sm font-bold text-slate-600">メモ</h2>
-            <p className="whitespace-pre-wrap text-sm text-slate-700">{game.memo}</p>
-          </div>
-        )}
       </div>
     </main>
   )
