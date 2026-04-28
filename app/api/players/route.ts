@@ -11,6 +11,7 @@ export async function GET(request: Request) {
   let query = supabase
     .from("players")
     .select("*")
+    .order("number", { ascending: true, nullsFirst: false })
     .order("name")
 
   if (teamId) {
