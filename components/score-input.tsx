@@ -147,8 +147,8 @@ export function ScoreInput({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse" style={{ minWidth: `${Math.max(400, 80 + totalInnings * 40 + 56)}px` }}>
           <thead>
-            <tr className="bg-slate-800 text-white">
-              <th className="sticky left-0 z-10 bg-slate-800 w-20 min-w-[80px] px-3 py-2 text-left text-xs font-semibold"></th>
+            <tr className="bg-slate-50 text-slate-600">
+              <th className="sticky left-0 z-10 bg-slate-50 w-20 min-w-[80px] px-3 py-2 text-left text-xs font-semibold"></th>
               {innings.map((inning) => (
                 <th
                   key={inning}
@@ -157,7 +157,7 @@ export function ScoreInput({
                   {inning}
                 </th>
               ))}
-              <th className="sticky right-0 z-10 bg-slate-700 w-14 min-w-[56px] px-3 py-2 text-center text-xs font-semibold">
+              <th className="sticky right-0 z-10 bg-slate-100 w-14 min-w-[56px] px-3 py-2 text-center text-xs font-semibold">
                 計
               </th>
             </tr>
