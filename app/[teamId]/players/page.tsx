@@ -65,7 +65,7 @@ export default function PlayersPage() {
       }
 
       const player = await response.json()
-      setPlayers((prev) => [...prev, player])
+      setPlayers((prev) => sortPlayersByNumber([...prev, player]))
       setNewName("")
       setNewNumber("")
       setIsAdding(false)
@@ -103,7 +103,7 @@ export default function PlayersPage() {
       }
 
       const updated = await response.json()
-      setPlayers((prev) => prev.map((p) => (p.id === editingId ? updated : p)))
+      setPlayers((prev) => sortPlayersByNumber(prev.map((p) => (p.id === editingId ? updated : p))))
       setEditingId(null)
     } catch (error) {
       console.error(error)
