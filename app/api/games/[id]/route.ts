@@ -27,13 +27,20 @@ export async function GET(
     .eq("game_id", id)
     .order("inning")
 
-  // 打順を取得
-  const { data: lineupEntries } = await supabase
+  // 打順を取得（選手名をJOINで解決）
+  const { data: rawLineupEntries } = await supabase
     .from("lineup_entries")
-    .select("*")
+    .select("*, players(name)")
     .eq("game_id", id)
     .order("batting_order")
     .order("entered_inning", { nullsFirst: true })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lineupEntries = (rawLineupEntries || []).map((entry: any) => ({
+    ...entry,
+    player_name: entry.players?.name || entry.player_name,
+    players: undefined,
+  }))
 
   // 打撃結果を取得
   const { data: battingResults } = await supabase
@@ -41,19 +48,26 @@ export async function GET(
     .select("*")
     .eq("game_id", id)
 
-  // 投手成績を取得
-  const { data: pitcherResults } = await supabase
+  // 投手成績を取得（選手名をJOINで解決）
+  const { data: rawPitcherResults } = await supabase
     .from("pitcher_results")
-    .select("*")
+    .select("*, players(name)")
     .eq("game_id", id)
     .order("order_index")
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pitcherResults = (rawPitcherResults || []).map((result: any) => ({
+    ...result,
+    player_name: result.players?.name || result.player_name,
+    players: undefined,
+  }))
 
   return NextResponse.json({
     game,
     inningScores: inningScores || [],
-    lineupEntries: lineupEntries || [],
+    lineupEntries,
     battingResults: battingResults || [],
-    pitcherResults: pitcherResults || [],
+    pitcherResults,
   })
 }
 
