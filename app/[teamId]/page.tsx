@@ -1,9 +1,7 @@
-"use client"
-
-import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
-import { Calendar, Users, PlusCircle, TrendingUp, Loader2 } from "lucide-react"
+import { Calendar, Users, PlusCircle, TrendingUp } from "lucide-react"
+import { createClient } from "@/lib/supabase/server"
+import { requireTeamAdmin } from "@/lib/auth"
 
 interface GameSummary {
   id: string
@@ -12,29 +10,30 @@ interface GameSummary {
   inning_scores: { our_score: number; opponent_score: number }[]
 }
 
-export default function TeamDashboardPage() {
-  const params = useParams()
-  const teamId = params.teamId as string
-  
-  const [games, setGames] = useState<GameSummary[]>([])
-  const [playerCount, setPlayerCount] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
+interface Props {
+  params: Promise<{ teamId: string }>
+}
 
-  useEffect(() => {
-    Promise.all([
-      fetch(`/api/games?teamId=${teamId}`).then(res => res.json()),
-      fetch(`/api/players?teamId=${teamId}`).then(res => res.json()),
-      fetch(`/api/auth/status?teamId=${teamId}`).then(res => res.json()),
-    ])
-      .then(([gamesData, playersData, authData]) => {
-        if (Array.isArray(gamesData)) setGames(gamesData)
-        if (Array.isArray(playersData)) setPlayerCount(playersData.length)
-        setIsAdmin(authData.isAdmin === true)
-      })
-      .catch(console.error)
-      .finally(() => setIsLoading(false))
-  }, [teamId])
+export default async function TeamDashboardPage({ params }: Props) {
+  const { teamId } = await params
+  const supabase = await createClient()
+
+  const [gamesResult, playersResult, adminSession] = await Promise.all([
+    supabase
+      .from("games")
+      .select("id, date, opponent, inning_scores(our_score, opponent_score)")
+      .eq("team_id", teamId)
+      .order("date", { ascending: false }),
+    supabase
+      .from("players")
+      .select("id")
+      .eq("team_id", teamId),
+    requireTeamAdmin(teamId),
+  ])
+
+  const games = (gamesResult.data ?? []) as unknown as GameSummary[]
+  const playerCount = playersResult.data?.length ?? 0
+  const isAdmin = !!adminSession
 
   const getTotalScore = (scores: GameSummary["inning_scores"]) => ({
     our: scores?.reduce((sum, s) => sum + (s.our_score || 0), 0) || 0,
@@ -85,11 +84,7 @@ export default function TeamDashboardPage() {
                   過去の試合結果を確認・編集
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <span>{games.length} 試合</span>
-                  )}
+                  <span>{games.length} 試合</span>
                 </div>
               </div>
             </div>
@@ -112,11 +107,7 @@ export default function TeamDashboardPage() {
                   選手ごとの打撃・投手成績を確認
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <span>{playerCount} 選手</span>
-                  )}
+                  <span>{playerCount} 選手</span>
                 </div>
               </div>
             </div>
@@ -139,11 +130,7 @@ export default function TeamDashboardPage() {
                   登録選手の確認
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <span>{playerCount} 選手登録済み</span>
-                  )}
+                  <span>{playerCount} 選手登録済み</span>
                 </div>
               </div>
             </div>
@@ -154,11 +141,7 @@ export default function TeamDashboardPage() {
         <div className="mt-8">
           <h2 className="mb-4 text-lg font-bold text-slate-800">直近の試合</h2>
           <div className="rounded-2xl bg-white p-6 shadow-md">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-              </div>
-            ) : recentGames.length === 0 ? (
+            {recentGames.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <Calendar className="mb-3 h-12 w-12 text-slate-300" />
                 <p className="text-slate-500">まだ試合が記録されていません</p>

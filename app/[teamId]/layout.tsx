@@ -13,7 +13,7 @@ export default async function TeamLayout({ children, params }: Props) {
 
   const { data } = await supabase
     .from("teams")
-    .select("id")
+    .select("id, name")
     .eq("id", teamId)
     .single()
 
@@ -23,7 +23,7 @@ export default async function TeamLayout({ children, params }: Props) {
 
   return (
     <>
-      <AppHeader />
+      <AppHeader teamName={data.name} />
       {children}
     </>
   )
