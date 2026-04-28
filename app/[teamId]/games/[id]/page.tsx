@@ -350,7 +350,7 @@ export default function GameDetailPage() {
         <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
           <h2 className="px-4 py-3 text-sm font-bold text-slate-600 border-b border-slate-200 bg-slate-50">投手成績</h2>
           {pitcherResults.length > 0 ? (
-            <div className="overflow-x-auto p-4">
+            <div className="overflow-x-auto">
               <table className="w-full text-center text-sm">
                 <thead>
                   <tr className="border-b bg-slate-50">
