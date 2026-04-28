@@ -36,6 +36,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   // 試合情報
   const [gameDate, setGameDate] = useState("")
   const [opponent, setOpponent] = useState("")
+  const [location, setLocation] = useState("")
+  const [memo, setMemo] = useState("")
   const [isFirstBatting, setIsFirstBatting] = useState(true)
   const [totalInnings, setTotalInnings] = useState(9)
 
@@ -105,6 +107,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
         if (gameData.game) {
           setGameDate(gameData.game.date || "")
           setOpponent(gameData.game.opponent || "")
+          setLocation(gameData.game.location || "")
+          setMemo(gameData.game.memo || "")
           setIsFirstBatting(gameData.game.is_first_batting ?? true)
           setTotalInnings(gameData.game.total_innings ?? 9)
         }
@@ -350,11 +354,15 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   }
 
   // 試合情報を都度保存
-  const handleGameInfoChange = useCallback((field: "date" | "opponent" | "isFirstBatting" | "totalInnings", value: string | boolean | number) => {
+  const handleGameInfoChange = useCallback((field: "date" | "opponent" | "location" | "memo" | "isFirstBatting" | "totalInnings", value: string | boolean | number) => {
     if (field === "date") {
       setGameDate(value as string)
     } else if (field === "opponent") {
       setOpponent(value as string)
+    } else if (field === "location") {
+      setLocation(value as string)
+    } else if (field === "memo") {
+      setMemo(value as string)
     } else if (field === "isFirstBatting") {
       setIsFirstBatting(value as boolean)
     } else if (field === "totalInnings") {
@@ -509,6 +517,26 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
                 className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
+            <div className="flex flex-1 items-center gap-2">
+              <label className="text-sm text-slate-600 whitespace-nowrap">球場</label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => handleGameInfoChange("location", e.target.value)}
+                placeholder="球場名を入力"
+                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div className="mt-4">
+            <label className="mb-1 block text-sm text-slate-600">メモ</label>
+            <textarea
+              value={memo}
+              onChange={(e) => handleGameInfoChange("memo", e.target.value)}
+              placeholder="試合のメモを入力"
+              rows={3}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+            />
           </div>
         </div>
         
