@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Loader2, CheckCircle2, AlertCircle, Share2, Copy } from "lucide-react"
+import { Loader2, CheckCircle2, AlertCircle, Share2, Copy, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BattingGrid } from "@/components/batting-grid"
 import { BattingInputDialog } from "@/components/batting-input-dialog"
@@ -9,6 +9,7 @@ import { ScoreInput } from "@/components/score-input"
 import { PlayerSelectDialog } from "@/components/player-select-dialog"
 import { PitcherInput } from "@/components/pitcher-input"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
@@ -72,6 +73,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   const [generatedShareToken, setGeneratedShareToken] = useState<string | null>(null)
   const [shareTokenExpiry, setShareTokenExpiry] = useState<string | null>(null)
   const [isGeneratingToken, setIsGeneratingToken] = useState(false)
+  const [urlCopied, setUrlCopied] = useState(false)
 
   // 保存ステータスの自動リセット
   useEffect(() => {
@@ -402,7 +404,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   }
 
   // 共有URLを生成
-  const handleGenerateShareUrl = async () => {
+  const handleGenerateShareUrl = async (): Promise<string | null> => {
     setIsGeneratingToken(true)
     try {
       const response = await fetch(`/api/games/${gameId}/share-token`, {
@@ -412,12 +414,14 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
       if (data.token) {
         setGeneratedShareToken(data.token)
         setShareTokenExpiry(data.expiresAt)
+        return data.token
       }
     } catch (err) {
       console.error("Failed to generate share URL:", err)
     } finally {
       setIsGeneratingToken(false)
     }
+    return null
   }
 
   const getShareUrl = () => {
@@ -425,10 +429,23 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     return `${window.location.origin}/share/${generatedShareToken}`
   }
 
-  const handleCopyShareUrl = async () => {
-    const url = getShareUrl()
+  const copyUrlToClipboard = async (token: string) => {
+    if (typeof window === "undefined") return
+    const url = `${window.location.origin}/share/${token}`
     await navigator.clipboard.writeText(url)
-    alert("URLをコピーしました")
+    setUrlCopied(true)
+    setTimeout(() => setUrlCopied(false), 2000)
+  }
+
+  const handleCopyShareUrl = async () => {
+    if (!generatedShareToken) return
+    await copyUrlToClipboard(generatedShareToken)
+  }
+
+  const handleShareButtonClick = async () => {
+    setShareDialogOpen(true)
+    const token = generatedShareToken ?? (await handleGenerateShareUrl())
+    if (token) await copyUrlToClipboard(token)
   }
 
   const currentResult = selectedCell
@@ -472,16 +489,11 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setShareDialogOpen(true)
-                  if (!generatedShareToken) {
-                    handleGenerateShareUrl()
-                  }
-                }}
+                onClick={handleShareButtonClick}
                 className="gap-2 bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
               >
                 <Share2 className="h-4 w-4" />
-                URLを共有して入力
+                みんなで入力
               </Button>
             )}
           </div>
@@ -602,10 +614,10 @@ onTotalInningsChange={(value) => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Share2 className="h-5 w-5" />
-              共有URLを発行
+              みんなで入力
             </DialogTitle>
             <DialogDescription>
-              このURLを共有すると、チームメンバーが試合結果を入力できます。URLは24時間有効です。
+              このURLを共有すると、複数人で一緒に試合結果を入力できます。URLは24時間有効です。
             </DialogDescription>
           </DialogHeader>
 
@@ -616,10 +628,23 @@ onTotalInningsChange={(value) => {
               </div>
             ) : generatedShareToken ? (
               <>
-                <div className="rounded-lg bg-slate-100 p-3">
-                  <div className="text-xs text-slate-500 mb-1">共有URL</div>
-                  <div className="text-sm font-mono break-all text-slate-700">
-                    {getShareUrl()}
+                <div className="space-y-1.5">
+                  <div className="text-xs text-slate-500">共有URL</div>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={getShareUrl()}
+                      className="font-mono text-xs"
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleCopyShareUrl}
+                      className={urlCopied ? "shrink-0 text-emerald-600 border-emerald-300" : "shrink-0"}
+                    >
+                      {urlCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
                   </div>
                 </div>
 
@@ -629,12 +654,19 @@ onTotalInningsChange={(value) => {
                   </div>
                 )}
 
-                <div className="flex gap-2">
-                  <Button onClick={handleCopyShareUrl} className="flex-1 gap-2">
-                    <Copy className="h-4 w-4" />
-                    URLをコピー
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 border-[#06C755] text-[#06C755] hover:bg-[#06C755]/10"
+                  asChild
+                >
+                  <a
+                    href={`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(getShareUrl())}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    LINEで共有
+                  </a>
+                </Button>
 
                 <div className="text-xs text-slate-500 bg-amber-50 border border-amber-200 rounded-lg p-3">
                   このURLを知っている人は誰でも試合結果を入力できます。LINE等で共有する際はご注意ください。
