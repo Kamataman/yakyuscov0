@@ -44,10 +44,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: resultsError.message }, { status: 500 })
   }
 
-  // 打順エントリーを取得（助っ人を除く）
+  // 打順エントリーを取得（助っ人を除く、選手名JOINで解決）
   let lineupQuery = supabase
     .from("lineup_entries")
-    .select("player_id, player_name, game_id, batting_order, is_helper")
+    .select("player_id, player_name, game_id, batting_order, is_helper, players(name)")
     .eq("is_helper", false)
   if (teamId && gameIds.length > 0) {
     lineupQuery = lineupQuery.in("game_id", gameIds)
@@ -58,13 +58,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: lineupError.message }, { status: 500 })
   }
 
-  // 打順エントリーから選手とゲームの紐付けを作成
+  // 打順エントリーから選手とゲームの紐付けを作成（削除済み選手はスキップ）
   const battingOrderMap = new Map<string, { playerId: string; playerName: string }>()
   for (const entry of lineupEntries || []) {
+    if (!entry.player_id) continue
     const key = `${entry.game_id}-${entry.batting_order}`
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const players = (entry as any).players as { name: string } | null
     battingOrderMap.set(key, {
-      playerId: entry.player_id || entry.player_name,
-      playerName: entry.player_name,
+      playerId: entry.player_id,
+      playerName: players?.name || entry.player_name,
     })
   }
 
@@ -125,8 +128,8 @@ export async function GET(request: Request) {
   // 打席数でソート
   battingStatsResponse.sort((a, b) => b.stats.plateAppearances - a.stats.plateAppearances)
 
-  // 投手成績を取得
-  let pitcherQuery = supabase.from("pitcher_results").select("*")
+  // 投手成績を取得（選手名JOINで解決）
+  let pitcherQuery = supabase.from("pitcher_results").select("*, players(name)")
   if (teamId && gameIds.length > 0) {
     pitcherQuery = pitcherQuery.in("game_id", gameIds)
   }
@@ -136,7 +139,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: pitcherError.message }, { status: 500 })
   }
 
-  // 投手ごとにグループ化
+  // 投手ごとにグループ化（削除済み選手はスキップ）
   const pitcherResultsMap = new Map<string, {
     name: string
     results: Array<{
@@ -156,8 +159,11 @@ export async function GET(request: Request) {
   }>()
 
   for (const result of pitcherResults || []) {
-    const pitcherId = result.player_id || result.player_name
-    const pitcherName = result.player_name
+    if (!result.player_id) continue
+    const pitcherId = result.player_id
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pitcherPlayers = (result as any).players as { name: string } | null
+    const pitcherName = pitcherPlayers?.name || result.player_name
 
     if (!pitcherResultsMap.has(pitcherId)) {
       pitcherResultsMap.set(pitcherId, {
