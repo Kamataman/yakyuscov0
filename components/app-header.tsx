@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname, useParams, useRouter } from "next/navigation"
 import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield } from "lucide-react"
 import { useState, useEffect } from "react"
@@ -78,7 +79,7 @@ export function AppHeader() {
           href={`/${teamId}`}
           className="flex items-center gap-2 text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
         >
-          <span className="text-2xl">&#9918;</span>
+          <Image src="/apple-icon.png" alt="やきゅすこ" width={36} height={36} className="rounded-lg" />
           <span className="flex flex-col">
             <span className="max-w-[150px] truncate sm:max-w-none leading-tight">
               {teamName || teamId}
