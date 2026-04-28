@@ -10,7 +10,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: APP_NAME,
   description: `${APP_NAME} - 野球の試合結果・打撃成績・投手成績を記録するアプリ`,
-  generator: 'v0.app',
+  generator: 'next.js',
   icons: {
     icon: [
       {
