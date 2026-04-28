@@ -64,14 +64,14 @@ export function BattingGrid({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse" style={{ minWidth: `${Math.max(500, 136 + totalInnings * 48)}px` }}>
           <thead>
-            <tr className="bg-slate-800 text-white">
-              <th className="sticky left-0 z-20 bg-slate-800 w-10 min-w-[40px] px-2 py-3 text-center text-xs font-semibold border-r border-slate-700">
+            <tr className="bg-slate-50 text-slate-600">
+              <th className="sticky left-0 z-20 bg-slate-50 w-10 min-w-[40px] px-2 py-3 text-center text-xs font-semibold border-r border-slate-200">
                 打順
               </th>
-              <th className="sticky left-10 z-20 bg-slate-800 w-10 min-w-[40px] px-2 py-3 text-center text-xs font-semibold border-r border-slate-700">
+              <th className="sticky left-10 z-20 bg-slate-50 w-10 min-w-[40px] px-2 py-3 text-center text-xs font-semibold border-r border-slate-200">
                 守
               </th>
-              <th className="sticky left-20 z-20 bg-slate-800 w-24 min-w-[96px] px-2 py-3 text-center text-xs font-semibold border-r border-slate-700">
+              <th className="sticky left-20 z-20 bg-slate-50 w-24 min-w-[96px] px-2 py-3 text-center text-xs font-semibold border-r border-slate-200">
                 選手名
               </th>
               {innings.map((inning) => (
