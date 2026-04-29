@@ -355,7 +355,7 @@ export default function GameDetailPage() {
                         const isActive = inning >= row.activeFrom && inning <= row.activeTo
                         if (!isActive) {
                           return (
-                            <td key={inning} className="w-14 min-w-[56px] px-1 py-2 bg-slate-50 text-slate-300">-</td>
+                            <td key={inning} className="w-14 min-w-[56px] px-1 py-2 text-slate-300">-</td>
                           )
                         }
                         const result = resultsMap.get(`${row.battingOrder}-${inning}`)
