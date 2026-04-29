@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
-import type { BattingResult, CellPosition, LineupSlot, InningScore, Player, PitcherResult } from "@/lib/batting-types"
+import type { BattingResult, CellPosition, LineupSlot, InningScore, Player, PitcherResult, HitResult, HitDirection, FieldPosition } from "@/lib/batting-types"
 
 interface GameEditorProps {
   gameId: string
@@ -29,11 +29,13 @@ interface GameEditorProps {
 
 type SaveStatus = "idle" | "saving" | "saved" | "error"
 
+const POLLING_INTERVAL_MS = 30_000
+
 export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: GameEditorProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   // 試合情報
   const [gameDate, setGameDate] = useState("")
   const [opponent, setOpponent] = useState("")
@@ -64,7 +66,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
 
   // 登録済み選手
   const [registeredPlayers, setRegisteredPlayers] = useState<Player[]>([])
-  
+
   // 投手成績
   const [pitchers, setPitchers] = useState<PitcherResult[]>([])
 
@@ -74,6 +76,16 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   const [shareTokenExpiry, setShareTokenExpiry] = useState<string | null>(null)
   const [isGeneratingToken, setIsGeneratingToken] = useState(false)
   const [urlCopied, setUrlCopied] = useState(false)
+
+  // ポーリング用 ref（stale closure 回避）
+  const lastLocalEditTimeRef = useRef<number>(0)
+  const saveStatusRef = useRef<SaveStatus>("idle")
+  const dialogOpenRef = useRef(false)
+  const playerDialogOpenRef = useRef(false)
+
+  useEffect(() => { saveStatusRef.current = saveStatus }, [saveStatus])
+  useEffect(() => { dialogOpenRef.current = dialogOpen }, [dialogOpen])
+  useEffect(() => { playerDialogOpenRef.current = playerDialogOpen }, [playerDialogOpen])
 
   // 保存ステータスの自動リセット
   useEffect(() => {
@@ -99,6 +111,107 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     return response.json()
   }, [shareToken])
 
+  // APIレスポンスを state に適用する（初回ロード・ポーリング共用）
+  const applyGameData = useCallback((gameData: {
+    game?: { date: string; opponent: string; location: string; memo: string; is_first_batting: boolean; total_innings: number }
+    inningScores?: { inning: number; our_score: number; opponent_score: number }[]
+    lineupEntries?: { batting_order: number; player_id: string; player_name: string; position: string; is_substitute: boolean; entered_inning?: number; is_helper: boolean }[]
+    battingResults?: { batting_order: number; inning: number; hit_result: string; direction: string; rbi_count: number; runner_first: boolean; runner_second: boolean; runner_third: boolean; stolen_second: boolean; stolen_third: boolean; stolen_home: boolean }[]
+    pitcherResults?: { player_id?: string; player_name: string; innings_pitched: number; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; pitch_count?: number; is_win: boolean; is_lose: boolean; is_save: boolean; is_hold: boolean }[]
+  }) => {
+    if (gameData.game) {
+      setGameDate(gameData.game.date || "")
+      setOpponent(gameData.game.opponent || "")
+      setLocation(gameData.game.location || "")
+      setMemo(gameData.game.memo || "")
+      setIsFirstBatting(gameData.game.is_first_batting ?? true)
+      setTotalInnings(gameData.game.total_innings ?? 9)
+    }
+
+    if (gameData.inningScores) {
+      const numInnings = gameData.game?.total_innings ?? 9
+      const scores: InningScore[] = Array.from({ length: numInnings }, () => ({ our: 0, opponent: 0 }))
+      for (const score of gameData.inningScores) {
+        if (score.inning >= 1 && score.inning <= scores.length) {
+          scores[score.inning - 1] = {
+            our: score.our_score,
+            opponent: score.opponent_score,
+          }
+        }
+      }
+      setInningScores(scores)
+    }
+
+    if (gameData.lineupEntries) {
+      const slots = new Map<number, LineupSlot>()
+      for (const entry of gameData.lineupEntries) {
+        if (!slots.has(entry.batting_order)) {
+          slots.set(entry.batting_order, {
+            order: entry.batting_order,
+            entries: [],
+          })
+        }
+        slots.get(entry.batting_order)!.entries.push({
+          playerId: entry.player_id || "",
+          playerName: entry.player_name,
+          position: entry.position as FieldPosition | undefined,
+          isSubstitute: entry.is_substitute,
+          enteredInning: entry.entered_inning,
+          isHelper: entry.is_helper,
+        })
+      }
+
+      const maxOrder = Math.max(9, ...gameData.lineupEntries.map((e) => e.batting_order))
+      const newSlots: LineupSlot[] = Array.from({ length: maxOrder }, (_, i) =>
+        slots.get(i + 1) || { order: i + 1, entries: [] }
+      )
+      setLineupSlots(newSlots)
+    }
+
+    if (gameData.battingResults) {
+      const newResults: Record<string, BattingResult> = {}
+      for (const result of gameData.battingResults) {
+        const key = `${result.batting_order}-${result.inning}`
+        newResults[key] = {
+          hitResult: result.hit_result as HitResult,
+          direction: result.direction as HitDirection | undefined,
+          rbiCount: result.rbi_count,
+          runners: {
+            first: result.runner_first,
+            second: result.runner_second,
+            third: result.runner_third,
+          },
+          stolenBases: {
+            second: result.stolen_second,
+            third: result.stolen_third,
+            home: result.stolen_home,
+          },
+        }
+      }
+      setResults(newResults)
+    }
+
+    if (gameData.pitcherResults) {
+      setPitchers(gameData.pitcherResults.map((p) => ({
+        playerId: p.player_id || "",
+        playerName: p.player_name,
+        inningsPitched: p.innings_pitched,
+        hits: p.hits,
+        runs: p.runs,
+        earnedRuns: p.earned_runs,
+        strikeouts: p.strikeouts,
+        walks: p.walks,
+        hitByPitch: p.hit_by_pitch,
+        homeRuns: p.home_runs,
+        pitchCount: p.pitch_count,
+        isWin: p.is_win,
+        isLose: p.is_lose,
+        isSave: p.is_save,
+        isHold: p.is_hold,
+      })))
+    }
+  }, [])
+
   // データを読み込み
   useEffect(() => {
     Promise.all([
@@ -106,119 +219,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
       fetch(`/api/players?teamId=${teamId}`).then(res => res.json()),
     ])
       .then(([gameData, playersData]) => {
-        if (gameData.game) {
-          setGameDate(gameData.game.date || "")
-          setOpponent(gameData.game.opponent || "")
-          setLocation(gameData.game.location || "")
-          setMemo(gameData.game.memo || "")
-          setIsFirstBatting(gameData.game.is_first_batting ?? true)
-          setTotalInnings(gameData.game.total_innings ?? 9)
-        }
+        applyGameData(gameData)
 
-        // イニングスコア
-        if (gameData.inningScores) {
-          const numInnings = gameData.game?.total_innings ?? 9
-          const scores: InningScore[] = Array.from({ length: numInnings }, () => ({ our: 0, opponent: 0 }))
-          for (const score of gameData.inningScores) {
-            if (score.inning >= 1 && score.inning <= scores.length) {
-              scores[score.inning - 1] = {
-                our: score.our_score,
-                opponent: score.opponent_score,
-              }
-            }
-          }
-          setInningScores(scores)
-        }
-
-        // 打順
-        if (gameData.lineupEntries) {
-          const slots = new Map<number, LineupSlot>()
-          for (const entry of gameData.lineupEntries) {
-            if (!slots.has(entry.batting_order)) {
-              slots.set(entry.batting_order, {
-                order: entry.batting_order,
-                entries: [],
-              })
-            }
-            slots.get(entry.batting_order)!.entries.push({
-              playerId: entry.player_id || "",
-              playerName: entry.player_name,
-              position: entry.position,
-              isSubstitute: entry.is_substitute,
-              enteredInning: entry.entered_inning,
-              isHelper: entry.is_helper,
-            })
-          }
-          
-          const maxOrder = Math.max(9, ...gameData.lineupEntries.map((e: { batting_order: number }) => e.batting_order))
-          const newSlots: LineupSlot[] = Array.from({ length: maxOrder }, (_, i) => 
-            slots.get(i + 1) || { order: i + 1, entries: [] }
-          )
-          setLineupSlots(newSlots)
-        }
-
-        // 打撃結果
-        if (gameData.battingResults) {
-          const newResults: Record<string, BattingResult> = {}
-          for (const result of gameData.battingResults) {
-            const key = `${result.batting_order}-${result.inning}`
-            newResults[key] = {
-              hitResult: result.hit_result,
-              direction: result.direction,
-              rbiCount: result.rbi_count,
-              runners: {
-                first: result.runner_first,
-                second: result.runner_second,
-                third: result.runner_third,
-              },
-              stolenBases: {
-                second: result.stolen_second,
-                third: result.stolen_third,
-                home: result.stolen_home,
-              },
-            }
-          }
-          setResults(newResults)
-        }
-
-        // 投手成績
-        if (gameData.pitcherResults) {
-          setPitchers(gameData.pitcherResults.map((p: {
-            player_id?: string
-            player_name: string
-            innings_pitched: number
-            hits: number
-            runs: number
-            earned_runs: number
-            strikeouts: number
-            walks: number
-            hit_by_pitch: number
-            home_runs: number
-            pitch_count?: number
-            is_win: boolean
-            is_lose: boolean
-            is_save: boolean
-            is_hold: boolean
-          }) => ({
-            playerId: p.player_id || "",
-            playerName: p.player_name,
-            inningsPitched: p.innings_pitched,
-            hits: p.hits,
-            runs: p.runs,
-            earnedRuns: p.earned_runs,
-            strikeouts: p.strikeouts,
-            walks: p.walks,
-            hitByPitch: p.hit_by_pitch,
-            homeRuns: p.home_runs,
-            pitchCount: p.pitch_count,
-            isWin: p.is_win,
-            isLose: p.is_lose,
-            isSave: p.is_save,
-            isHold: p.is_hold,
-          })))
-        }
-
-        // 選手一覧
         if (Array.isArray(playersData)) {
           setRegisteredPlayers(playersData.map((p: { id: string; name: string; number?: number }) => ({
             id: p.id,
@@ -233,7 +235,31 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
         console.error(err)
         setIsLoading(false)
       })
-  }, [gameId, teamId])
+  }, [gameId, teamId, applyGameData])
+
+  // 定期的に最新データを取得して反映（複数人同時編集対応）
+  useEffect(() => {
+    if (isLoading) return
+
+    const id = setInterval(async () => {
+      if (
+        Date.now() - lastLocalEditTimeRef.current < 5000 ||
+        dialogOpenRef.current ||
+        playerDialogOpenRef.current ||
+        saveStatusRef.current === "saving"
+      ) return
+
+      try {
+        const res = await fetch(`/api/games/${gameId}`)
+        if (!res.ok) return
+        applyGameData(await res.json())
+      } catch {
+        // ポーリング失敗はサイレントに無視
+      }
+    }, POLLING_INTERVAL_MS)
+
+    return () => clearInterval(id)
+  }, [isLoading, gameId, applyGameData])
 
   // 打撃結果を都度保存
   const handleResultSave = async (result: BattingResult) => {
@@ -288,6 +314,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   // イニングスコアを都度保存
   const handleScoresChange = useCallback((newScores: InningScore[]) => {
     setInningScores(newScores)
+    lastLocalEditTimeRef.current = Date.now()
 
     // 変更があったイニングを特定して保存
     if (saveTimeoutRef.current) {
@@ -357,6 +384,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
 
   // 試合情報を都度保存
   const handleGameInfoChange = useCallback((field: "date" | "opponent" | "location" | "memo" | "isFirstBatting" | "totalInnings", value: string | boolean | number) => {
+    lastLocalEditTimeRef.current = Date.now()
     if (field === "date") {
       setGameDate(value as string)
     } else if (field === "opponent") {
