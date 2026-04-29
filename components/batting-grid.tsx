@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Plus } from "lucide-react"
+import { Minus, Plus } from "lucide-react"
 import type { BattingResult, CellPosition, LineupSlot } from "@/lib/batting-types"
 import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
 
@@ -16,6 +16,7 @@ interface BattingGridProps {
   totalInnings?: number
   atBatSequences: Record<number, number>
   onAddAtBat: (inning: number) => void
+  onRemoveAtBat: (inning: number) => void
 }
 
 export function BattingGrid({
@@ -27,6 +28,7 @@ export function BattingGrid({
   totalInnings = 9,
   atBatSequences,
   onAddAtBat,
+  onRemoveAtBat,
 }: BattingGridProps) {
   const maxBattingOrder = Math.max(lineupSlots.length, 9)
   const battingOrders = Array.from({ length: maxBattingOrder }, (_, i) => i + 1)
@@ -116,7 +118,18 @@ export function BattingGrid({
                         </button>
                       </div>
                     ) : (
-                      <span className="text-slate-400 text-[10px]">{["②", "③", "④", "⑤"][col.sequence - 2] ?? col.sequence}</span>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className="text-slate-400 text-[10px]">{["②", "③", "④", "⑤"][col.sequence - 2] ?? col.sequence}</span>
+                        {isLastOfInning && (
+                          <button
+                            onClick={() => onRemoveAtBat(col.inning)}
+                            className="flex h-4 w-4 items-center justify-center rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            title={`${col.inning}回の${col.sequence}打席目を削除`}
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     )}
                   </th>
                 )
@@ -221,7 +234,11 @@ export function BattingGrid({
         </div>
         <div className="flex items-center gap-2 text-xs">
           <Plus className="h-3 w-3 text-slate-400" />
-          <span className="text-slate-500">イニング内で打席を追加</span>
+          <span className="text-slate-500">打席を追加</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs">
+          <Minus className="h-3 w-3 text-slate-400" />
+          <span className="text-slate-500">打席を削除</span>
         </div>
       </div>
     </div>

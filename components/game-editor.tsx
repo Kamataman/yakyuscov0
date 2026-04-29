@@ -446,6 +446,48 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     }))
   }
 
+  const handleRemoveAtBat = async (inning: number) => {
+    const seq = atBatSequences[inning] ?? 1
+    if (seq <= 1) return
+
+    // 削除対象の打席結果キーを収集
+    const keysToDelete: { order: number; key: string }[] = []
+    for (let order = 1; order <= lineupSlots.length; order++) {
+      const key = `${order}-${inning}-${seq}`
+      if (results[key]) keysToDelete.push({ order, key })
+    }
+
+    // ローカル state から削除
+    setResults((prev) => {
+      const next = { ...prev }
+      for (const { key } of keysToDelete) delete next[key]
+      return next
+    })
+    setAtBatSequences((prev) => {
+      const next = { ...prev }
+      if (seq <= 2) delete next[inning]
+      else next[inning] = seq - 1
+      return next
+    })
+
+    // DB から削除
+    if (keysToDelete.length === 0) return
+    setSaveStatus("saving")
+    try {
+      await Promise.all(
+        keysToDelete.map(({ order }) =>
+          apiRequest(
+            `/api/games/${gameId}/batting-result?battingOrder=${order}&inning=${inning}&atBatSequence=${seq}${shareToken ? `&shareToken=${shareToken}` : ""}`,
+            "DELETE"
+          )
+        )
+      )
+      setSaveStatus("saved")
+    } catch {
+      setSaveStatus("error")
+    }
+  }
+
   // 共有URLを生成
   const handleGenerateShareUrl = async (): Promise<string | null> => {
     setIsGeneratingToken(true)
@@ -626,6 +668,7 @@ onTotalInningsChange={(value) => {
           totalInnings={totalInnings}
           atBatSequences={atBatSequences}
           onAddAtBat={handleAddAtBat}
+          onRemoveAtBat={handleRemoveAtBat}
         />
 
         <PitcherInput
