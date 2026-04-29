@@ -50,6 +50,7 @@ export interface BattingResult {
 export interface CellPosition {
   battingOrder: number
   inning: number
+  atBatSequence: number
 }
 
 // 守備位置

@@ -33,6 +33,7 @@ interface GameDetail {
   battingResults: Array<{
     batting_order: number
     inning: number
+    at_bat_sequence?: number
     hit_result: string
     direction?: string
     rbi_count: number
@@ -161,10 +162,28 @@ export default function GameDetailPage() {
 
   // 打撃結果をマップ化
   const resultsMap = new Map<string, typeof battingResults[0]>()
+  const atBatSeqsMap: Record<number, number> = {}
   for (const result of battingResults) {
-    resultsMap.set(`${result.batting_order}-${result.inning}`, result)
+    const seq = result.at_bat_sequence ?? 1
+    resultsMap.set(`${result.batting_order}-${result.inning}-${seq}`, result)
+    if (!atBatSeqsMap[result.inning] || atBatSeqsMap[result.inning] < seq) {
+      atBatSeqsMap[result.inning] = seq
+    }
   }
   const maxOrder = Math.max(9, ...lineupEntries.map(e => e.batting_order))
+
+  type AtBatColumn = { inning: number; sequence: number }
+  const columns: AtBatColumn[] = []
+  for (let i = 1; i <= maxInning; i++) {
+    const maxSeq = atBatSeqsMap[i] ?? 1
+    for (let s = 1; s <= maxSeq; s++) {
+      columns.push({ inning: i, sequence: s })
+    }
+  }
+  const lastColIndexByInning = new Map<number, number>()
+  columns.forEach((col, idx) => {
+    lastColIndexByInning.set(col.inning, idx)
+  })
 
   type DisplayRow = {
     battingOrder: number
@@ -355,15 +374,30 @@ export default function GameDetailPage() {
         <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
           <h2 className="px-4 py-3 text-sm font-bold text-slate-600 border-b border-slate-200 bg-slate-50">打撃成績</h2>
           <div className="relative overflow-x-auto">
-            <table className="text-center text-sm border-collapse" style={{ minWidth: `${Math.max(400, 176 + maxInning * 56)}px` }}>
+            <table className="text-center text-sm border-collapse" style={{ minWidth: `${Math.max(400, 176 + columns.length * 56)}px` }}>
               <thead>
                 <tr className="border-b bg-slate-100">
                   <th className="sticky left-0 z-20 bg-slate-100 w-10 min-w-[40px] px-2 py-2 text-center border-r border-slate-200">打順</th>
                   <th className="sticky left-10 z-20 bg-slate-100 w-10 min-w-[40px] px-1 py-2 text-center border-r border-slate-200">守</th>
                   <th className="sticky left-20 z-20 bg-slate-100 w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-200">選手</th>
-                  {Array.from({ length: maxInning }, (_, i) => (
-                    <th key={i} className="w-14 min-w-[56px] px-1 py-2">{i + 1}</th>
-                  ))}
+                  {columns.map((col, idx) => {
+                    const isLastOfInning = lastColIndexByInning.get(col.inning) === idx
+                    return (
+                      <th
+                        key={`${col.inning}-${col.sequence}`}
+                        className={cn(
+                          "px-1 py-2",
+                          col.sequence === 1 ? "w-14 min-w-[56px]" : "w-10 min-w-[40px]",
+                          isLastOfInning && "border-r border-slate-200"
+                        )}
+                      >
+                        {col.sequence === 1
+                          ? col.inning
+                          : <span className="text-slate-400 text-[10px]">{["②", "③", "④", "⑤"][col.sequence - 2] ?? col.sequence}</span>
+                        }
+                      </th>
+                    )
+                  })}
                 </tr>
               </thead>
               <tbody>
@@ -382,17 +416,22 @@ export default function GameDetailPage() {
                       <td className="sticky left-20 z-10 bg-white w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-100">
                         <div className="truncate">{row.playerName}</div>
                       </td>
-                      {Array.from({ length: maxInning }, (_, inningIndex) => {
-                        const inning = inningIndex + 1
-                        const isActive = inning >= row.activeFrom && inning <= row.activeTo
+                      {columns.map((col, idx) => {
+                        const isActive = col.inning >= row.activeFrom && col.inning <= row.activeTo
+                        const isLastOfInning = lastColIndexByInning.get(col.inning) === idx
+                        const cellClass = cn(
+                          col.sequence === 1 ? "w-14 min-w-[56px]" : "w-10 min-w-[40px]",
+                          "px-1 py-2",
+                          isLastOfInning && "border-r border-slate-100"
+                        )
                         if (!isActive) {
                           return (
-                            <td key={inning} className="w-14 min-w-[56px] px-1 py-2 text-slate-300">-</td>
+                            <td key={`${col.inning}-${col.sequence}`} className={cn(cellClass, "text-slate-300")}>-</td>
                           )
                         }
-                        const result = resultsMap.get(`${row.battingOrder}-${inning}`)
+                        const result = resultsMap.get(`${row.battingOrder}-${col.inning}-${col.sequence}`)
                         if (!result) {
-                          return <td key={inning} className="w-14 min-w-[56px] px-1 py-2 text-slate-300">-</td>
+                          return <td key={`${col.inning}-${col.sequence}`} className={cn(cellClass, "text-slate-300")}>-</td>
                         }
                         const resultObj: BattingResult = {
                           hitResult: result.hit_result as BattingResult["hitResult"],
@@ -404,9 +443,10 @@ export default function GameDetailPage() {
                         const onBase = isOnBase(result.hit_result as BattingResult["hitResult"])
                         return (
                           <td
-                            key={inning}
+                            key={`${col.inning}-${col.sequence}`}
                             className={cn(
-                              "w-14 min-w-[56px] px-1 py-2 text-xs font-medium whitespace-nowrap",
+                              cellClass,
+                              "text-xs font-medium whitespace-nowrap",
                               hit && "text-green-700 bg-green-50",
                               !hit && onBase && "text-blue-700 bg-blue-50",
                               !hit && !onBase && "text-slate-600"

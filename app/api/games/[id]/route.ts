@@ -170,6 +170,7 @@ export async function PUT(
       game_id: string
       batting_order: number
       inning: number
+      at_bat_sequence: number
       hit_result: string
       direction: string | null
       rbi_count: number
@@ -181,9 +182,12 @@ export async function PUT(
       stolen_home: boolean
       memo: string | null
     }> = []
-    
+
     for (const [key, result] of Object.entries(battingResults)) {
-      const [order, inning] = key.split("-").map(Number)
+      const parts = key.split("-")
+      const order = Number(parts[0])
+      const inning = Number(parts[1])
+      const atBatSeq = Number(parts[2] ?? 1)
       const r = result as {
         hitResult: string
         direction?: string
@@ -192,11 +196,12 @@ export async function PUT(
         stolenBases?: { second: boolean; third: boolean; home: boolean }
         memo?: string
       }
-      
+
       resultInserts.push({
         game_id: id,
         batting_order: order,
         inning: inning,
+        at_bat_sequence: atBatSeq,
         hit_result: r.hitResult,
         direction: r.direction || null,
         rbi_count: r.rbiCount || 0,

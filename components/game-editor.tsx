@@ -46,6 +46,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
 
   // 打撃結果
   const [results, setResults] = useState<Record<string, BattingResult>>({})
+  const [atBatSequences, setAtBatSequences] = useState<Record<number, number>>({})
   const [selectedCell, setSelectedCell] = useState<CellPosition | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
@@ -116,7 +117,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     game?: { date: string; opponent: string; location: string; memo: string; is_first_batting: boolean; total_innings: number }
     inningScores?: { inning: number; our_score: number; opponent_score: number }[]
     lineupEntries?: { batting_order: number; player_id: string; player_name: string; position: string; is_substitute: boolean; entered_inning?: number; is_helper: boolean }[]
-    battingResults?: { batting_order: number; inning: number; hit_result: string; direction: string; rbi_count: number; runner_first: boolean; runner_second: boolean; runner_third: boolean; stolen_second: boolean; stolen_third: boolean; stolen_home: boolean }[]
+    battingResults?: { batting_order: number; inning: number; at_bat_sequence?: number; hit_result: string; direction: string; rbi_count: number; runner_first: boolean; runner_second: boolean; runner_third: boolean; stolen_second: boolean; stolen_third: boolean; stolen_home: boolean }[]
     pitcherResults?: { player_id?: string; player_name: string; innings_pitched: number; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; pitch_count?: number; is_win: boolean; is_lose: boolean; is_save: boolean; is_hold: boolean }[]
   }) => {
     if (gameData.game) {
@@ -170,8 +171,10 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
 
     if (gameData.battingResults) {
       const newResults: Record<string, BattingResult> = {}
+      const newAtBatSeqs: Record<number, number> = {}
       for (const result of gameData.battingResults) {
-        const key = `${result.batting_order}-${result.inning}`
+        const seq = result.at_bat_sequence ?? 1
+        const key = `${result.batting_order}-${result.inning}-${seq}`
         newResults[key] = {
           hitResult: result.hit_result as HitResult,
           direction: result.direction as HitDirection | undefined,
@@ -187,8 +190,12 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
             home: result.stolen_home,
           },
         }
+        if (!newAtBatSeqs[result.inning] || newAtBatSeqs[result.inning] < seq) {
+          newAtBatSeqs[result.inning] = seq
+        }
       }
       setResults(newResults)
+      setAtBatSequences(newAtBatSeqs)
     }
 
     if (gameData.pitcherResults) {
@@ -264,8 +271,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   // 打撃結果を都度保存
   const handleResultSave = async (result: BattingResult) => {
     if (!selectedCell) return
-    
-    const key = `${selectedCell.battingOrder}-${selectedCell.inning}`
+
+    const key = `${selectedCell.battingOrder}-${selectedCell.inning}-${selectedCell.atBatSequence}`
     setResults((prev) => ({
       ...prev,
       [key]: result,
@@ -278,6 +285,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
       await apiRequest(`/api/games/${gameId}/batting-result`, "POST", {
         battingOrder: selectedCell.battingOrder,
         inning: selectedCell.inning,
+        atBatSequence: selectedCell.atBatSequence,
         result,
       })
       setSaveStatus("saved")
@@ -289,8 +297,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   // 打撃結果を削除
   const handleResultDelete = async () => {
     if (!selectedCell) return
-    
-    const key = `${selectedCell.battingOrder}-${selectedCell.inning}`
+
+    const key = `${selectedCell.battingOrder}-${selectedCell.inning}-${selectedCell.atBatSequence}`
     setResults((prev) => {
       const newResults = { ...prev }
       delete newResults[key]
@@ -302,7 +310,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     setSaveStatus("saving")
     try {
       await apiRequest(
-        `/api/games/${gameId}/batting-result?battingOrder=${selectedCell.battingOrder}&inning=${selectedCell.inning}${shareToken ? `&shareToken=${shareToken}` : ""}`,
+        `/api/games/${gameId}/batting-result?battingOrder=${selectedCell.battingOrder}&inning=${selectedCell.inning}&atBatSequence=${selectedCell.atBatSequence}${shareToken ? `&shareToken=${shareToken}` : ""}`,
         "DELETE"
       )
       setSaveStatus("saved")
@@ -431,6 +439,55 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     setLineupSlots((prev) => [...prev, { order: newOrder, entries: [] }])
   }
 
+  const handleAddAtBat = (inning: number) => {
+    setAtBatSequences((prev) => ({
+      ...prev,
+      [inning]: (prev[inning] ?? 1) + 1,
+    }))
+  }
+
+  const handleRemoveAtBat = async (inning: number) => {
+    const seq = atBatSequences[inning] ?? 1
+    if (seq <= 1) return
+
+    // 削除対象の打席結果キーを収集
+    const keysToDelete: { order: number; key: string }[] = []
+    for (let order = 1; order <= lineupSlots.length; order++) {
+      const key = `${order}-${inning}-${seq}`
+      if (results[key]) keysToDelete.push({ order, key })
+    }
+
+    // ローカル state から削除
+    setResults((prev) => {
+      const next = { ...prev }
+      for (const { key } of keysToDelete) delete next[key]
+      return next
+    })
+    setAtBatSequences((prev) => {
+      const next = { ...prev }
+      if (seq <= 2) delete next[inning]
+      else next[inning] = seq - 1
+      return next
+    })
+
+    // DB から削除
+    if (keysToDelete.length === 0) return
+    setSaveStatus("saving")
+    try {
+      await Promise.all(
+        keysToDelete.map(({ order }) =>
+          apiRequest(
+            `/api/games/${gameId}/batting-result?battingOrder=${order}&inning=${inning}&atBatSequence=${seq}${shareToken ? `&shareToken=${shareToken}` : ""}`,
+            "DELETE"
+          )
+        )
+      )
+      setSaveStatus("saved")
+    } catch {
+      setSaveStatus("error")
+    }
+  }
+
   // 共有URLを生成
   const handleGenerateShareUrl = async (): Promise<string | null> => {
     setIsGeneratingToken(true)
@@ -477,7 +534,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   }
 
   const currentResult = selectedCell
-    ? results[`${selectedCell.battingOrder}-${selectedCell.inning}`]
+    ? results[`${selectedCell.battingOrder}-${selectedCell.inning}-${selectedCell.atBatSequence}`]
     : undefined
 
   const currentLineupSlot = selectedLineupOrder !== null
@@ -602,13 +659,16 @@ onTotalInningsChange={(value) => {
           }}
         />
 
-        <BattingGrid 
-          results={results} 
+        <BattingGrid
+          results={results}
           onCellClick={handleCellClick}
           lineupSlots={lineupSlots}
           onPlayerClick={handlePlayerClick}
           onAddBattingOrder={handleAddBattingOrder}
           totalInnings={totalInnings}
+          atBatSequences={atBatSequences}
+          onAddAtBat={handleAddAtBat}
+          onRemoveAtBat={handleRemoveAtBat}
         />
 
         <PitcherInput
