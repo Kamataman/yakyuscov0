@@ -335,15 +335,11 @@ export default function GameDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {displayRows.map((row, rowIndex) => {
-                  const isGroupStart = row.isFirstOfOrder && rowIndex > 0
+                {displayRows.map((row) => {
                   return (
                     <tr
                       key={`${row.battingOrder}-${row.activeFrom}`}
-                      className={cn(
-                        "border-b hover:bg-slate-50/50",
-                        isGroupStart && "border-t-2 border-slate-300"
-                      )}
+                      className="border-b hover:bg-slate-50/50"
                     >
                       <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 text-center font-bold border-r border-slate-100">
                         {row.isStarter ? `(${row.battingOrder})` : row.battingOrder}
