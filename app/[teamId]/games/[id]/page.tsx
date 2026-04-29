@@ -164,6 +164,53 @@ export default function GameDetailPage() {
   const maxInning = totalInnings
   const maxOrder = Math.max(9, ...lineupEntries.map(e => e.batting_order))
 
+  type DisplayRow = {
+    battingOrder: number
+    playerName: string
+    position: string | undefined
+    activeFrom: number
+    activeTo: number
+    isStarter: boolean
+    isFirstOfOrder: boolean
+  }
+
+  const displayRows: DisplayRow[] = []
+  for (let order = 1; order <= maxOrder; order++) {
+    const entries = lineupByOrder.get(order) ?? []
+    const sorted = [...entries].sort((a, b) => {
+      if (!a.is_substitute && b.is_substitute) return -1
+      if (a.is_substitute && !b.is_substitute) return 1
+      return (a.entered_inning ?? 1) - (b.entered_inning ?? 1)
+    })
+    if (sorted.length === 0) {
+      displayRows.push({
+        battingOrder: order,
+        playerName: "-",
+        position: undefined,
+        activeFrom: 1,
+        activeTo: maxInning,
+        isStarter: false,
+        isFirstOfOrder: true,
+      })
+      continue
+    }
+    sorted.forEach((entry, idx) => {
+      const activeFrom = entry.is_substitute ? (entry.entered_inning ?? 1) : 1
+      const activeTo = idx < sorted.length - 1
+        ? (sorted[idx + 1].entered_inning ?? maxInning) - 1
+        : maxInning
+      displayRows.push({
+        battingOrder: order,
+        playerName: entry.player_name,
+        position: entry.position,
+        activeFrom,
+        activeTo,
+        isStarter: !entry.is_substitute,
+        isFirstOfOrder: idx === 0,
+      })
+    })
+  }
+
   // 投球回を整数と分数で表示
   const formatInnings = (innings: number) => {
     const whole = Math.floor(innings)
@@ -288,33 +335,37 @@ export default function GameDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {Array.from({ length: maxOrder }, (_, orderIndex) => {
-                  const order = orderIndex + 1
-                  const entries = lineupByOrder.get(order) || []
-                  const mainEntry = entries.find(e => !e.is_substitute) || entries[0]
-                  
+                {displayRows.map((row, rowIndex) => {
+                  const isGroupStart = row.isFirstOfOrder && rowIndex > 0
                   return (
-                    <tr key={order} className="border-b hover:bg-slate-50/50">
-                      <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 text-center font-bold border-r border-slate-100">{order}</td>
-                      <td className="sticky left-10 z-10 bg-white w-10 min-w-[40px] px-1 py-2 text-slate-500 text-center border-r border-slate-100">{mainEntry?.position || "-"}</td>
+                    <tr
+                      key={`${row.battingOrder}-${row.activeFrom}`}
+                      className={cn(
+                        "border-b hover:bg-slate-50/50",
+                        isGroupStart && "border-t-2 border-slate-300"
+                      )}
+                    >
+                      <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 text-center font-bold border-r border-slate-100">
+                        {row.isStarter ? `(${row.battingOrder})` : row.battingOrder}
+                      </td>
+                      <td className="sticky left-10 z-10 bg-white w-10 min-w-[40px] px-1 py-2 text-slate-500 text-center border-r border-slate-100">
+                        {row.position ?? "-"}
+                      </td>
                       <td className="sticky left-20 z-10 bg-white w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-100">
-                        <div className="truncate">
-                          {mainEntry?.player_name || "-"}
-                          {entries.length > 1 && (
-                            <span className="ml-1 text-xs text-orange-600">
-                              +{entries.length - 1}
-                            </span>
-                          )}
-                        </div>
+                        <div className="truncate">{row.playerName}</div>
                       </td>
                       {Array.from({ length: maxInning }, (_, inningIndex) => {
                         const inning = inningIndex + 1
-                        const result = resultsMap.get(`${order}-${inning}`)
-                        
+                        const isActive = inning >= row.activeFrom && inning <= row.activeTo
+                        if (!isActive) {
+                          return (
+                            <td key={inning} className="w-14 min-w-[56px] px-1 py-2 bg-slate-50 text-slate-300">-</td>
+                          )
+                        }
+                        const result = resultsMap.get(`${row.battingOrder}-${inning}`)
                         if (!result) {
                           return <td key={inning} className="w-14 min-w-[56px] px-1 py-2 text-slate-300">-</td>
                         }
-
                         const resultObj: BattingResult = {
                           hitResult: result.hit_result as BattingResult["hitResult"],
                           direction: result.direction as BattingResult["direction"],
@@ -323,7 +374,6 @@ export default function GameDetailPage() {
                         const summary = getResultSummary(resultObj)
                         const hit = isHit(result.hit_result as BattingResult["hitResult"])
                         const onBase = isOnBase(result.hit_result as BattingResult["hitResult"])
-
                         return (
                           <td
                             key={inning}
