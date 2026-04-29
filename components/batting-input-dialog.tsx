@@ -142,7 +142,7 @@ export function BattingInputDialog({
         {/* 固定ヘッダー */}
         <DialogHeader className="sticky top-0 z-20 px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-900 text-white flex-shrink-0">
           <DialogTitle className="text-center text-xl font-bold tracking-wide">
-            {position ? `${position.battingOrder}番打者 / ${position.inning}回` : "打席入力"}
+            {position ? `${position.battingOrder}番打者 / ${position.inning}回${(position.atBatSequence ?? 1) >= 2 ? ` (${position.atBatSequence}打席目)` : ""}` : "打席入力"}
           </DialogTitle>
         </DialogHeader>
 

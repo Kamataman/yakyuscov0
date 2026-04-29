@@ -86,6 +86,17 @@ export function ScoreInput({
     }
   }, [])
 
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+    // 長押し後にiOSが生成する合成 mousedown/click を抑制して二重更新を防ぐ
+    if (isLongPressRef.current) {
+      e.preventDefault()
+    }
+  }, [])
+
   const handleAddInning = () => {
     if (onTotalInningsChange && totalInnings < 15) {
       onTotalInningsChange(totalInnings + 1)
@@ -195,7 +206,8 @@ export function ScoreInput({
                     onMouseUp={handleLongPressEnd}
                     onMouseLeave={handleLongPressEnd}
                     onTouchStart={() => handleLongPressStart(inning, isFirstBatting ? "our" : "opponent")}
-                    onTouchEnd={handleLongPressEnd}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchCancel={handleTouchEnd}
                     className={cn(
                       "w-full h-10 flex items-center justify-center",
                       "text-lg font-bold rounded-lg transition-all select-none",
@@ -244,7 +256,8 @@ export function ScoreInput({
                         onMouseUp={handleLongPressEnd}
                         onMouseLeave={handleLongPressEnd}
                         onTouchStart={() => handleLongPressStart(inning, bottomTeam)}
-                        onTouchEnd={handleLongPressEnd}
+                        onTouchEnd={handleTouchEnd}
+                        onTouchCancel={handleTouchEnd}
                         className={cn(
                           "w-full h-10 flex items-center justify-center",
                           "text-lg font-bold rounded-lg transition-all select-none",

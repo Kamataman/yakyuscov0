@@ -9,7 +9,7 @@ export async function POST(
 ) {
   const { id: gameId } = await params
   const body = await request.json()
-  const { battingOrder, inning, result, shareToken } = body
+  const { battingOrder, inning, atBatSequence = 1, result, shareToken } = body
 
   // アクセス権チェック
   const session = await requireGameAccess(gameId, shareToken)
@@ -26,6 +26,7 @@ export async function POST(
     .eq("game_id", gameId)
     .eq("batting_order", battingOrder)
     .eq("inning", inning)
+    .eq("at_bat_sequence", atBatSequence)
 
   // 結果がある場合は挿入
   if (result && result.hitResult) {
@@ -35,6 +36,7 @@ export async function POST(
         game_id: gameId,
         batting_order: battingOrder,
         inning: inning,
+        at_bat_sequence: atBatSequence,
         hit_result: result.hitResult,
         direction: result.direction || null,
         rbi_count: result.rbiCount || 0,
@@ -64,6 +66,7 @@ export async function DELETE(
   const { searchParams } = new URL(request.url)
   const battingOrder = parseInt(searchParams.get("battingOrder") || "0")
   const inning = parseInt(searchParams.get("inning") || "0")
+  const atBatSequence = parseInt(searchParams.get("atBatSequence") || "1")
   const shareToken = searchParams.get("shareToken") || undefined
 
   const session = await requireGameAccess(gameId, shareToken)
@@ -79,6 +82,7 @@ export async function DELETE(
     .eq("game_id", gameId)
     .eq("batting_order", battingOrder)
     .eq("inning", inning)
+    .eq("at_bat_sequence", atBatSequence)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

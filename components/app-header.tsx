@@ -16,19 +16,23 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 
-export function AppHeader() {
+interface AppHeaderProps {
+  teamName?: string
+}
+
+export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
   const pathname = usePathname()
   const params = useParams()
   const router = useRouter()
   const teamId = params.teamId as string | undefined
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [teamName, setTeamName] = useState<string | null>(null)
+  const [teamName, setTeamName] = useState<string | null>(initialTeamName ?? null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [loggedInTeamId, setLoggedInTeamId] = useState<string | null>(null)
 
-  // チーム名を取得
+  // teamName が prop で渡されなかった場合のフォールバック
   useEffect(() => {
-    if (teamId) {
+    if (teamId && initialTeamName === undefined) {
       fetch(`/api/teams?id=${teamId}`)
         .then(res => res.json())
         .then(data => {
@@ -36,7 +40,7 @@ export function AppHeader() {
         })
         .catch(console.error)
     }
-  }, [teamId])
+  }, [teamId, initialTeamName])
 
   // ログイン状態を確認
   useEffect(() => {
