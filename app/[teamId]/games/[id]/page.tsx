@@ -138,6 +138,8 @@ export default function GameDetailPage() {
 
   const { game, inningScores, lineupEntries, battingResults, pitcherResults } = data
 
+  const isFirstBatting = game.is_first_batting ?? true
+
   // スコア計算
   const ourTotal = inningScores.reduce((sum, s) => sum + s.our_score, 0)
   const opponentTotal = inningScores.reduce((sum, s) => sum + s.opponent_score, 0)
@@ -290,29 +292,59 @@ export default function GameDetailPage() {
                 </tr>
               </thead>
               <tbody>
+                {/* 先攻チーム */}
                 <tr className="border-b">
-                  <td className="sticky left-0 z-10 bg-blue-50 w-20 min-w-[80px] px-2 py-2 text-left font-bold text-blue-700 whitespace-nowrap">自チーム</td>
+                  <td className={cn(
+                    "sticky left-0 z-10 w-20 min-w-[80px] px-2 py-2 text-left font-bold whitespace-nowrap",
+                    isFirstBatting ? "bg-blue-50 text-blue-700" : "bg-red-50 text-red-700"
+                  )}>
+                    {isFirstBatting ? "自チーム" : game.opponent}
+                  </td>
                   {Array.from({ length: maxInning }, (_, i) => {
                     const score = inningScores.find(s => s.inning === i + 1)
+                    const val = isFirstBatting ? (score?.our_score ?? 0) : (score?.opponent_score ?? 0)
                     return (
-                      <td key={i} className={cn("w-8 min-w-[32px] px-1 py-2", score?.our_score && score.our_score > 0 && "text-blue-700 font-bold")}>
-                        {score?.our_score ?? 0}
+                      <td key={i} className={cn(
+                        "w-8 min-w-[32px] px-1 py-2",
+                        val > 0 && (isFirstBatting ? "text-blue-700 font-bold" : "text-red-700 font-bold")
+                      )}>
+                        {val}
                       </td>
                     )
                   })}
-                  <td className="sticky right-0 z-10 bg-blue-100 w-12 min-w-[48px] px-2 py-2 font-bold text-blue-700">{ourTotal}</td>
+                  <td className={cn(
+                    "sticky right-0 z-10 w-12 min-w-[48px] px-2 py-2 font-bold",
+                    isFirstBatting ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"
+                  )}>
+                    {isFirstBatting ? ourTotal : opponentTotal}
+                  </td>
                 </tr>
+                {/* 後攻チーム */}
                 <tr>
-                  <td className="sticky left-0 z-10 bg-red-50 w-20 min-w-[80px] px-2 py-2 text-left font-bold text-red-700 whitespace-nowrap truncate max-w-[80px]">{game.opponent}</td>
+                  <td className={cn(
+                    "sticky left-0 z-10 w-20 min-w-[80px] px-2 py-2 text-left font-bold whitespace-nowrap truncate max-w-[80px]",
+                    isFirstBatting ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700"
+                  )}>
+                    {isFirstBatting ? game.opponent : "自チーム"}
+                  </td>
                   {Array.from({ length: maxInning }, (_, i) => {
                     const score = inningScores.find(s => s.inning === i + 1)
+                    const val = isFirstBatting ? (score?.opponent_score ?? 0) : (score?.our_score ?? 0)
                     return (
-                      <td key={i} className={cn("w-8 min-w-[32px] px-1 py-2", score?.opponent_score && score.opponent_score > 0 && "text-red-700 font-bold")}>
-                        {score?.opponent_score ?? 0}
+                      <td key={i} className={cn(
+                        "w-8 min-w-[32px] px-1 py-2",
+                        val > 0 && (isFirstBatting ? "text-red-700 font-bold" : "text-blue-700 font-bold")
+                      )}>
+                        {val}
                       </td>
                     )
                   })}
-                  <td className="sticky right-0 z-10 bg-red-100 w-12 min-w-[48px] px-2 py-2 font-bold text-red-700">{opponentTotal}</td>
+                  <td className={cn(
+                    "sticky right-0 z-10 w-12 min-w-[48px] px-2 py-2 font-bold",
+                    isFirstBatting ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                  )}>
+                    {isFirstBatting ? opponentTotal : ourTotal}
+                  </td>
                 </tr>
               </tbody>
             </table>
