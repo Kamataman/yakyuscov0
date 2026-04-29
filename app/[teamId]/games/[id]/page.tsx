@@ -17,6 +17,8 @@ interface GameDetail {
     memo?: string
     is_first_batting?: boolean
     total_innings?: number
+    last_inning_x?: boolean
+    last_inning_x_score?: number | null
   }
   inningScores: Array<{
     inning: number
@@ -138,9 +140,21 @@ export default function GameDetailPage() {
 
   const { game, inningScores, lineupEntries, battingResults, pitcherResults } = data
 
-  // スコア計算
-  const ourTotal = inningScores.reduce((sum, s) => sum + s.our_score, 0)
-  const opponentTotal = inningScores.reduce((sum, s) => sum + s.opponent_score, 0)
+  // スコア計算（✕ゲーム考慮）
+  const isFirstBatting = game.is_first_batting ?? true
+  const hasX = game.last_inning_x ?? false
+  const xScore = game.last_inning_x_score ?? null
+  const totalInnCount = game.total_innings || 9
+  const xAdd = hasX ? (xScore ?? 0) : 0
+  // 後攻 = isFirstBatting ? 相手 : 自チーム
+  const ourTotal = inningScores.reduce((sum: number, s) => {
+    if (hasX && !isFirstBatting && s.inning === totalInnCount) return sum
+    return sum + s.our_score
+  }, 0) + (!isFirstBatting ? xAdd : 0)
+  const opponentTotal = inningScores.reduce((sum: number, s) => {
+    if (hasX && isFirstBatting && s.inning === totalInnCount) return sum
+    return sum + s.opponent_score
+  }, 0) + (isFirstBatting ? xAdd : 0)
   const isWin = ourTotal > opponentTotal
   const isLose = ourTotal < opponentTotal
 
@@ -246,7 +260,17 @@ export default function GameDetailPage() {
                 <tr className="border-b">
                   <td className="sticky left-0 z-10 bg-blue-50 w-20 min-w-[80px] px-2 py-2 text-left font-bold text-blue-700 whitespace-nowrap">自チーム</td>
                   {Array.from({ length: maxInning }, (_, i) => {
-                    const score = inningScores.find(s => s.inning === i + 1)
+                    const inning = i + 1
+                    const score = inningScores.find(s => s.inning === inning)
+                    // 自チームが後攻かつ最終回に✕
+                    const isXCell = hasX && !isFirstBatting && inning === maxInning
+                    if (isXCell) {
+                      return (
+                        <td key={i} className="w-8 min-w-[32px] px-1 py-2 font-bold text-amber-700">
+                          {xScore === null ? "✕" : `${xScore}✕`}
+                        </td>
+                      )
+                    }
                     return (
                       <td key={i} className={cn("w-8 min-w-[32px] px-1 py-2", score?.our_score && score.our_score > 0 && "text-blue-700 font-bold")}>
                         {score?.our_score ?? 0}
@@ -258,7 +282,17 @@ export default function GameDetailPage() {
                 <tr>
                   <td className="sticky left-0 z-10 bg-red-50 w-20 min-w-[80px] px-2 py-2 text-left font-bold text-red-700 whitespace-nowrap truncate max-w-[80px]">{game.opponent}</td>
                   {Array.from({ length: maxInning }, (_, i) => {
-                    const score = inningScores.find(s => s.inning === i + 1)
+                    const inning = i + 1
+                    const score = inningScores.find(s => s.inning === inning)
+                    // 相手が後攻かつ最終回に✕
+                    const isXCell = hasX && isFirstBatting && inning === maxInning
+                    if (isXCell) {
+                      return (
+                        <td key={i} className="w-8 min-w-[32px] px-1 py-2 font-bold text-amber-700">
+                          {xScore === null ? "✕" : `${xScore}✕`}
+                        </td>
+                      )
+                    }
                     return (
                       <td key={i} className={cn("w-8 min-w-[32px] px-1 py-2", score?.opponent_score && score.opponent_score > 0 && "text-red-700 font-bold")}>
                         {score?.opponent_score ?? 0}

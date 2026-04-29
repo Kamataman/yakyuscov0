@@ -40,6 +40,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   const [memo, setMemo] = useState("")
   const [isFirstBatting, setIsFirstBatting] = useState(true)
   const [totalInnings, setTotalInnings] = useState(9)
+  const [hasX, setHasX] = useState(false)
+  const [xScore, setXScore] = useState<number | null>(null)
 
   // 打撃結果
   const [results, setResults] = useState<Record<string, BattingResult>>({})
@@ -111,6 +113,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
           setMemo(gameData.game.memo || "")
           setIsFirstBatting(gameData.game.is_first_batting ?? true)
           setTotalInnings(gameData.game.total_innings ?? 9)
+          setHasX(gameData.game.last_inning_x ?? false)
+          setXScore(gameData.game.last_inning_x_score ?? null)
         }
 
         // イニングスコア
@@ -386,6 +390,29 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     }, 500)
   }, [apiRequest, gameId])
 
+  // ✕ゲーム設定を都度保存
+  const handleXChange = useCallback((newHasX: boolean, newXScore: number | null) => {
+    setHasX(newHasX)
+    setXScore(newXScore)
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      setSaveStatus("saving")
+      try {
+        await apiRequest(`/api/games/${gameId}/info`, "POST", {
+          lastInningX: newHasX,
+          lastInningXScore: newHasX ? newXScore : null,
+        })
+        setSaveStatus("saved")
+      } catch {
+        setSaveStatus("error")
+      }
+    }, 500)
+  }, [apiRequest, gameId])
+
   const handleCellClick = (position: CellPosition) => {
     setSelectedCell(position)
     setDialogOpen(true)
@@ -546,7 +573,10 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
           isFirstBatting={isFirstBatting}
           onFirstBattingChange={(value) => handleGameInfoChange("isFirstBatting", value)}
           totalInnings={totalInnings}
-onTotalInningsChange={(value) => {
+          hasX={hasX}
+          xScore={xScore}
+          onXChange={handleXChange}
+          onTotalInningsChange={(value) => {
             handleGameInfoChange("totalInnings", value)
             // イニングスコア配列も調整
             if (value > inningScores.length) {
