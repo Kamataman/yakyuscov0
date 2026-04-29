@@ -29,7 +29,7 @@ interface GameEditorProps {
 
 type SaveStatus = "idle" | "saving" | "saved" | "error"
 
-const POLLING_INTERVAL_MS = 30_000
+const POLLING_INTERVAL_MS = 15_000
 
 export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: GameEditorProps) {
   const [isLoading, setIsLoading] = useState(true)
