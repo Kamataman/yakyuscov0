@@ -125,6 +125,7 @@ export interface PitcherResult {
   isLose?: boolean            // 敗戦
   isSave?: boolean            // セーブ
   isHold?: boolean            // ホールド
+  isHelper?: boolean          // 助っ人（個人成績に含めない）
 }
 
 // 結果の短縮表示を生成

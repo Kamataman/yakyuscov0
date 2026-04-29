@@ -18,6 +18,7 @@ interface PitcherResult {
   isLose?: boolean
   isSave?: boolean
   isHold?: boolean
+  isHelper?: boolean
 }
 
 // 投手成績を保存（都度保存用 - 全体を置き換え）
@@ -68,6 +69,7 @@ export async function POST(
         is_lose: p.isLose || false,
         is_save: p.isSave || false,
         is_hold: p.isHold || false,
+        is_helper: p.isHelper || false,
         order_index: index,
       }))
 

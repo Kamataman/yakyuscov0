@@ -118,7 +118,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     inningScores?: { inning: number; our_score: number; opponent_score: number }[]
     lineupEntries?: { batting_order: number; player_id: string; player_name: string; position: string; is_substitute: boolean; entered_inning?: number; is_helper: boolean }[]
     battingResults?: { batting_order: number; inning: number; at_bat_sequence?: number; hit_result: string; direction: string; rbi_count: number; runner_first: boolean; runner_second: boolean; runner_third: boolean; stolen_second: boolean; stolen_third: boolean; stolen_home: boolean }[]
-    pitcherResults?: { player_id?: string; player_name: string; innings_pitched: number; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; pitch_count?: number; is_win: boolean; is_lose: boolean; is_save: boolean; is_hold: boolean }[]
+    pitcherResults?: { player_id?: string; player_name: string; innings_pitched: number; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; pitch_count?: number; is_win: boolean; is_lose: boolean; is_save: boolean; is_hold: boolean; is_helper?: boolean }[]
   }) => {
     if (gameData.game) {
       setGameDate(gameData.game.date || "")
@@ -215,6 +215,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
         isLose: p.is_lose,
         isSave: p.is_save,
         isHold: p.is_hold,
+        isHelper: p.is_helper || false,
       })))
     }
   }, [])

@@ -47,6 +47,7 @@ export function PitcherInput({
       walks: 0,
       hitByPitch: 0,
       homeRuns: 0,
+      isHelper: false,
     })
     setIsDialogOpen(true)
   }
@@ -187,7 +188,14 @@ export function PitcherInput({
                   className="hover:bg-slate-50 cursor-pointer transition-colors"
                   onClick={() => handleEdit(index)}
                 >
-                  <td className="px-3 py-2 font-medium text-slate-800">{pitcher.playerName}</td>
+                  <td className="px-3 py-2 font-medium text-slate-800">
+                    <div className="flex items-center gap-1.5">
+                      {pitcher.playerName}
+                      {pitcher.isHelper && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-600 font-medium">助っ人</span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-2 py-2 text-center">{formatInnings(pitcher.inningsPitched)}</td>
                   <td className="px-2 py-2 text-center">{pitcher.hits}</td>
                   <td className="px-2 py-2 text-center">{pitcher.runs}</td>
@@ -231,33 +239,52 @@ export function PitcherInput({
             {/* 選手名 */}
             <div>
               <label className="text-sm font-semibold text-slate-700 mb-2 block">選手名</label>
-              {registeredPlayers.length > 0 ? (
-                <select
-                  value={form.playerId}
-                  onChange={(e) => {
-                    const player = registeredPlayers.find(p => p.id === e.target.value)
-                    if (player) {
-                      setForm({ ...form, playerId: player.id, playerName: player.name })
-                    }
-                  }}
-                  className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all text-slate-800"
-                >
-<option value="">選手を選択</option>
-                {sortPlayersByNumber(registeredPlayers).map((player) => (
-                  <option key={player.id} value={player.id}>
-                    {player.number ? `${player.number} ` : ""}{player.name}
-                  </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={form.playerName}
-                  onChange={(e) => setForm({ ...form, playerName: e.target.value })}
-                  placeholder="選手名を入力"
-                  className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all text-slate-800 placeholder:text-slate-400"
-                />
+              {!form.isHelper && (
+                registeredPlayers.length > 0 ? (
+                  <select
+                    value={form.playerId}
+                    onChange={(e) => {
+                      const player = registeredPlayers.find(p => p.id === e.target.value)
+                      if (player) {
+                        setForm({ ...form, playerId: player.id, playerName: player.name, isHelper: false })
+                      }
+                    }}
+                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all text-slate-800"
+                  >
+                    <option value="">選手を選択</option>
+                    {sortPlayersByNumber(registeredPlayers).map((player) => (
+                      <option key={player.id} value={player.id}>
+                        {player.number ? `${player.number} ` : ""}{player.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={form.playerName}
+                    onChange={(e) => setForm({ ...form, playerName: e.target.value })}
+                    placeholder="選手名を入力"
+                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all text-slate-800 placeholder:text-slate-400"
+                  />
+                )
               )}
+              <button
+                onClick={() => {
+                  if (form.isHelper) {
+                    setForm({ ...form, playerId: "", playerName: "", isHelper: false })
+                  } else {
+                    setForm({ ...form, playerId: "", playerName: "助っ人", isHelper: true })
+                  }
+                }}
+                className={cn(
+                  "mt-2 text-xs px-3 py-1.5 rounded-lg transition-all",
+                  form.isHelper
+                    ? "bg-purple-50 text-purple-600 border border-purple-300 font-medium"
+                    : "text-slate-400 border border-dashed border-slate-300 hover:border-slate-400 hover:text-slate-500"
+                )}
+              >
+                {form.isHelper ? "✓ 助っ人" : "助っ人として登録"}
+              </button>
             </div>
 
             {/* 投球回 */}

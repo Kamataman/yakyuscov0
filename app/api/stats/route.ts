@@ -128,8 +128,8 @@ export async function GET(request: Request) {
   // 打席数でソート
   battingStatsResponse.sort((a, b) => b.stats.plateAppearances - a.stats.plateAppearances)
 
-  // 投手成績を取得（選手名JOINで解決）
-  let pitcherQuery = supabase.from("pitcher_results").select("*, players(name)")
+  // 投手成績を取得（助っ人を除外、選手名JOINで解決）
+  let pitcherQuery = supabase.from("pitcher_results").select("*, players(name)").eq("is_helper", false)
   if (teamId && gameIds.length > 0) {
     pitcherQuery = pitcherQuery.in("game_id", gameIds)
   }
