@@ -140,9 +140,13 @@ export default function GameDetailPage() {
 
   const isFirstBatting = game.is_first_batting ?? true
 
-  // スコア計算
-  const ourTotal = inningScores.reduce((sum, s) => sum + s.our_score, 0)
-  const opponentTotal = inningScores.reduce((sum, s) => sum + s.opponent_score, 0)
+  // イニング数はgame.total_inningsを優先（イニングスコアデータの数に関係なく）
+  const totalInnings = game.total_innings || 9
+  const maxInning = totalInnings
+
+  // スコア計算（total_innings以内のイニングのみ合計する）
+  const ourTotal = inningScores.filter(s => s.inning <= maxInning).reduce((sum, s) => sum + s.our_score, 0)
+  const opponentTotal = inningScores.filter(s => s.inning <= maxInning).reduce((sum, s) => sum + s.opponent_score, 0)
   const isWin = ourTotal > opponentTotal
   const isLose = ourTotal < opponentTotal
 
@@ -160,10 +164,6 @@ export default function GameDetailPage() {
   for (const result of battingResults) {
     resultsMap.set(`${result.batting_order}-${result.inning}`, result)
   }
-
-  // イニング数はgame.total_inningsを優先（イニングスコアデータの数に関係なく）
-  const totalInnings = game.total_innings || 9
-  const maxInning = totalInnings
   const maxOrder = Math.max(9, ...lineupEntries.map(e => e.batting_order))
 
   type DisplayRow = {
