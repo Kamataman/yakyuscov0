@@ -164,7 +164,7 @@ export function PitcherInput({
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[560px] text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
                 <th className="px-3 py-2 text-left font-medium">投手</th>
@@ -220,7 +220,7 @@ export function PitcherInput({
       )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90svh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-slate-800">
               {editingIndex !== null ? "投手成績を編集" : "投手を追加"}
@@ -273,7 +273,7 @@ export function PitcherInput({
 
             {/* スタッツ - 2列 */}
             <div className="bg-slate-50 rounded-xl p-4">
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              <div className="grid grid-cols-1 gap-y-3 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-4">
                 <StatButton
                   label="被安打"
                   value={form.hits}
