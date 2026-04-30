@@ -220,10 +220,10 @@ export function PitcherInput({
                   <td className="px-2 py-2 text-center">{pitcher.homeRuns}</td>
                   <td className="px-2 py-2 text-center">
                     <div className="flex items-center justify-center gap-1">
-                      {pitcher.isWin && <span className="text-amber-500 font-bold">W</span>}
-                      {pitcher.isLose && <span className="text-slate-500 font-bold">L</span>}
-                      {pitcher.isSave && <span className="text-blue-500 font-bold">S</span>}
-                      {pitcher.isHold && <span className="text-emerald-500 font-bold">H</span>}
+                      {pitcher.award === 'win'  && <span className="text-amber-500 font-bold">W</span>}
+                      {pitcher.award === 'lose' && <span className="text-slate-500 font-bold">L</span>}
+                      {pitcher.award === 'save' && <span className="text-blue-500 font-bold">S</span>}
+                      {pitcher.award === 'hold' && <span className="text-emerald-500 font-bold">H</span>}
                     </div>
                   </td>
                   <td className="px-2 py-2 text-center" onClick={(e) => e.stopPropagation()}>
@@ -379,29 +379,29 @@ export function PitcherInput({
                 <DecisionButton
                   label="勝利"
                   icon={Trophy}
-                  active={form.isWin}
-                  onClick={() => setForm({ ...form, isWin: !form.isWin, isLose: false })}
+                  active={form.award === 'win'}
+                  onClick={() => setForm({ ...form, award: form.award === 'win' ? null : 'win' })}
                   color="bg-amber-500"
                 />
                 <DecisionButton
                   label="敗戦"
                   icon={ThumbsDown}
-                  active={form.isLose}
-                  onClick={() => setForm({ ...form, isLose: !form.isLose, isWin: false })}
+                  active={form.award === 'lose'}
+                  onClick={() => setForm({ ...form, award: form.award === 'lose' ? null : 'lose' })}
                   color="bg-slate-500"
                 />
                 <DecisionButton
                   label="セーブ"
                   icon={Shield}
-                  active={form.isSave}
-                  onClick={() => setForm({ ...form, isSave: !form.isSave })}
+                  active={form.award === 'save'}
+                  onClick={() => setForm({ ...form, award: form.award === 'save' ? null : 'save' })}
                   color="bg-blue-500"
                 />
                 <DecisionButton
                   label="ホールド"
                   icon={Star}
-                  active={form.isHold}
-                  onClick={() => setForm({ ...form, isHold: !form.isHold })}
+                  active={form.award === 'hold'}
+                  onClick={() => setForm({ ...form, award: form.award === 'hold' ? null : 'hold' })}
                   color="bg-emerald-500"
                 />
               </div>

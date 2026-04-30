@@ -109,6 +109,8 @@ export interface InningScore {
   opponent: number
 }
 
+export type PitcherAward = 'win' | 'lose' | 'save' | 'hold'
+
 // 投手成績
 export interface PitcherResult {
   playerId: string
@@ -123,10 +125,7 @@ export interface PitcherResult {
   hitByPitch: number          // 与死球
   homeRuns: number            // 被本塁打
   pitchCount?: number         // 球数
-  isWin?: boolean             // 勝利
-  isLose?: boolean            // 敗戦
-  isSave?: boolean            // セーブ
-  isHold?: boolean            // ホールド
+  award?: PitcherAward | null // 勝利・敗戦・セーブ・ホールド（排他）
   isHelper?: boolean          // 助っ人（個人成績に含めない）
 }
 
