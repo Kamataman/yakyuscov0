@@ -178,6 +178,7 @@ export async function POST(request: Request) {
         isLose?: boolean
         isSave?: boolean
         isHold?: boolean
+        isHelper?: boolean
       }, index: number) => ({
         game_id: gameId,
         player_id: p.playerId && p.playerId.trim() !== "" ? p.playerId : null,
@@ -195,6 +196,7 @@ export async function POST(request: Request) {
         is_lose: p.isLose || false,
         is_save: p.isSave || false,
         is_hold: p.isHold || false,
+        is_helper: p.isHelper || false,
         order_index: index,
       }))
 

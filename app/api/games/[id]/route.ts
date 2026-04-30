@@ -238,6 +238,7 @@ export async function PUT(
       isLose?: boolean
       isSave?: boolean
       isHold?: boolean
+      isHelper?: boolean
     }, index: number) => ({
       game_id: id,
       player_id: p.playerId && p.playerId.trim() !== "" ? p.playerId : null,
@@ -255,6 +256,7 @@ export async function PUT(
       is_lose: p.isLose || false,
       is_save: p.isSave || false,
       is_hold: p.isHold || false,
+      is_helper: p.isHelper || false,
       order_index: index,
     }))
     await supabase.from("pitcher_results").insert(pitcherInserts)
