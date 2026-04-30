@@ -228,7 +228,8 @@ export async function PUT(
     const pitcherInserts = pitchers.map((p: {
       playerId?: string
       playerName: string
-      inningsPitched: number
+      outsPitched: number
+      isMidInningExit: boolean
       hits: number
       runs: number
       earnedRuns: number
@@ -246,7 +247,8 @@ export async function PUT(
       game_id: id,
       player_id: p.playerId && p.playerId.trim() !== "" ? p.playerId : null,
       player_name: p.playerName,
-      innings_pitched: p.inningsPitched,
+      innings_outs: p.outsPitched,
+      is_mid_inning_exit: p.isMidInningExit || false,
       hits: p.hits,
       runs: p.runs,
       earned_runs: p.earnedRuns,

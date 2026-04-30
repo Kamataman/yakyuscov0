@@ -159,7 +159,8 @@ export interface PitchingStats {
   losses: number             // 敗北
   saves: number              // セーブ
   holds: number              // ホールド
-  inningsPitched: number     // 投球回
+  totalOuts: number          // 投球アウト数合計（表示用）
+  inningsPitched: number     // 投球回（小数、ERA計算用）
   hits: number               // 被安打
   runs: number               // 失点
   earnedRuns: number         // 自責点
@@ -167,7 +168,7 @@ export interface PitchingStats {
   walks: number              // 与四球
   hitByPitch: number         // 与死球
   homeRuns: number           // 被本塁打
-  
+
   // 計算指標
   era: number                // 防御率
   whip: number               // WHIP
@@ -180,7 +181,7 @@ export interface PitchingStats {
  */
 export function calculatePitchingStats(
   pitcherResults: Array<{
-    innings_pitched: number
+    outs_pitched: number
     hits: number
     runs: number
     earned_runs: number
@@ -200,6 +201,7 @@ export function calculatePitchingStats(
     losses: 0,
     saves: 0,
     holds: 0,
+    totalOuts: 0,
     inningsPitched: 0,
     hits: 0,
     runs: 0,
@@ -219,7 +221,7 @@ export function calculatePitchingStats(
     if (result.is_lose) stats.losses++
     if (result.is_save) stats.saves++
     if (result.is_hold) stats.holds++
-    stats.inningsPitched += result.innings_pitched || 0
+    stats.totalOuts += result.outs_pitched || 0
     stats.hits += result.hits || 0
     stats.runs += result.runs || 0
     stats.earnedRuns += result.earned_runs || 0
@@ -229,9 +231,11 @@ export function calculatePitchingStats(
     stats.homeRuns += result.home_runs || 0
   }
 
-  // 防御率 = 自責点 * 9 / 投球回
-  if (stats.inningsPitched > 0) {
-    stats.era = (stats.earnedRuns * 9) / stats.inningsPitched
+  stats.inningsPitched = stats.totalOuts / 3
+
+  // 防御率 = 自責点 * 27 / 投球アウト数
+  if (stats.totalOuts > 0) {
+    stats.era = (stats.earnedRuns * 27) / stats.totalOuts
     stats.whip = (stats.walks + stats.hits) / stats.inningsPitched
     stats.strikeoutRate = (stats.strikeouts * 9) / stats.inningsPitched
     stats.walkRate = (stats.walks * 9) / stats.inningsPitched

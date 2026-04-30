@@ -120,7 +120,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     inningScores?: { inning: number; our_score: number; opponent_score: number }[]
     lineupEntries?: { batting_order: number; player_id: string; player_name: string; position: string; is_substitute: boolean; entered_inning?: number; is_helper: boolean }[]
     battingResults?: { batting_order: number; inning: number; at_bat_sequence?: number; hit_result: string; direction: string; rbi_count: number; scored?: boolean; runner_first: boolean; runner_second: boolean; runner_third: boolean; stolen_second: boolean; stolen_third: boolean; stolen_home: boolean }[]
-    pitcherResults?: { player_id?: string; player_name: string; innings_pitched: number; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; pitch_count?: number; is_win: boolean; is_lose: boolean; is_save: boolean; is_hold: boolean; is_helper?: boolean }[]
+    pitcherResults?: { player_id?: string; player_name: string; innings_outs: number; is_mid_inning_exit: boolean; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; pitch_count?: number; is_win: boolean; is_lose: boolean; is_save: boolean; is_hold: boolean; is_helper?: boolean }[]
   }) => {
     if (gameData.game) {
       setGameDate(gameData.game.date || "")
@@ -205,7 +205,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
       setPitchers(gameData.pitcherResults.map((p) => ({
         playerId: p.player_id || "",
         playerName: p.player_name,
-        inningsPitched: p.innings_pitched,
+        outsPitched: p.innings_outs,
+        isMidInningExit: p.is_mid_inning_exit,
         hits: p.hits,
         runs: p.runs,
         earnedRuns: p.earned_runs,

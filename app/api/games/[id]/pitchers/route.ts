@@ -5,7 +5,8 @@ import { requireGameAccess } from "@/lib/auth"
 interface PitcherResult {
   playerId?: string
   playerName: string
-  inningsPitched: number
+  outsPitched: number
+  isMidInningExit: boolean
   hits: number
   runs: number
   earnedRuns: number
@@ -56,7 +57,8 @@ export async function POST(
         game_id: gameId,
         player_id: p.playerId && p.playerId.trim() !== "" ? p.playerId : null,
         player_name: p.playerName,
-        innings_pitched: p.inningsPitched || 0,
+        innings_outs: p.outsPitched || 0,
+        is_mid_inning_exit: p.isMidInningExit || false,
         hits: p.hits || 0,
         runs: p.runs || 0,
         earned_runs: p.earnedRuns || 0,
