@@ -119,7 +119,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
     game?: { date: string; opponent: string; location: string; memo: string; is_first_batting: boolean; total_innings: number }
     inningScores?: { inning: number; our_score: number; opponent_score: number }[]
     lineupEntries?: { batting_order: number; player_id: string; player_name: string; position: string; is_substitute: boolean; entered_inning?: number; is_helper: boolean }[]
-    battingResults?: { batting_order: number; inning: number; at_bat_sequence?: number; hit_result: string; direction: string; rbi_count: number; runner_first: boolean; runner_second: boolean; runner_third: boolean; stolen_second: boolean; stolen_third: boolean; stolen_home: boolean }[]
+    battingResults?: { batting_order: number; inning: number; at_bat_sequence?: number; hit_result: string; direction: string; rbi_count: number; scored?: boolean; runner_first: boolean; runner_second: boolean; runner_third: boolean; stolen_second: boolean; stolen_third: boolean; stolen_home: boolean }[]
     pitcherResults?: { player_id?: string; player_name: string; innings_pitched: number; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; pitch_count?: number; is_win: boolean; is_lose: boolean; is_save: boolean; is_hold: boolean; is_helper?: boolean }[]
   }) => {
     if (gameData.game) {
@@ -181,6 +181,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
           hitResult: result.hit_result as HitResult,
           direction: result.direction as HitDirection | undefined,
           rbiCount: result.rbi_count,
+          scored: result.scored || false,
           runners: {
             first: result.runner_first,
             second: result.runner_second,

@@ -60,6 +60,7 @@ export function BattingInputDialog({
   const [hitResult, setHitResult] = useState<HitResult | null>(null)
   const [direction, setDirection] = useState<HitDirection | undefined>(undefined)
   const [rbiCount, setRbiCount] = useState<number>(0)
+  const [scored, setScored] = useState<boolean>(false)
   const [runners, setRunners] = useState<RunnerState>({ first: false, second: false, third: false })
   const [stolenBases, setStolenBases] = useState<StolenBase>({ second: false, third: false, home: false })
 
@@ -68,12 +69,14 @@ export function BattingInputDialog({
       setHitResult(existingResult.hitResult)
       setDirection(existingResult.direction)
       setRbiCount(existingResult.rbiCount)
+      setScored(existingResult.scored || false)
       setRunners(existingResult.runners || { first: false, second: false, third: false })
       setStolenBases(existingResult.stolenBases || { second: false, third: false, home: false })
     } else {
       setHitResult(null)
       setDirection(undefined)
       setRbiCount(0)
+      setScored(false)
       setRunners({ first: false, second: false, third: false })
       setStolenBases({ second: false, third: false, home: false })
     }
@@ -85,6 +88,7 @@ export function BattingInputDialog({
       hitResult,
       direction,
       rbiCount,
+      scored,
       runners,
       stolenBases,
     })
@@ -419,6 +423,22 @@ export function BattingInputDialog({
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* 得点 */}
+          <div className="space-y-2">
+            <div className="text-sm font-bold text-slate-700">得点</div>
+            <button
+              onClick={() => setScored(prev => !prev)}
+              className={cn(
+                "h-12 px-6 rounded-xl font-bold text-sm transition-all duration-200",
+                scored
+                  ? "bg-rose-500 text-white shadow-lg scale-105"
+                  : "bg-white border-2 border-slate-200 text-slate-600 hover:border-rose-400"
+              )}
+            >
+              {scored ? "得点あり" : "得点なし"}
+            </button>
           </div>
 
           {/* 盗塁 */}

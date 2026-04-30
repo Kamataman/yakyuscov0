@@ -42,6 +42,7 @@ export interface BattingResult {
   hitResult: HitResult
   direction?: HitDirection
   rbiCount: number
+  scored?: boolean
   runners?: RunnerState
   stolenBases?: StolenBase
   memo?: string
