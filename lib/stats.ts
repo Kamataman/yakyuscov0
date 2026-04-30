@@ -14,6 +14,7 @@ export interface BattingStats {
   triples: number         // 三塁打
   homeRuns: number        // 本塁打
   rbi: number             // 打点
+  runs: number            // 得点
   walks: number           // 四球
   hitByPitch: number      // 死球
   strikeouts: number      // 三振
@@ -41,6 +42,7 @@ export function calculateBattingStats(
   battingResults: Array<{
     hit_result: HitResult
     rbi_count: number
+    scored?: boolean
     stolen_second?: boolean
     stolen_third?: boolean
     stolen_home?: boolean
@@ -56,6 +58,7 @@ export function calculateBattingStats(
     triples: 0,
     homeRuns: 0,
     rbi: 0,
+    runs: 0,
     walks: 0,
     hitByPitch: 0,
     strikeouts: 0,
@@ -71,7 +74,8 @@ export function calculateBattingStats(
   for (const result of battingResults) {
     stats.plateAppearances++
     stats.rbi += result.rbi_count || 0
-    
+    if (result.scored) stats.runs++
+
     // 盗塁カウント
     if (result.stolen_second) stats.stolenBases++
     if (result.stolen_third) stats.stolenBases++

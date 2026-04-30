@@ -40,6 +40,7 @@ const BATTING_COLUMNS: Array<{
   { key: "triples", label: "三塁打", shortLabel: "三", format: (v) => v.toString() },
   { key: "homeRuns", label: "本塁打", shortLabel: "本", format: (v) => v.toString() },
   { key: "rbi", label: "打点", shortLabel: "点", format: (v) => v.toString(), primary: true },
+  { key: "runs", label: "得点", shortLabel: "得", format: (v) => v.toString() },
   { key: "walks", label: "四球", shortLabel: "四", format: (v) => v.toString() },
   { key: "strikeouts", label: "三振", shortLabel: "振", format: (v) => v.toString() },
   { key: "stolenBases", label: "盗塁", shortLabel: "盗", format: (v) => v.toString() },

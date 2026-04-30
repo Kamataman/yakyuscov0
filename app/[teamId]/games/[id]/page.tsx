@@ -39,6 +39,7 @@ interface GameDetail {
     hit_result: string
     direction?: string
     rbi_count: number
+    scored?: boolean
   }>
   pitcherResults: Array<{
     player_name: string
@@ -458,6 +459,7 @@ export default function GameDetailPage() {
                           hitResult: result.hit_result as BattingResult["hitResult"],
                           direction: result.direction as BattingResult["direction"],
                           rbiCount: result.rbi_count,
+                          scored: result.scored,
                         }
                         const summary = getResultSummary(resultObj)
                         const hit = isHit(result.hit_result as BattingResult["hitResult"])

@@ -77,6 +77,7 @@ export async function GET(request: Request) {
     results: Array<{
       hit_result: HitResult
       rbi_count: number
+      scored?: boolean
       stolen_second?: boolean
       stolen_third?: boolean
       stolen_home?: boolean
@@ -106,6 +107,7 @@ export async function GET(request: Request) {
     playerData.results.push({
       hit_result: result.hit_result as HitResult,
       rbi_count: result.rbi_count || 0,
+      scored: result.scored,
       stolen_second: result.stolen_second,
       stolen_third: result.stolen_third,
       stolen_home: result.stolen_home,
