@@ -174,6 +174,7 @@ export async function PUT(
       hit_result: string
       direction: string | null
       rbi_count: number
+      scored: boolean
       runner_first: boolean
       runner_second: boolean
       runner_third: boolean
@@ -192,6 +193,7 @@ export async function PUT(
         hitResult: string
         direction?: string
         rbiCount: number
+        scored?: boolean
         runners?: { first: boolean; second: boolean; third: boolean }
         stolenBases?: { second: boolean; third: boolean; home: boolean }
         memo?: string
@@ -205,6 +207,7 @@ export async function PUT(
         hit_result: r.hitResult,
         direction: r.direction || null,
         rbi_count: r.rbiCount || 0,
+        scored: r.scored || false,
         runner_first: r.runners?.first || false,
         runner_second: r.runners?.second || false,
         runner_third: r.runners?.third || false,

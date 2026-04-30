@@ -40,6 +40,7 @@ export async function POST(
         hit_result: result.hitResult,
         direction: result.direction || null,
         rbi_count: result.rbiCount || 0,
+        scored: result.scored || false,
         runner_first: result.runners?.first || false,
         runner_second: result.runners?.second || false,
         runner_third: result.runners?.third || false,
