@@ -60,7 +60,7 @@ export function BattingGrid({
   const getSlotDisplay = (order: number) => {
     const slot = lineupSlots.find((s) => s.order === order)
     if (!slot || slot.entries.length === 0) {
-      return { name: "", position: "", hasSubstitute: false }
+      return { name: "", positions: [] as string[], hasSubstitute: false }
     }
 
     const firstEntry = slot.entries[0]
@@ -68,7 +68,7 @@ export function BattingGrid({
 
     return {
       name: firstEntry.playerName,
-      position: firstEntry.position || "",
+      positions: firstEntry.positions ?? [],
       hasSubstitute,
     }
   }
@@ -138,7 +138,7 @@ export function BattingGrid({
           </thead>
           <tbody>
             {battingOrders.map((order) => {
-              const { name, position, hasSubstitute } = getSlotDisplay(order)
+              const { name, positions, hasSubstitute } = getSlotDisplay(order)
               return (
                 <tr key={order} className="hover:bg-slate-50/50 transition-colors border-b border-slate-100">
                   <td className="sticky left-0 z-10 bg-slate-50 w-10 min-w-[40px] px-2 py-2 text-center border-r border-slate-200">
@@ -147,12 +147,16 @@ export function BattingGrid({
                     </span>
                   </td>
                   <td className="sticky left-10 z-10 bg-slate-50 w-10 min-w-[40px] px-1 py-1 text-center border-r border-slate-200">
-                    <span className={cn(
-                      "inline-flex h-7 w-7 items-center justify-center rounded text-xs font-bold",
-                      position ? "bg-emerald-100 text-emerald-700" : "text-slate-300"
-                    )}>
-                      {position || "-"}
-                    </span>
+                    {positions.length > 0 ? (
+                      <span className="inline-flex h-7 items-center gap-0.5 px-1 rounded text-xs font-bold bg-emerald-100 text-emerald-700">
+                        {positions[0]}
+                        {positions.length > 1 && (
+                          <span className="text-[10px] text-emerald-500">+</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300 text-xs">-</span>
+                    )}
                   </td>
                   <td className="sticky left-20 z-10 bg-white w-24 min-w-[96px] px-1 py-1 border-r border-slate-200">
                     <button

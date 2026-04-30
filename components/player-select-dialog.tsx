@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import type { LineupEntry, FieldPosition, Player } from "@/lib/batting-types"
-import { FIELD_POSITIONS } from "@/lib/batting-types"
+import { FIELD_POSITIONS, SUBSTITUTE_ROLES } from "@/lib/batting-types"
 import { sortPlayersByNumber } from "@/lib/sort-utils"
 
 interface PlayerSelectDialogProps {
@@ -36,7 +36,7 @@ export function PlayerSelectDialog({
       if (currentEntries.length > 0) {
         setEntries(currentEntries)
       } else {
-        setEntries([{ playerId: "", playerName: "", position: undefined }])
+        setEntries([{ playerId: "", playerName: "", positions: [] }])
       }
     }
   }, [open, currentEntries])
@@ -83,17 +83,33 @@ export function PlayerSelectDialog({
       newEntries[index] = {
         ...newEntries[index],
         playerName: name,
-        playerId: "", // 手入力の場合はIDをクリア
+        playerId: "",
         isHelper: false,
       }
       return newEntries
     })
   }
 
-  const handlePositionChange = (index: number, position: FieldPosition) => {
+  const handlePositionToggle = (index: number, pos: FieldPosition) => {
     setEntries((prev) => {
       const newEntries = [...prev]
-      newEntries[index] = { ...newEntries[index], position }
+      const current = newEntries[index].positions ?? []
+      const exists = current.includes(pos)
+      newEntries[index] = {
+        ...newEntries[index],
+        positions: exists ? current.filter(p => p !== pos) : [...current, pos],
+      }
+      return newEntries
+    })
+  }
+
+  const handlePositionRemove = (index: number, pos: FieldPosition) => {
+    setEntries((prev) => {
+      const newEntries = [...prev]
+      newEntries[index] = {
+        ...newEntries[index],
+        positions: (newEntries[index].positions ?? []).filter(p => p !== pos),
+      }
       return newEntries
     })
   }
@@ -101,7 +117,7 @@ export function PlayerSelectDialog({
   const handleAddSubstitute = () => {
     setEntries((prev) => [
       ...prev,
-      { playerId: "", playerName: "", position: undefined, isSubstitute: true }
+      { playerId: "", playerName: "", positions: [], isSubstitute: true }
     ])
   }
 
@@ -148,7 +164,7 @@ export function PlayerSelectDialog({
                 </div>
               )}
 
-              {/* 選手名 - 登録済み選手から選択 */}
+              {/* 選手名 */}
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-2">
                   選手名
@@ -171,7 +187,6 @@ export function PlayerSelectDialog({
                         </option>
                       ))}
                     </select>
-                    {/* または手入力（助っ人でなく、IDが未選択の場合） */}
                     {!entry.isHelper && !entry.playerId && (
                       <input
                         type="text"
@@ -201,7 +216,6 @@ export function PlayerSelectDialog({
                     />
                   )
                 )}
-                {/* 助っ人トグル（選手選択の下、控えめなデザイン） */}
                 <button
                   onClick={() => entry.isHelper ? handlePlayerSelect(index, "") : handleHelperSelect(index)}
                   className={cn(
@@ -220,14 +234,36 @@ export function PlayerSelectDialog({
                 <label className="block text-xs font-semibold text-slate-500 mb-2">
                   守備位置
                 </label>
+
+                {/* 代打・代走ボタン（途中出場のみ） */}
+                {entry.isSubstitute && (
+                  <div className="flex gap-2 mb-2">
+                    {SUBSTITUTE_ROLES.map((role) => (
+                      <button
+                        key={role.value}
+                        onClick={() => handlePositionToggle(index, role.value)}
+                        className={cn(
+                          "h-10 px-4 rounded-lg font-bold text-sm transition-all",
+                          (entry.positions ?? []).includes(role.value)
+                            ? "bg-amber-500 text-white shadow-md scale-105"
+                            : "bg-white border border-slate-200 text-slate-600 hover:border-amber-300 hover:bg-amber-50"
+                        )}
+                      >
+                        {role.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* 守備位置グリッド */}
                 <div className="grid grid-cols-5 gap-2">
                   {FIELD_POSITIONS.map((pos) => (
                     <button
                       key={pos.value}
-                      onClick={() => handlePositionChange(index, pos.value)}
+                      onClick={() => handlePositionToggle(index, pos.value)}
                       className={cn(
                         "h-10 rounded-lg font-bold text-sm transition-all",
-                        entry.position === pos.value
+                        (entry.positions ?? []).includes(pos.value)
                           ? "bg-emerald-500 text-white shadow-md scale-105"
                           : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50"
                       )}
@@ -236,6 +272,27 @@ export function PlayerSelectDialog({
                     </button>
                   ))}
                 </div>
+
+                {/* 選択済み守備位置チップ */}
+                {(entry.positions ?? []).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {(entry.positions ?? []).map((pos, posIdx) => (
+                      <span
+                        key={posIdx}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 text-xs font-bold"
+                      >
+                        {pos}
+                        <button
+                          onClick={() => handlePositionRemove(index, pos)}
+                          className="text-emerald-500 hover:text-emerald-800 leading-none"
+                          aria-label={`${pos}を削除`}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* 途中出場イニング */}
