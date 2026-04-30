@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, Shield, ArrowLeft } from "lucide-react";
+import { Loader2, Shield, ArrowLeft, FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
+
+const IS_PREVIEW = process.env.NEXT_PUBLIC_IS_PREVIEW === "true";
 
 export default function TeamLoginPage() {
   const params = useParams();
@@ -131,6 +133,29 @@ export default function TeamLoginPage() {
             )}
           </Button>
         </form>
+
+        {IS_PREVIEW && (
+          <div className="mt-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-slate-400">プレビュー</span>
+              </div>
+            </div>
+            <Link href="/auth/preview-login" className="block mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-12 border-amber-300 text-amber-700 hover:bg-amber-50"
+              >
+                <FlaskConical className="w-4 h-4 mr-2" />
+                テストチームでログイン
+              </Button>
+            </Link>
+          </div>
+        )}
 
         <div className="mt-6 text-center">
           <Link
