@@ -131,8 +131,8 @@ export interface PitcherResult {
 
 // 結果の短縮表示を生成
 export function getResultSummary(result: BattingResult): string {
-  const { hitResult, direction, rbiCount } = result
-  
+  const { hitResult, direction, rbiCount, scored } = result
+
   // 短縮形の変換
   const shortResult: Record<HitResult, string> = {
     "単打": "安",
@@ -153,17 +153,22 @@ export function getResultSummary(result: BattingResult): string {
   }
 
   let summary = shortResult[hitResult] || hitResult
-  
+
   // 方向がある場合は追加
   if (direction) {
     summary = `${direction}${summary}`
   }
-  
+
   // 打点がある場合は追加
   if (rbiCount > 0) {
     summary += `(${rbiCount})`
   }
-  
+
+  // 得点がある場合は末尾に追加
+  if (scored) {
+    summary += "●"
+  }
+
   return summary
 }
 
