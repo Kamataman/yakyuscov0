@@ -79,10 +79,33 @@ export function PitcherInput({
   const formatInnings = (innings: number) => {
     const whole = Math.floor(innings)
     const fraction = innings - whole
+    // 0.01 は「イニング途中0アウト降板」を表す特別値
+    if (fraction >= 0.005 && fraction < 0.02) return `${whole} 0/3`
     if (fraction < 0.17) return `${whole}`
     if (fraction < 0.5) return `${whole} 1/3`
     if (fraction < 0.84) return `${whole} 2/3`
     return `${whole + 1}`
+  }
+
+  const nextInnings = (current: number): number => {
+    const whole = Math.floor(current)
+    const frac = current - whole
+    if (frac >= 0.005 && frac < 0.02) return +(whole + 0.34).toFixed(2)
+    if (frac < 0.17) {
+      const next = +(whole + 0.01).toFixed(2)
+      return next > 9 ? current : next
+    }
+    if (frac < 0.5) return +(whole + 0.67).toFixed(2)
+    return Math.min(9, whole + 1)
+  }
+
+  const prevInnings = (current: number): number => {
+    const whole = Math.floor(current)
+    const frac = current - whole
+    if (frac >= 0.005 && frac < 0.02) return whole
+    if (frac < 0.17) return whole > 0 ? +(whole - 1 + 0.67).toFixed(2) : 0
+    if (frac < 0.5) return +(whole + 0.01).toFixed(2)
+    return +(whole + 0.34).toFixed(2)
   }
 
   const StatButton = ({ 
@@ -289,13 +312,26 @@ export function PitcherInput({
 
             {/* 投球回 */}
             <div className="flex justify-center py-2">
-              <StatButton
-                label="投球回"
-                value={form.inningsPitched}
-                onChange={(v) => setForm({ ...form, inningsPitched: v })}
-                step={0.34}
-                max={9}
-              />
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-slate-600 min-w-[60px]">投球回</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setForm({ ...form, inningsPitched: prevInnings(form.inningsPitched) })}
+                    className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="w-14 text-center font-bold text-lg text-slate-800">
+                    {formatInnings(form.inningsPitched)}
+                  </span>
+                  <button
+                    onClick={() => setForm({ ...form, inningsPitched: nextInnings(form.inningsPitched) })}
+                    className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* スタッツ - 2列 */}

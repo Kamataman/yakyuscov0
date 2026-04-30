@@ -247,6 +247,7 @@ export default function GameDetailPage() {
   const formatInnings = (innings: number) => {
     const whole = Math.floor(innings)
     const fraction = innings - whole
+    if (fraction >= 0.005 && fraction < 0.02) return `${whole} 0/3`
     if (fraction < 0.17) return `${whole}`
     if (fraction < 0.5) return `${whole} 1/3`
     if (fraction < 0.84) return `${whole} 2/3`
