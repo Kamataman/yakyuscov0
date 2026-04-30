@@ -143,7 +143,7 @@ export async function GET(request: Request) {
   const pitcherResultsMap = new Map<string, {
     name: string
     results: Array<{
-      innings_pitched: number
+      outs_pitched: number
       hits: number
       runs: number
       earned_runs: number
@@ -173,7 +173,7 @@ export async function GET(request: Request) {
     }
 
     pitcherResultsMap.get(pitcherId)!.results.push({
-      innings_pitched: result.innings_pitched || 0,
+      outs_pitched: result.innings_outs || 0,
       hits: result.hits || 0,
       runs: result.runs || 0,
       earned_runs: result.earned_runs || 0,

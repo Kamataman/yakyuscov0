@@ -62,7 +62,11 @@ const PITCHING_COLUMNS: Array<{
   { key: "losses", label: "敗", shortLabel: "敗", format: (v) => v.toString(), primary: true },
   { key: "saves", label: "S", shortLabel: "S", format: (v) => v.toString() },
   { key: "holds", label: "H", shortLabel: "H", format: (v) => v.toString() },
-  { key: "inningsPitched", label: "投球回", shortLabel: "回", format: (v) => v.toFixed(1), primary: true },
+  { key: "totalOuts", label: "投球回", shortLabel: "回", format: (v) => {
+    const whole = Math.floor(v / 3)
+    const rem = v % 3
+    return rem === 0 ? `${whole}` : `${whole} ${rem}/3`
+  }, primary: true },
   { key: "hits", label: "被安打", shortLabel: "被安", format: (v) => v.toString() },
   { key: "runs", label: "失点", shortLabel: "失", format: (v) => v.toString() },
   { key: "earnedRuns", label: "自責", shortLabel: "自", format: (v) => v.toString(), primary: true },

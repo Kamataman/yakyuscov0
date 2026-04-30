@@ -14,17 +14,40 @@ interface PitcherInputProps {
   registeredPlayers?: Player[]
 }
 
-export function PitcherInput({ 
-  pitchers, 
-  onPitchersChange, 
-  registeredPlayers = [] 
+export function formatInnings(outs: number, isMidInningExit: boolean): string {
+  const whole = Math.floor(outs / 3)
+  const rem = outs % 3
+  if (rem === 0 && isMidInningExit) return `${whole} 0/3`
+  if (rem === 0) return `${whole}`
+  return `${whole} ${rem}/3`
+}
+
+function nextInnings(outs: number, isMidInningExit: boolean): [number, boolean] {
+  if (!isMidInningExit && outs % 3 === 0 && outs < 27) return [outs, true]
+  if (isMidInningExit) return [outs + 1, false]
+  return [outs + 1, false]
+}
+
+function prevInnings(outs: number, isMidInningExit: boolean): [number, boolean] {
+  if (isMidInningExit) return [outs, false]
+  if (outs === 0) return [0, false]
+  const newOuts = outs - 1
+  if (newOuts % 3 === 0) return [newOuts, true]
+  return [newOuts, false]
+}
+
+export function PitcherInput({
+  pitchers,
+  onPitchersChange,
+  registeredPlayers = []
 }: PitcherInputProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [form, setForm] = useState<PitcherResult>({
     playerId: "",
     playerName: "",
-    inningsPitched: 0,
+    outsPitched: 0,
+    isMidInningExit: false,
     hits: 0,
     runs: 0,
     earnedRuns: 0,
@@ -39,7 +62,8 @@ export function PitcherInput({
     setForm({
       playerId: "",
       playerName: "",
-      inningsPitched: 0,
+      outsPitched: 0,
+      isMidInningExit: false,
       hits: 0,
       runs: 0,
       earnedRuns: 0,
@@ -64,58 +88,25 @@ export function PitcherInput({
 
   const handleSave = () => {
     if (!form.playerName.trim()) return
-    
+
     if (editingIndex !== null) {
       const newPitchers = [...pitchers]
       newPitchers[editingIndex] = form
       onPitchersChange(newPitchers)
     } else {
-      // player_idは選手選択時のみセットし、それ以外はnullにする
       onPitchersChange([...pitchers, { ...form, playerId: form.playerId || "" }])
     }
     setIsDialogOpen(false)
   }
 
-  const formatInnings = (innings: number) => {
-    const whole = Math.floor(innings)
-    const fraction = innings - whole
-    // 0.01 は「イニング途中0アウト降板」を表す特別値
-    if (fraction >= 0.005 && fraction < 0.02) return `${whole} 0/3`
-    if (fraction < 0.17) return `${whole}`
-    if (fraction < 0.5) return `${whole} 1/3`
-    if (fraction < 0.84) return `${whole} 2/3`
-    return `${whole + 1}`
-  }
-
-  const nextInnings = (current: number): number => {
-    const whole = Math.floor(current)
-    const frac = current - whole
-    if (frac >= 0.005 && frac < 0.02) return +(whole + 0.34).toFixed(2)
-    if (frac < 0.17) {
-      const next = +(whole + 0.01).toFixed(2)
-      return next > 9 ? current : next
-    }
-    if (frac < 0.5) return +(whole + 0.67).toFixed(2)
-    return Math.min(9, whole + 1)
-  }
-
-  const prevInnings = (current: number): number => {
-    const whole = Math.floor(current)
-    const frac = current - whole
-    if (frac >= 0.005 && frac < 0.02) return whole
-    if (frac < 0.17) return whole > 0 ? +(whole - 1 + 0.67).toFixed(2) : 0
-    if (frac < 0.5) return +(whole + 0.01).toFixed(2)
-    return +(whole + 0.34).toFixed(2)
-  }
-
-  const StatButton = ({ 
-    label, 
-    value, 
+  const StatButton = ({
+    label,
+    value,
     onChange,
     min = 0,
     max = 99,
     step = 1,
-  }: { 
+  }: {
     label: string
     value: number
     onChange: (v: number) => void
@@ -127,16 +118,16 @@ export function PitcherInput({
       <span className="text-sm font-medium text-slate-600 min-w-[60px]">{label}</span>
       <div className="flex items-center gap-1">
         <button
-          onClick={() => onChange(Math.max(min, +(value - step).toFixed(2)))}
+          onClick={() => onChange(Math.max(min, value - step))}
           className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
         >
           <Minus className="w-4 h-4" />
         </button>
         <span className="w-10 text-center font-bold text-lg text-slate-800">
-          {step === 0.34 ? formatInnings(value) : value}
+          {value}
         </span>
         <button
-          onClick={() => onChange(Math.min(max, +(value + step).toFixed(2)))}
+          onClick={() => onChange(Math.min(max, value + step))}
           className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
         >
           <Plus className="w-4 h-4" />
@@ -162,8 +153,8 @@ export function PitcherInput({
       onClick={onClick}
       className={cn(
         "flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all",
-        active 
-          ? `${color} text-white shadow-lg scale-105` 
+        active
+          ? `${color} text-white shadow-lg scale-105`
           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
       )}
     >
@@ -206,8 +197,8 @@ export function PitcherInput({
             </thead>
             <tbody className="divide-y divide-slate-100">
               {pitchers.map((pitcher, index) => (
-                <tr 
-                  key={pitcher.playerId} 
+                <tr
+                  key={pitcher.playerId}
                   className="hover:bg-slate-50 cursor-pointer transition-colors"
                   onClick={() => handleEdit(index)}
                 >
@@ -219,7 +210,7 @@ export function PitcherInput({
                       )}
                     </div>
                   </td>
-                  <td className="px-2 py-2 text-center">{formatInnings(pitcher.inningsPitched)}</td>
+                  <td className="px-2 py-2 text-center">{formatInnings(pitcher.outsPitched, pitcher.isMidInningExit)}</td>
                   <td className="px-2 py-2 text-center">{pitcher.hits}</td>
                   <td className="px-2 py-2 text-center">{pitcher.runs}</td>
                   <td className="px-2 py-2 text-center">{pitcher.earnedRuns}</td>
@@ -236,7 +227,7 @@ export function PitcherInput({
                     </div>
                   </td>
                   <td className="px-2 py-2 text-center" onClick={(e) => e.stopPropagation()}>
-                    <button 
+                    <button
                       onClick={() => handleDelete(index)}
                       className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                     >
@@ -316,16 +307,22 @@ export function PitcherInput({
                 <span className="text-sm font-medium text-slate-600 min-w-[60px]">投球回</span>
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => setForm({ ...form, inningsPitched: prevInnings(form.inningsPitched) })}
+                    onClick={() => {
+                      const [o, m] = prevInnings(form.outsPitched, form.isMidInningExit)
+                      setForm({ ...form, outsPitched: o, isMidInningExit: m })
+                    }}
                     className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="w-14 text-center font-bold text-lg text-slate-800">
-                    {formatInnings(form.inningsPitched)}
+                    {formatInnings(form.outsPitched, form.isMidInningExit)}
                   </span>
                   <button
-                    onClick={() => setForm({ ...form, inningsPitched: nextInnings(form.inningsPitched) })}
+                    onClick={() => {
+                      const [o, m] = nextInnings(form.outsPitched, form.isMidInningExit)
+                      setForm({ ...form, outsPitched: o, isMidInningExit: m })
+                    }}
                     className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
                   >
                     <Plus className="w-4 h-4" />

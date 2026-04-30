@@ -112,7 +112,8 @@ export interface InningScore {
 export interface PitcherResult {
   playerId: string
   playerName: string
-  inningsPitched: number      // 投球回（端数は1/3=0.33, 2/3=0.67）
+  outsPitched: number         // 投球アウト数（投球回 × 3）
+  isMidInningExit: boolean    // イニング途中0アウト降板フラグ
   hits: number                // 被安打
   runs: number                // 失点
   earnedRuns: number          // 自責点

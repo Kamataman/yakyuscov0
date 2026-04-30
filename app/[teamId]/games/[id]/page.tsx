@@ -42,7 +42,8 @@ interface GameDetail {
   }>
   pitcherResults: Array<{
     player_name: string
-    innings_pitched: number
+    innings_outs: number
+    is_mid_inning_exit: boolean
     hits: number
     runs: number
     earned_runs: number
@@ -244,14 +245,12 @@ export default function GameDetailPage() {
   }
 
   // 投球回を整数と分数で表示
-  const formatInnings = (innings: number) => {
-    const whole = Math.floor(innings)
-    const fraction = innings - whole
-    if (fraction >= 0.005 && fraction < 0.02) return `${whole} 0/3`
-    if (fraction < 0.17) return `${whole}`
-    if (fraction < 0.5) return `${whole} 1/3`
-    if (fraction < 0.84) return `${whole} 2/3`
-    return `${whole + 1}`
+  const formatInnings = (outs: number, isMidInningExit: boolean) => {
+    const whole = Math.floor(outs / 3)
+    const rem = outs % 3
+    if (rem === 0 && isMidInningExit) return `${whole} 0/3`
+    if (rem === 0) return `${whole}`
+    return `${whole} ${rem}/3`
   }
 
   return (
@@ -508,7 +507,7 @@ export default function GameDetailPage() {
                   {pitcherResults.map((pitcher, index) => (
                     <tr key={index} className="border-b">
                       <td className="px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
-                      <td className="px-2 py-2">{formatInnings(pitcher.innings_pitched)}</td>
+                      <td className="px-2 py-2">{formatInnings(pitcher.innings_outs, pitcher.is_mid_inning_exit)}</td>
                       <td className="px-2 py-2">{pitcher.hits}</td>
                       <td className="px-2 py-2">{pitcher.strikeouts}</td>
                       <td className="px-2 py-2">{pitcher.walks}</td>
