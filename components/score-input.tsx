@@ -1,8 +1,8 @@
 "use client"
 
-import { useRef, useCallback } from "react"
+import { useRef, useCallback, useState } from "react"
 import { cn } from "@/lib/utils"
-import { Plus, Minus } from "lucide-react"
+import { Plus, Minus, ChevronDown } from "lucide-react"
 import type { InningScore } from "@/lib/batting-types"
 
 interface ScoreInputProps {
@@ -12,21 +12,37 @@ interface ScoreInputProps {
   onFirstBattingChange?: (isFirst: boolean) => void
   totalInnings?: number
   onTotalInningsChange?: (innings: number) => void
+  hasX?: boolean
+  xScore?: number | null
+  onXChange?: (hasX: boolean, xScore: number | null) => void
 }
 
-export function ScoreInput({ 
-  inningScores, 
+export function ScoreInput({
+  inningScores,
   onScoresChange,
   isFirstBatting = true,
   onFirstBattingChange,
   totalInnings = 9,
   onTotalInningsChange,
+  hasX = false,
+  xScore = null,
+  onXChange,
 }: ScoreInputProps) {
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
   const isLongPressRef = useRef(false)
+  const [xAccordionOpen, setXAccordionOpen] = useState(false)
+
+  // 後攻チームのキー（✕は常に後攻の最終回に付く）
+  const bottomTeam: "our" | "opponent" = isFirstBatting ? "opponent" : "our"
 
   const getTotalScore = (team: "our" | "opponent") => {
-    return inningScores.reduce((sum, score) => sum + (score?.[team] || 0), 0)
+    const base = inningScores.reduce((sum, score, index) => {
+      // ✕がある場合、最終回の後攻スコアは x_score で管理するため除外
+      if (hasX && index === totalInnings - 1 && team === bottomTeam) return sum
+      return sum + (score?.[team] || 0)
+    }, 0)
+    if (hasX && team === bottomTeam) return base + (xScore ?? 0)
+    return base
   }
 
   const updateScore = useCallback((inning: number, team: "our" | "opponent", value: number) => {
@@ -225,29 +241,38 @@ export function ScoreInput({
               )}>
                 {!isFirstBatting ? "自チーム" : "相手"}
               </td>
-              {innings.map((inning) => (
-                <td key={inning} className="p-1">
-                  <button
-                    onClick={() => handleScoreClick(inning, !isFirstBatting ? "our" : "opponent")}
-                    onMouseDown={() => handleLongPressStart(inning, !isFirstBatting ? "our" : "opponent")}
-                    onMouseUp={handleLongPressEnd}
-                    onMouseLeave={handleLongPressEnd}
-                    onTouchStart={() => handleLongPressStart(inning, !isFirstBatting ? "our" : "opponent")}
-                    onTouchEnd={handleTouchEnd}
-                    onTouchCancel={handleTouchEnd}
-                    className={cn(
-                      "w-full h-10 flex items-center justify-center",
-                      "text-lg font-bold rounded-lg transition-all select-none",
-                      !isFirstBatting ? "hover:bg-blue-100 active:bg-blue-200" : "hover:bg-red-100 active:bg-red-200",
-                      (inningScores[inning - 1]?.[!isFirstBatting ? "our" : "opponent"] || 0) > 0
-                        ? !isFirstBatting ? "text-blue-700 bg-blue-50" : "text-red-700 bg-red-50"
-                        : "text-slate-300"
+              {innings.map((inning) => {
+                const isLastInningX = hasX && inning === totalInnings
+                return (
+                  <td key={inning} className="p-1">
+                    {isLastInningX ? (
+                      <div className="w-full h-10 flex items-center justify-center text-lg font-bold rounded-lg bg-amber-50 text-amber-700 select-none">
+                        {xScore === null ? "✕" : `${xScore}✕`}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleScoreClick(inning, bottomTeam)}
+                        onMouseDown={() => handleLongPressStart(inning, bottomTeam)}
+                        onMouseUp={handleLongPressEnd}
+                        onMouseLeave={handleLongPressEnd}
+                        onTouchStart={() => handleLongPressStart(inning, bottomTeam)}
+                        onTouchEnd={handleTouchEnd}
+                        onTouchCancel={handleTouchEnd}
+                        className={cn(
+                          "w-full h-10 flex items-center justify-center",
+                          "text-lg font-bold rounded-lg transition-all select-none",
+                          !isFirstBatting ? "hover:bg-blue-100 active:bg-blue-200" : "hover:bg-red-100 active:bg-red-200",
+                          (inningScores[inning - 1]?.[bottomTeam] || 0) > 0
+                            ? !isFirstBatting ? "text-blue-700 bg-blue-50" : "text-red-700 bg-red-50"
+                            : "text-slate-300"
+                        )}
+                      >
+                        {inningScores[inning - 1]?.[bottomTeam] ?? 0}
+                      </button>
                     )}
-                  >
-                    {inningScores[inning - 1]?.[!isFirstBatting ? "our" : "opponent"] ?? 0}
-                  </button>
-                </td>
-              ))}
+                  </td>
+                )
+              })}
               <td className={cn(
                 "sticky right-0 z-10 w-14 min-w-[56px] px-3 py-2 text-center",
                 !isFirstBatting ? "bg-blue-100" : "bg-red-100"
@@ -266,6 +291,70 @@ export function ScoreInput({
       <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-xs text-slate-500 text-center">
         タップで+1 / 長押しで-1
       </div>
+
+      {/* ✕ゲームコントロール */}
+      {onXChange && (
+        <div className="border-t border-slate-100">
+          <button
+            onClick={() => setXAccordionOpen(!xAccordionOpen)}
+            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-500 hover:bg-slate-50"
+          >
+            <span>最終回</span>
+            <span className={cn("font-bold", hasX ? "text-amber-600" : "text-slate-400")}>
+              {hasX ? (xScore === null ? "✕" : `${xScore}✕`) : "−"}
+            </span>
+            <ChevronDown className={cn("ml-auto h-4 w-4 transition-transform", xAccordionOpen && "rotate-180")} />
+          </button>
+
+          {xAccordionOpen && (
+            <div className="bg-slate-50 px-4 pb-3 space-y-2">
+              <label className="flex items-center gap-2 text-sm cursor-pointer py-1">
+                <input
+                  type="radio"
+                  name="x-type"
+                  checked={!hasX}
+                  onChange={() => onXChange(false, null)}
+                  className="accent-slate-600"
+                />
+                ✕なし
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer py-1">
+                <input
+                  type="radio"
+                  name="x-type"
+                  checked={hasX && xScore === null}
+                  onChange={() => onXChange(true, null)}
+                  className="accent-amber-600"
+                />
+                裏攻撃なしの✕（後攻が攻撃不要）
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer py-1">
+                <input
+                  type="radio"
+                  name="x-type"
+                  checked={hasX && xScore !== null}
+                  onChange={() => onXChange(true, xScore !== null ? xScore : 0)}
+                  className="accent-amber-600"
+                />
+                サヨナラ・コールドの✕
+              </label>
+              {hasX && xScore !== null && (
+                <div className="flex items-center gap-2 pl-6">
+                  <input
+                    type="number"
+                    min={0}
+                    max={20}
+                    value={xScore}
+                    onChange={(e) => onXChange(true, Math.max(0, Math.min(20, Number(e.target.value))))}
+                    className="w-16 rounded border border-slate-300 px-2 py-1 text-sm focus:border-amber-400 focus:outline-none"
+                  />
+                  <span className="text-sm font-bold text-amber-700">✕</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -17,6 +17,8 @@ interface GameDetail {
     memo?: string
     is_first_batting?: boolean
     total_innings?: number
+    last_inning_x?: boolean
+    last_inning_x_score?: number | null
   }
   inningScores: Array<{
     inning: number
@@ -145,9 +147,18 @@ export default function GameDetailPage() {
   const totalInnings = game.total_innings || 9
   const maxInning = totalInnings
 
-  // スコア計算（total_innings以内のイニングのみ合計する）
-  const ourTotal = inningScores.filter(s => s.inning <= maxInning).reduce((sum, s) => sum + s.our_score, 0)
-  const opponentTotal = inningScores.filter(s => s.inning <= maxInning).reduce((sum, s) => sum + s.opponent_score, 0)
+  // ✕ゲーム情報
+  const hasX = game.last_inning_x ?? false
+  const xScore = game.last_inning_x_score ?? null
+  const xAdd = hasX ? (xScore ?? 0) : 0
+
+  // スコア計算（✕の最終回をinning_scoresから除外してxAddで加算）
+  const ourTotal =
+    inningScores.filter(s => s.inning <= maxInning && !(hasX && !isFirstBatting && s.inning === maxInning)).reduce((sum, s) => sum + s.our_score, 0)
+    + (!isFirstBatting ? xAdd : 0)
+  const opponentTotal =
+    inningScores.filter(s => s.inning <= maxInning && !(hasX && isFirstBatting && s.inning === maxInning)).reduce((sum, s) => sum + s.opponent_score, 0)
+    + (isFirstBatting ? xAdd : 0)
   const isWin = ourTotal > opponentTotal
   const isLose = ourTotal < opponentTotal
 
@@ -320,7 +331,8 @@ export default function GameDetailPage() {
                     {isFirstBatting ? "自チーム" : game.opponent}
                   </td>
                   {Array.from({ length: maxInning }, (_, i) => {
-                    const score = inningScores.find(s => s.inning === i + 1)
+                    const inning = i + 1
+                    const score = inningScores.find(s => s.inning === inning)
                     const val = isFirstBatting ? (score?.our_score ?? 0) : (score?.opponent_score ?? 0)
                     return (
                       <td key={i} className={cn(
@@ -347,7 +359,16 @@ export default function GameDetailPage() {
                     {isFirstBatting ? game.opponent : "自チーム"}
                   </td>
                   {Array.from({ length: maxInning }, (_, i) => {
-                    const score = inningScores.find(s => s.inning === i + 1)
+                    const inning = i + 1
+                    const score = inningScores.find(s => s.inning === inning)
+                    const isXCell = hasX && inning === maxInning
+                    if (isXCell) {
+                      return (
+                        <td key={i} className="w-8 min-w-[32px] px-1 py-2 font-bold text-amber-700">
+                          {xScore === null ? "✕" : `${xScore}✕`}
+                        </td>
+                      )
+                    }
                     const val = isFirstBatting ? (score?.opponent_score ?? 0) : (score?.our_score ?? 0)
                     return (
                       <td key={i} className={cn(
