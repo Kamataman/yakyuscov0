@@ -333,14 +333,6 @@ export default function GameDetailPage() {
                   {Array.from({ length: maxInning }, (_, i) => {
                     const inning = i + 1
                     const score = inningScores.find(s => s.inning === inning)
-                    const isXCell = hasX && !isFirstBatting && inning === maxInning
-                    if (isXCell) {
-                      return (
-                        <td key={i} className="w-8 min-w-[32px] px-1 py-2 font-bold text-amber-700">
-                          {xScore === null ? "✕" : `${xScore}✕`}
-                        </td>
-                      )
-                    }
                     const val = isFirstBatting ? (score?.our_score ?? 0) : (score?.opponent_score ?? 0)
                     return (
                       <td key={i} className={cn(
@@ -369,7 +361,7 @@ export default function GameDetailPage() {
                   {Array.from({ length: maxInning }, (_, i) => {
                     const inning = i + 1
                     const score = inningScores.find(s => s.inning === inning)
-                    const isXCell = hasX && isFirstBatting && inning === maxInning
+                    const isXCell = hasX && inning === maxInning
                     if (isXCell) {
                       return (
                         <td key={i} className="w-8 min-w-[32px] px-1 py-2 font-bold text-amber-700">
