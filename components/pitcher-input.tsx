@@ -182,6 +182,7 @@ export function PitcherInput({
           <table className="w-full min-w-[560px] text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
+                <th className="px-2 py-2 text-center font-medium"></th>
                 <th className="px-3 py-2 text-left font-medium">投手</th>
                 <th className="px-2 py-2 text-center font-medium">回</th>
                 <th className="px-2 py-2 text-center font-medium">被安</th>
@@ -191,7 +192,6 @@ export function PitcherInput({
                 <th className="px-2 py-2 text-center font-medium">四球</th>
                 <th className="px-2 py-2 text-center font-medium">死球</th>
                 <th className="px-2 py-2 text-center font-medium">被本</th>
-                <th className="px-2 py-2 text-center font-medium">決着</th>
                 <th className="px-2 py-2 text-center font-medium"></th>
               </tr>
             </thead>
@@ -202,6 +202,14 @@ export function PitcherInput({
                   className="hover:bg-slate-50 cursor-pointer transition-colors"
                   onClick={() => handleEdit(index)}
                 >
+                  <td className="px-2 py-2 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      {pitcher.award === 'win'  && <span className="text-amber-500 font-bold">勝</span>}
+                      {pitcher.award === 'lose' && <span className="text-slate-500 font-bold">敗</span>}
+                      {pitcher.award === 'save' && <span className="text-blue-500 font-bold">S</span>}
+                      {pitcher.award === 'hold' && <span className="text-emerald-500 font-bold">H</span>}
+                    </div>
+                  </td>
                   <td className="px-3 py-2 font-medium text-slate-800">
                     <div className="flex items-center gap-1.5">
                       {pitcher.playerName}
@@ -218,14 +226,6 @@ export function PitcherInput({
                   <td className="px-2 py-2 text-center">{pitcher.walks}</td>
                   <td className="px-2 py-2 text-center">{pitcher.hitByPitch}</td>
                   <td className="px-2 py-2 text-center">{pitcher.homeRuns}</td>
-                  <td className="px-2 py-2 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      {pitcher.award === 'win'  && <span className="text-amber-500 font-bold">W</span>}
-                      {pitcher.award === 'lose' && <span className="text-slate-500 font-bold">L</span>}
-                      {pitcher.award === 'save' && <span className="text-blue-500 font-bold">S</span>}
-                      {pitcher.award === 'hold' && <span className="text-emerald-500 font-bold">H</span>}
-                    </div>
-                  </td>
                   <td className="px-2 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => handleDelete(index)}

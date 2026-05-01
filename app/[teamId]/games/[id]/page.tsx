@@ -492,6 +492,7 @@ export default function GameDetailPage() {
               <table className="w-full text-center text-sm">
                 <thead>
                   <tr className="border-b bg-slate-50">
+                    <th className="px-2 py-2"></th>
                     <th className="px-2 py-2 text-left">投手</th>
                     <th className="px-2 py-2">投球回</th>
                     <th className="px-2 py-2">被安打</th>
@@ -499,12 +500,17 @@ export default function GameDetailPage() {
                     <th className="px-2 py-2">四球</th>
                     <th className="px-2 py-2">失点</th>
                     <th className="px-2 py-2">自責</th>
-                    <th className="px-2 py-2">記録</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pitcherResults.map((pitcher, index) => (
                     <tr key={index} className="border-b">
+                      <td className="px-2 py-2">
+                        {pitcher.pitcher_award === 'win'  && <span className="rounded bg-blue-100 px-1 text-blue-700">勝</span>}
+                        {pitcher.pitcher_award === 'lose' && <span className="rounded bg-red-100 px-1 text-red-700">敗</span>}
+                        {pitcher.pitcher_award === 'save' && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}
+                        {pitcher.pitcher_award === 'hold' && <span className="rounded bg-purple-100 px-1 text-purple-700">H</span>}
+                      </td>
                       <td className="px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
                       <td className="px-2 py-2">{formatInnings(pitcher.innings_outs, pitcher.is_mid_inning_exit)}</td>
                       <td className="px-2 py-2">{pitcher.hits}</td>
@@ -512,12 +518,6 @@ export default function GameDetailPage() {
                       <td className="px-2 py-2">{pitcher.walks}</td>
                       <td className="px-2 py-2">{pitcher.runs}</td>
                       <td className="px-2 py-2">{pitcher.earned_runs}</td>
-                      <td className="px-2 py-2">
-                        {pitcher.pitcher_award === 'win'  && <span className="rounded bg-blue-100 px-1 text-blue-700">勝</span>}
-                        {pitcher.pitcher_award === 'lose' && <span className="rounded bg-red-100 px-1 text-red-700">敗</span>}
-                        {pitcher.pitcher_award === 'save' && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}
-                        {pitcher.pitcher_award === 'hold' && <span className="rounded bg-purple-100 px-1 text-purple-700">H</span>}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
