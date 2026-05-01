@@ -251,8 +251,8 @@ export default function StatsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-slate-50">
-                      <th 
-                        className="sticky left-0 z-10 bg-slate-50 px-3 py-3 text-left cursor-pointer hover:bg-slate-100"
+                      <th
+                        className="sticky left-0 z-10 bg-slate-50 px-3 py-3 text-left cursor-pointer hover:bg-slate-100 whitespace-nowrap"
                         onClick={() => handleBattingSort("playerName")}
                       >
                         <span className="flex items-center gap-1">
@@ -284,7 +284,7 @@ export default function StatsPage() {
                           index === 0 && battingSortKey === "battingAverage" && "bg-yellow-50"
                         )}
                       >
-                        <td className="sticky left-0 z-10 bg-white px-3 py-3 font-medium">
+                        <td className="sticky left-0 z-10 bg-white px-3 py-3 font-medium whitespace-nowrap">
                           {player.playerName}
                         </td>
                         {visibleBattingColumns.map((col) => (
@@ -328,8 +328,8 @@ export default function StatsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-slate-50">
-                      <th 
-                        className="sticky left-0 z-10 bg-slate-50 px-3 py-3 text-left cursor-pointer hover:bg-slate-100"
+                      <th
+                        className="sticky left-0 z-10 bg-slate-50 px-3 py-3 text-left cursor-pointer hover:bg-slate-100 whitespace-nowrap"
                         onClick={() => handlePitchingSort("playerName")}
                       >
                         <span className="flex items-center gap-1">
@@ -361,7 +361,7 @@ export default function StatsPage() {
                           index === 0 && pitchingSortKey === "era" && sortDirection === "asc" && "bg-yellow-50"
                         )}
                       >
-                        <td className="sticky left-0 z-10 bg-white px-3 py-3 font-medium">
+                        <td className="sticky left-0 z-10 bg-white px-3 py-3 font-medium whitespace-nowrap">
                           {player.playerName}
                         </td>
                         {visiblePitchingColumns.map((col) => (
