@@ -38,12 +38,6 @@ export default function LandingPage() {
             無料でチームを作成
             <ChevronRight className="h-5 w-5" />
           </Link>
-          <Link
-            href="/demo"
-            className="rounded-xl border border-slate-600 px-8 py-4 text-lg font-bold text-white transition-all hover:bg-slate-700"
-          >
-            デモを見る
-          </Link>
         </div>
       </section>
 
@@ -86,6 +80,16 @@ export default function LandingPage() {
 
       {/* URL共有デモ */}
       <ScoreSharingDemo />
+
+      {/* デモリンク */}
+      <div className="text-center pb-8">
+        <Link
+          href="/demo"
+          className="rounded-xl border border-slate-600 px-8 py-4 text-lg font-bold text-white transition-all hover:bg-slate-700"
+        >
+          デモチームを見てみる
+        </Link>
+      </div>
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 py-16 text-center">
