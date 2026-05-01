@@ -189,10 +189,7 @@ export function calculatePitchingStats(
     walks: number
     hit_by_pitch: number
     home_runs: number
-    is_win: boolean
-    is_lose: boolean
-    is_save: boolean
-    is_hold: boolean
+    pitcher_award: string | null
   }>
 ): PitchingStats {
   const stats: PitchingStats = {
@@ -217,10 +214,10 @@ export function calculatePitchingStats(
   }
 
   for (const result of pitcherResults) {
-    if (result.is_win) stats.wins++
-    if (result.is_lose) stats.losses++
-    if (result.is_save) stats.saves++
-    if (result.is_hold) stats.holds++
+    if (result.pitcher_award === 'win')  stats.wins++
+    if (result.pitcher_award === 'lose') stats.losses++
+    if (result.pitcher_award === 'save') stats.saves++
+    if (result.pitcher_award === 'hold') stats.holds++
     stats.totalOuts += result.outs_pitched || 0
     stats.hits += result.hits || 0
     stats.runs += result.runs || 0
