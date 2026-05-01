@@ -237,13 +237,13 @@ export function PlayerSelectDialog({
 
                 {/* 打・走ボタン（途中出場のみ） */}
                 {entry.isSubstitute && (
-                  <div className="flex gap-2 mb-2">
+                  <div className="grid grid-cols-5 gap-2 mb-2">
                     {SUBSTITUTE_ROLES.map((role) => (
                       <button
                         key={role.value}
                         onClick={() => handlePositionToggle(index, role.value)}
                         className={cn(
-                          "h-10 px-4 rounded-lg font-bold text-sm transition-all",
+                          "h-10 rounded-lg font-bold text-sm transition-all",
                           (entry.positions ?? []).includes(role.value)
                             ? "bg-amber-500 text-white shadow-md scale-105"
                             : "bg-white border border-slate-200 text-slate-600 hover:border-amber-300 hover:bg-amber-50"
