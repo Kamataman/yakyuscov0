@@ -52,6 +52,7 @@ interface GameDetail {
     walks: number
     hit_by_pitch: number
     home_runs: number
+    batters_faced?: number
     pitcher_award: string | null
   }>
 }
@@ -503,9 +504,12 @@ export default function GameDetailPage() {
                     <th className="px-2 py-2"></th>
                     <th className="px-2 py-2 text-left">投手</th>
                     <th className="px-2 py-2">投球回</th>
-                    <th className="px-2 py-2">被安打</th>
-                    <th className="px-2 py-2">奪三振</th>
+                    <th className="px-2 py-2">打者</th>
+                    <th className="px-2 py-2">被安</th>
+                    <th className="px-2 py-2">被本</th>
+                    <th className="px-2 py-2">三振</th>
                     <th className="px-2 py-2">四球</th>
+                    <th className="px-2 py-2">死球</th>
                     <th className="px-2 py-2">失点</th>
                     <th className="px-2 py-2">自責</th>
                   </tr>
@@ -521,9 +525,12 @@ export default function GameDetailPage() {
                       </td>
                       <td className="px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
                       <td className="px-2 py-2">{formatInnings(pitcher.innings_outs, pitcher.is_mid_inning_exit)}</td>
+                      <td className="px-2 py-2">{pitcher.batters_faced ?? 0}</td>
                       <td className="px-2 py-2">{pitcher.hits}</td>
+                      <td className="px-2 py-2">{pitcher.home_runs}</td>
                       <td className="px-2 py-2">{pitcher.strikeouts}</td>
                       <td className="px-2 py-2">{pitcher.walks}</td>
+                      <td className="px-2 py-2">{pitcher.hit_by_pitch}</td>
                       <td className="px-2 py-2">{pitcher.runs}</td>
                       <td className="px-2 py-2">{pitcher.earned_runs}</td>
                     </tr>

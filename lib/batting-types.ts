@@ -131,6 +131,7 @@ export interface PitcherResult {
   walks: number               // 与四球
   hitByPitch: number          // 与死球
   homeRuns: number            // 被本塁打
+  battersFaced?: number       // 対戦打者数
   pitchCount?: number         // 球数
   award?: PitcherAward | null // 勝利・敗戦・セーブ・ホールド（排他）
   isHelper?: boolean          // 助っ人（個人成績に含めない）

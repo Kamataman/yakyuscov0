@@ -55,6 +55,7 @@ export function PitcherInput({
     walks: 0,
     hitByPitch: 0,
     homeRuns: 0,
+    battersFaced: 0,
   })
 
   const handleAdd = () => {
@@ -71,6 +72,7 @@ export function PitcherInput({
       walks: 0,
       hitByPitch: 0,
       homeRuns: 0,
+      battersFaced: 0,
       isHelper: false,
     })
     setIsDialogOpen(true)
@@ -185,13 +187,14 @@ export function PitcherInput({
                 <th className="px-2 py-2 text-center font-medium"></th>
                 <th className="px-3 py-2 text-left font-medium">投手</th>
                 <th className="px-2 py-2 text-center font-medium">回</th>
+                <th className="px-2 py-2 text-center font-medium">打者</th>
                 <th className="px-2 py-2 text-center font-medium">被安</th>
-                <th className="px-2 py-2 text-center font-medium">失点</th>
-                <th className="px-2 py-2 text-center font-medium">自責</th>
-                <th className="px-2 py-2 text-center font-medium">奪三</th>
+                <th className="px-2 py-2 text-center font-medium">被本</th>
+                <th className="px-2 py-2 text-center font-medium">三振</th>
                 <th className="px-2 py-2 text-center font-medium">四球</th>
                 <th className="px-2 py-2 text-center font-medium">死球</th>
-                <th className="px-2 py-2 text-center font-medium">被本</th>
+                <th className="px-2 py-2 text-center font-medium">失点</th>
+                <th className="px-2 py-2 text-center font-medium">自責</th>
                 <th className="px-2 py-2 text-center font-medium"></th>
               </tr>
             </thead>
@@ -219,13 +222,14 @@ export function PitcherInput({
                     </div>
                   </td>
                   <td className="px-2 py-2 text-center">{formatInnings(pitcher.outsPitched, pitcher.isMidInningExit)}</td>
+                  <td className="px-2 py-2 text-center">{pitcher.battersFaced ?? 0}</td>
                   <td className="px-2 py-2 text-center">{pitcher.hits}</td>
-                  <td className="px-2 py-2 text-center">{pitcher.runs}</td>
-                  <td className="px-2 py-2 text-center">{pitcher.earnedRuns}</td>
+                  <td className="px-2 py-2 text-center">{pitcher.homeRuns}</td>
                   <td className="px-2 py-2 text-center">{pitcher.strikeouts}</td>
                   <td className="px-2 py-2 text-center">{pitcher.walks}</td>
                   <td className="px-2 py-2 text-center">{pitcher.hitByPitch}</td>
-                  <td className="px-2 py-2 text-center">{pitcher.homeRuns}</td>
+                  <td className="px-2 py-2 text-center">{pitcher.runs}</td>
+                  <td className="px-2 py-2 text-center">{pitcher.earnedRuns}</td>
                   <td className="px-2 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => handleDelete(index)}
@@ -335,9 +339,19 @@ export function PitcherInput({
             <div className="bg-slate-50 rounded-xl p-4">
               <div className="grid grid-cols-1 gap-y-3 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-4">
                 <StatButton
+                  label="打者"
+                  value={form.battersFaced ?? 0}
+                  onChange={(v) => setForm({ ...form, battersFaced: v })}
+                />
+                <StatButton
                   label="被安打"
                   value={form.hits}
                   onChange={(v) => setForm({ ...form, hits: v })}
+                />
+                <StatButton
+                  label="被本塁打"
+                  value={form.homeRuns}
+                  onChange={(v) => setForm({ ...form, homeRuns: v })}
                 />
                 <StatButton
                   label="奪三振"
@@ -363,11 +377,6 @@ export function PitcherInput({
                   label="自責点"
                   value={form.earnedRuns}
                   onChange={(v) => setForm({ ...form, earnedRuns: v })}
-                />
-                <StatButton
-                  label="被本塁打"
-                  value={form.homeRuns}
-                  onChange={(v) => setForm({ ...form, homeRuns: v })}
                 />
               </div>
             </div>

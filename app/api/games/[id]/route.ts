@@ -237,6 +237,7 @@ export async function PUT(
       walks: number
       hitByPitch: number
       homeRuns: number
+      battersFaced?: number
       pitchCount?: number
       award?: string | null
       isHelper?: boolean
@@ -253,6 +254,7 @@ export async function PUT(
       walks: p.walks,
       hit_by_pitch: p.hitByPitch,
       home_runs: p.homeRuns,
+      batters_faced: p.battersFaced || 0,
       pitch_count: p.pitchCount || null,
       pitcher_award: p.award ?? null,
       is_helper: p.isHelper || false,
