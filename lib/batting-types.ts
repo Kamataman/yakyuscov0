@@ -55,17 +55,19 @@ export interface CellPosition {
 }
 
 // 守備位置
-export type FieldPosition = 
-  | "投" 
-  | "捕" 
-  | "一" 
-  | "二" 
-  | "三" 
-  | "遊" 
-  | "左" 
-  | "中" 
+export type FieldPosition =
+  | "投"
+  | "捕"
+  | "一"
+  | "二"
+  | "三"
+  | "遊"
+  | "左"
+  | "中"
   | "右"
   | "DH"
+  | "打"
+  | "走"
 
 export const FIELD_POSITIONS: { value: FieldPosition; label: string }[] = [
   { value: "投", label: "投" },
@@ -80,6 +82,11 @@ export const FIELD_POSITIONS: { value: FieldPosition; label: string }[] = [
   { value: "DH", label: "DH" },
 ]
 
+export const SUBSTITUTE_ROLES: { value: FieldPosition; label: string }[] = [
+  { value: "打", label: "打" },
+  { value: "走", label: "走" },
+]
+
 // 選手情報
 export interface Player {
   id: string
@@ -91,7 +98,7 @@ export interface Player {
 export interface LineupEntry {
   playerId: string
   playerName: string
-  position?: FieldPosition
+  positions?: FieldPosition[]  // 守備位置（順番通りの配列）
   isSubstitute?: boolean  // 代打・途中出場
   enteredInning?: number  // 何回から出場したか
   isHelper?: boolean      // 助っ人（個人成績に含めない）

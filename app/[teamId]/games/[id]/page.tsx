@@ -28,7 +28,7 @@ interface GameDetail {
   lineupEntries: Array<{
     batting_order: number
     player_name: string
-    position?: string
+    positions?: string[]
     is_substitute: boolean
     entered_inning?: number
   }>
@@ -198,7 +198,7 @@ export default function GameDetailPage() {
   type DisplayRow = {
     battingOrder: number
     playerName: string
-    position: string | undefined
+    positions: string[]
     activeFrom: number
     activeTo: number
     isStarter: boolean
@@ -217,7 +217,7 @@ export default function GameDetailPage() {
       displayRows.push({
         battingOrder: order,
         playerName: "-",
-        position: undefined,
+        positions: [],
         activeFrom: 1,
         activeTo: maxInning,
         isStarter: false,
@@ -233,7 +233,7 @@ export default function GameDetailPage() {
       displayRows.push({
         battingOrder: order,
         playerName: entry.player_name,
-        position: entry.position,
+        positions: entry.positions ?? [],
         activeFrom,
         activeTo,
         isStarter: !entry.is_substitute,
@@ -429,8 +429,16 @@ export default function GameDetailPage() {
                       <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 text-center font-bold border-r border-slate-100">
                         {row.isStarter ? `(${row.battingOrder})` : row.battingOrder}
                       </td>
-                      <td className="sticky left-10 z-10 bg-white w-10 min-w-[40px] px-1 py-2 text-slate-500 text-center border-r border-slate-100">
-                        {row.position ?? "-"}
+                      <td className="sticky left-10 z-10 bg-white w-10 min-w-[40px] px-1 py-2 text-center border-r border-slate-100">
+                        {row.positions.length > 0 ? (
+                          <div className="flex gap-0.5 justify-center flex-nowrap overflow-hidden">
+                            {row.positions.map((p, i) => (
+                              <span key={i} className="text-xs font-medium text-slate-600 shrink-0">{p}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-300 text-xs">-</span>
+                        )}
                       </td>
                       <td className="sticky left-20 z-10 bg-white w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-100">
                         <div className="truncate">{row.playerName}</div>

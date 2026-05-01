@@ -88,12 +88,12 @@ export async function POST(request: Request) {
       batting_order: number
       player_id: string | null
       player_name: string
-      position: string | null
+      positions: string[] | null
       is_substitute: boolean
       entered_inning: number | null
     }[] = []
-    
-    lineupSlots.forEach((slot: { order: number; entries: Array<{ playerId: string; playerName: string; position?: string; isSubstitute?: boolean; enteredInning?: number }> }) => {
+
+    lineupSlots.forEach((slot: { order: number; entries: Array<{ playerId: string; playerName: string; positions?: string[]; isSubstitute?: boolean; enteredInning?: number }> }) => {
       slot.entries.forEach((entry) => {
         if (entry.playerName && entry.playerName.trim() !== "") {
           lineupData.push({
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
             batting_order: slot.order,
             player_id: entry.playerId || null,
             player_name: entry.playerName,
-            position: entry.position || null,
+            positions: entry.positions && entry.positions.length > 0 ? entry.positions : null,
             is_substitute: entry.isSubstitute || false,
             entered_inning: entry.enteredInning || null,
           })

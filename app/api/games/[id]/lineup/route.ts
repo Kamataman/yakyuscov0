@@ -5,7 +5,7 @@ import { requireGameAccess } from "@/lib/auth"
 interface LineupEntry {
   playerId?: string
   playerName: string
-  position?: string
+  positions?: string[]
   isSubstitute?: boolean
   enteredInning?: number
   isHelper?: boolean
@@ -49,7 +49,7 @@ export async function POST(
         batting_order: battingOrder,
         player_id: entry.playerId || null,
         player_name: entry.playerName,
-        position: entry.position || null,
+        positions: entry.positions && entry.positions.length > 0 ? entry.positions : null,
         is_substitute: entry.isSubstitute || false,
         entered_inning: entry.enteredInning || null,
         is_helper: entry.isHelper || false,

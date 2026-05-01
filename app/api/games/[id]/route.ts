@@ -138,7 +138,7 @@ export async function PUT(
       batting_order: number
       player_id: string | null
       player_name: string
-      position: string | null
+      positions: string[] | null
       is_substitute: boolean
       entered_inning: number | null
       is_helper: boolean
@@ -151,7 +151,7 @@ export async function PUT(
           batting_order: slot.order,
           player_id: entry.playerId || null,
           player_name: entry.playerName,
-          position: entry.position || null,
+          positions: entry.positions && entry.positions.length > 0 ? entry.positions : null,
           is_substitute: entry.isSubstitute || false,
           entered_inning: entry.enteredInning || null,
           is_helper: entry.isHelper || false,
