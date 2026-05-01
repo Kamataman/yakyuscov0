@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { sendTeamRegistrationEmail } from "@/lib/email";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -50,6 +51,16 @@ export async function GET(request: Request) {
     if (insertError) {
       console.error("Team insert error:", insertError);
       return NextResponse.redirect(`${origin}/register?error=team_creation_failed`);
+    }
+
+    if (user.email) {
+      sendTeamRegistrationEmail({
+        to: user.email,
+        teamName,
+        teamUrl: `${origin}/${teamId}`,
+      }).catch((err: unknown) => {
+        console.error("Team registration email failed:", err);
+      });
     }
   }
 
