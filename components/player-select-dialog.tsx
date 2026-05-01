@@ -90,14 +90,12 @@ export function PlayerSelectDialog({
     })
   }
 
-  const handlePositionToggle = (index: number, pos: FieldPosition) => {
+  const handlePositionAdd = (index: number, pos: FieldPosition) => {
     setEntries((prev) => {
       const newEntries = [...prev]
-      const current = newEntries[index].positions ?? []
-      const exists = current.includes(pos)
       newEntries[index] = {
         ...newEntries[index],
-        positions: exists ? current.filter(p => p !== pos) : [...current, pos],
+        positions: [...(newEntries[index].positions ?? []), pos],
       }
       return newEntries
     })
@@ -241,13 +239,8 @@ export function PlayerSelectDialog({
                     {SUBSTITUTE_ROLES.map((role) => (
                       <button
                         key={role.value}
-                        onClick={() => handlePositionToggle(index, role.value)}
-                        className={cn(
-                          "h-10 rounded-lg font-bold text-sm transition-all",
-                          (entry.positions ?? []).includes(role.value)
-                            ? "bg-amber-500 text-white shadow-md scale-105"
-                            : "bg-white border border-slate-200 text-slate-600 hover:border-amber-300 hover:bg-amber-50"
-                        )}
+                        onClick={() => handlePositionAdd(index, role.value)}
+                        className="h-10 rounded-lg font-bold text-sm transition-all bg-white border border-slate-200 text-slate-600 hover:border-amber-300 hover:bg-amber-50"
                       >
                         {role.label}
                       </button>
@@ -260,13 +253,8 @@ export function PlayerSelectDialog({
                   {FIELD_POSITIONS.map((pos) => (
                     <button
                       key={pos.value}
-                      onClick={() => handlePositionToggle(index, pos.value)}
-                      className={cn(
-                        "h-10 rounded-lg font-bold text-sm transition-all",
-                        (entry.positions ?? []).includes(pos.value)
-                          ? "bg-emerald-500 text-white shadow-md scale-105"
-                          : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50"
-                      )}
+                      onClick={() => handlePositionAdd(index, pos.value)}
+                      className="h-10 rounded-lg font-bold text-sm transition-all bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50"
                     >
                       {pos.label}
                     </button>
