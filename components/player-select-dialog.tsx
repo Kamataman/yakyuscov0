@@ -153,7 +153,7 @@ export function PlayerSelectDialog({
               {entry.isSubstitute && (
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-amber-700 bg-amber-200 px-2 py-1 rounded">
-                    代打・途中出場
+                    打・走・途中出場
                   </span>
                   <button
                     onClick={() => handleRemoveEntry(index)}
@@ -235,7 +235,7 @@ export function PlayerSelectDialog({
                   守備位置
                 </label>
 
-                {/* 代打・代走ボタン（途中出場のみ） */}
+                {/* 打・走ボタン（途中出場のみ） */}
                 {entry.isSubstitute && (
                   <div className="flex gap-2 mb-2">
                     {SUBSTITUTE_ROLES.map((role) => (
@@ -337,7 +337,7 @@ export function PlayerSelectDialog({
               "hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50"
             )}
           >
-            + 代打・途中出場を追加
+            + 途中出場を追加
           </button>
         </div>
 

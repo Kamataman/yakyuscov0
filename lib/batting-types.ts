@@ -66,8 +66,8 @@ export type FieldPosition =
   | "中"
   | "右"
   | "DH"
-  | "代打"
-  | "代走"
+  | "打"
+  | "走"
 
 export const FIELD_POSITIONS: { value: FieldPosition; label: string }[] = [
   { value: "投", label: "投" },
@@ -83,8 +83,8 @@ export const FIELD_POSITIONS: { value: FieldPosition; label: string }[] = [
 ]
 
 export const SUBSTITUTE_ROLES: { value: FieldPosition; label: string }[] = [
-  { value: "代打", label: "代打" },
-  { value: "代走", label: "代走" },
+  { value: "打", label: "打" },
+  { value: "走", label: "走" },
 ]
 
 // 選手情報
