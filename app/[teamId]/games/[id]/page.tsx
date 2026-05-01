@@ -434,9 +434,9 @@ export default function GameDetailPage() {
                       </td>
                       <td className="sticky left-10 z-10 bg-white w-10 min-w-[40px] px-1 py-2 text-center border-r border-slate-100">
                         {row.positions.length > 0 ? (
-                          <div className="flex gap-0.5 justify-center flex-wrap">
+                          <div className="flex gap-0.5 justify-center flex-nowrap overflow-hidden">
                             {row.positions.map((p, i) => (
-                              <span key={i} className="text-xs font-medium text-slate-600">{p}</span>
+                              <span key={i} className="text-xs font-medium text-slate-600 shrink-0">{p}</span>
                             ))}
                           </div>
                         ) : (
