@@ -123,3 +123,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes score-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+.animate-score-pop {
+  animation: score-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}

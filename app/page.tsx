@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Users, BarChart3, Calendar, ChevronRight } from "lucide-react"
 import { APP_NAME } from "@/lib/constants"
+import { ScoreSharingDemo } from "@/components/score-sharing-demo"
 
 export default function LandingPage() {
   return (
@@ -41,7 +42,7 @@ export default function LandingPage() {
             href="/demo"
             className="rounded-xl border border-slate-600 px-8 py-4 text-lg font-bold text-white transition-all hover:bg-slate-700"
           >
-            デモを見る
+            デモチームを見てみる
           </Link>
         </div>
       </section>
@@ -82,6 +83,19 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* URL共有デモ */}
+      <ScoreSharingDemo />
+
+      {/* デモリンク */}
+      <div className="text-center pb-8">
+        <Link
+          href="/demo"
+          className="rounded-xl border border-slate-600 px-8 py-4 text-lg font-bold text-white transition-all hover:bg-slate-700"
+        >
+          デモチームを見てみる
+        </Link>
+      </div>
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 py-16 text-center">
