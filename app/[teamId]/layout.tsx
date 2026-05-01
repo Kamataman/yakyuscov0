@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AppHeader } from "@/components/app-header"
+import { AppFooter } from "@/components/app-footer"
 
 interface Props {
   children: React.ReactNode
@@ -22,9 +23,10 @@ export default async function TeamLayout({ children, params }: Props) {
   }
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <AppHeader teamName={data.name} />
-      {children}
-    </>
+      <div className="flex-1">{children}</div>
+      <AppFooter />
+    </div>
   )
 }
