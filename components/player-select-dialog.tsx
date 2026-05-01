@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import type { LineupEntry, FieldPosition, Player } from "@/lib/batting-types"
-import { FIELD_POSITIONS } from "@/lib/batting-types"
+import { FIELD_POSITIONS, SUBSTITUTE_ROLES } from "@/lib/batting-types"
 import { sortPlayersByNumber } from "@/lib/sort-utils"
 
 interface PlayerSelectDialogProps {
@@ -36,7 +36,7 @@ export function PlayerSelectDialog({
       if (currentEntries.length > 0) {
         setEntries(currentEntries)
       } else {
-        setEntries([{ playerId: "", playerName: "", position: undefined }])
+        setEntries([{ playerId: "", playerName: "", positions: [] }])
       }
     }
   }, [open, currentEntries])
@@ -83,17 +83,31 @@ export function PlayerSelectDialog({
       newEntries[index] = {
         ...newEntries[index],
         playerName: name,
-        playerId: "", // 手入力の場合はIDをクリア
+        playerId: "",
         isHelper: false,
       }
       return newEntries
     })
   }
 
-  const handlePositionChange = (index: number, position: FieldPosition) => {
+  const handlePositionAdd = (index: number, pos: FieldPosition) => {
     setEntries((prev) => {
       const newEntries = [...prev]
-      newEntries[index] = { ...newEntries[index], position }
+      newEntries[index] = {
+        ...newEntries[index],
+        positions: [...(newEntries[index].positions ?? []), pos],
+      }
+      return newEntries
+    })
+  }
+
+  const handlePositionRemove = (index: number, pos: FieldPosition) => {
+    setEntries((prev) => {
+      const newEntries = [...prev]
+      newEntries[index] = {
+        ...newEntries[index],
+        positions: (newEntries[index].positions ?? []).filter(p => p !== pos),
+      }
       return newEntries
     })
   }
@@ -101,7 +115,7 @@ export function PlayerSelectDialog({
   const handleAddSubstitute = () => {
     setEntries((prev) => [
       ...prev,
-      { playerId: "", playerName: "", position: undefined, isSubstitute: true }
+      { playerId: "", playerName: "", positions: [], isSubstitute: true }
     ])
   }
 
@@ -137,7 +151,7 @@ export function PlayerSelectDialog({
               {entry.isSubstitute && (
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-amber-700 bg-amber-200 px-2 py-1 rounded">
-                    代打・途中出場
+                    打・走・途中出場
                   </span>
                   <button
                     onClick={() => handleRemoveEntry(index)}
@@ -148,7 +162,7 @@ export function PlayerSelectDialog({
                 </div>
               )}
 
-              {/* 選手名 - 登録済み選手から選択 */}
+              {/* 選手名 */}
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-2">
                   選手名
@@ -171,7 +185,6 @@ export function PlayerSelectDialog({
                         </option>
                       ))}
                     </select>
-                    {/* または手入力（助っ人でなく、IDが未選択の場合） */}
                     {!entry.isHelper && !entry.playerId && (
                       <input
                         type="text"
@@ -201,7 +214,6 @@ export function PlayerSelectDialog({
                     />
                   )
                 )}
-                {/* 助っ人トグル（選手選択の下、控えめなデザイン） */}
                 <button
                   onClick={() => entry.isHelper ? handlePlayerSelect(index, "") : handleHelperSelect(index)}
                   className={cn(
@@ -220,22 +232,55 @@ export function PlayerSelectDialog({
                 <label className="block text-xs font-semibold text-slate-500 mb-2">
                   守備位置
                 </label>
+
+                {/* 打・走ボタン（途中出場のみ） */}
+                {entry.isSubstitute && (
+                  <div className="grid grid-cols-5 gap-2 mb-2">
+                    {SUBSTITUTE_ROLES.map((role) => (
+                      <button
+                        key={role.value}
+                        onClick={() => handlePositionAdd(index, role.value)}
+                        className="h-10 rounded-lg font-bold text-sm transition-all bg-white border border-slate-200 text-slate-600 hover:border-amber-300 hover:bg-amber-50"
+                      >
+                        {role.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* 守備位置グリッド */}
                 <div className="grid grid-cols-5 gap-2">
                   {FIELD_POSITIONS.map((pos) => (
                     <button
                       key={pos.value}
-                      onClick={() => handlePositionChange(index, pos.value)}
-                      className={cn(
-                        "h-10 rounded-lg font-bold text-sm transition-all",
-                        entry.position === pos.value
-                          ? "bg-emerald-500 text-white shadow-md scale-105"
-                          : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50"
-                      )}
+                      onClick={() => handlePositionAdd(index, pos.value)}
+                      className="h-10 rounded-lg font-bold text-sm transition-all bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50"
                     >
                       {pos.label}
                     </button>
                   ))}
                 </div>
+
+                {/* 選択済み守備位置チップ */}
+                {(entry.positions ?? []).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {(entry.positions ?? []).map((pos, posIdx) => (
+                      <span
+                        key={posIdx}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 text-xs font-bold"
+                      >
+                        {pos}
+                        <button
+                          onClick={() => handlePositionRemove(index, pos)}
+                          className="text-emerald-500 hover:text-emerald-800 leading-none"
+                          aria-label={`${pos}を削除`}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* 途中出場イニング */}
@@ -280,7 +325,7 @@ export function PlayerSelectDialog({
               "hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50"
             )}
           >
-            + 代打・途中出場を追加
+            + 途中出場を追加
           </button>
         </div>
 

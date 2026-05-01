@@ -28,7 +28,7 @@ interface GameDetail {
   lineupEntries: Array<{
     batting_order: number
     player_name: string
-    position?: string
+    positions?: string[]
     is_substitute: boolean
     entered_inning?: number
   }>
@@ -52,10 +52,7 @@ interface GameDetail {
     walks: number
     hit_by_pitch: number
     home_runs: number
-    is_win: boolean
-    is_lose: boolean
-    is_save: boolean
-    is_hold: boolean
+    pitcher_award: string | null
   }>
 }
 
@@ -201,7 +198,7 @@ export default function GameDetailPage() {
   type DisplayRow = {
     battingOrder: number
     playerName: string
-    position: string | undefined
+    positions: string[]
     activeFrom: number
     activeTo: number
     isStarter: boolean
@@ -220,7 +217,7 @@ export default function GameDetailPage() {
       displayRows.push({
         battingOrder: order,
         playerName: "-",
-        position: undefined,
+        positions: [],
         activeFrom: 1,
         activeTo: maxInning,
         isStarter: false,
@@ -236,7 +233,7 @@ export default function GameDetailPage() {
       displayRows.push({
         battingOrder: order,
         playerName: entry.player_name,
-        position: entry.position,
+        positions: entry.positions ?? [],
         activeFrom,
         activeTo,
         isStarter: !entry.is_substitute,
@@ -432,8 +429,16 @@ export default function GameDetailPage() {
                       <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 text-center font-bold border-r border-slate-100">
                         {row.isStarter ? `(${row.battingOrder})` : row.battingOrder}
                       </td>
-                      <td className="sticky left-10 z-10 bg-white w-10 min-w-[40px] px-1 py-2 text-slate-500 text-center border-r border-slate-100">
-                        {row.position ?? "-"}
+                      <td className="sticky left-10 z-10 bg-white w-10 min-w-[40px] px-1 py-2 text-center border-r border-slate-100">
+                        {row.positions.length > 0 ? (
+                          <div className="flex gap-0.5 justify-center flex-nowrap overflow-hidden">
+                            {row.positions.map((p, i) => (
+                              <span key={i} className="text-xs font-medium text-slate-600 shrink-0">{p}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-300 text-xs">-</span>
+                        )}
                       </td>
                       <td className="sticky left-20 z-10 bg-white w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-100">
                         <div className="truncate">{row.playerName}</div>
@@ -495,6 +500,7 @@ export default function GameDetailPage() {
               <table className="w-full text-center text-sm">
                 <thead>
                   <tr className="border-b bg-slate-50">
+                    <th className="px-2 py-2"></th>
                     <th className="px-2 py-2 text-left">投手</th>
                     <th className="px-2 py-2">投球回</th>
                     <th className="px-2 py-2">被安打</th>
@@ -502,12 +508,17 @@ export default function GameDetailPage() {
                     <th className="px-2 py-2">四球</th>
                     <th className="px-2 py-2">失点</th>
                     <th className="px-2 py-2">自責</th>
-                    <th className="px-2 py-2">記録</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pitcherResults.map((pitcher, index) => (
                     <tr key={index} className="border-b">
+                      <td className="px-2 py-2">
+                        {pitcher.pitcher_award === 'win'  && <span className="rounded bg-blue-100 px-1 text-blue-700">勝</span>}
+                        {pitcher.pitcher_award === 'lose' && <span className="rounded bg-red-100 px-1 text-red-700">敗</span>}
+                        {pitcher.pitcher_award === 'save' && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}
+                        {pitcher.pitcher_award === 'hold' && <span className="rounded bg-purple-100 px-1 text-purple-700">H</span>}
+                      </td>
                       <td className="px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
                       <td className="px-2 py-2">{formatInnings(pitcher.innings_outs, pitcher.is_mid_inning_exit)}</td>
                       <td className="px-2 py-2">{pitcher.hits}</td>
@@ -515,12 +526,6 @@ export default function GameDetailPage() {
                       <td className="px-2 py-2">{pitcher.walks}</td>
                       <td className="px-2 py-2">{pitcher.runs}</td>
                       <td className="px-2 py-2">{pitcher.earned_runs}</td>
-                      <td className="px-2 py-2">
-                        {pitcher.is_win && <span className="rounded bg-blue-100 px-1 text-blue-700">勝</span>}
-                        {pitcher.is_lose && <span className="rounded bg-red-100 px-1 text-red-700">敗</span>}
-                        {pitcher.is_save && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}
-                        {pitcher.is_hold && <span className="rounded bg-purple-100 px-1 text-purple-700">H</span>}
-                      </td>
                     </tr>
                   ))}
                 </tbody>

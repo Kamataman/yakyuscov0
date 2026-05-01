@@ -88,12 +88,12 @@ export async function POST(request: Request) {
       batting_order: number
       player_id: string | null
       player_name: string
-      position: string | null
+      positions: string[] | null
       is_substitute: boolean
       entered_inning: number | null
     }[] = []
-    
-    lineupSlots.forEach((slot: { order: number; entries: Array<{ playerId: string; playerName: string; position?: string; isSubstitute?: boolean; enteredInning?: number }> }) => {
+
+    lineupSlots.forEach((slot: { order: number; entries: Array<{ playerId: string; playerName: string; positions?: string[]; isSubstitute?: boolean; enteredInning?: number }> }) => {
       slot.entries.forEach((entry) => {
         if (entry.playerName && entry.playerName.trim() !== "") {
           lineupData.push({
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
             batting_order: slot.order,
             player_id: entry.playerId || null,
             player_name: entry.playerName,
-            position: entry.position || null,
+            positions: entry.positions && entry.positions.length > 0 ? entry.positions : null,
             is_substitute: entry.isSubstitute || false,
             entered_inning: entry.enteredInning || null,
           })
@@ -175,10 +175,7 @@ export async function POST(request: Request) {
         hitByPitch: number
         homeRuns: number
         pitchCount?: number
-        isWin?: boolean
-        isLose?: boolean
-        isSave?: boolean
-        isHold?: boolean
+        award?: string | null
         isHelper?: boolean
       }, index: number) => ({
         game_id: gameId,
@@ -194,10 +191,7 @@ export async function POST(request: Request) {
         hit_by_pitch: p.hitByPitch || 0,
         home_runs: p.homeRuns || 0,
         pitch_count: p.pitchCount || null,
-        is_win: p.isWin || false,
-        is_lose: p.isLose || false,
-        is_save: p.isSave || false,
-        is_hold: p.isHold || false,
+        pitcher_award: p.award ?? null,
         is_helper: p.isHelper || false,
         order_index: index,
       }))

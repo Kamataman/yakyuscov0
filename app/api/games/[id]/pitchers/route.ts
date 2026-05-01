@@ -16,10 +16,7 @@ interface PitcherResult {
   homeRuns: number
   battersFaced?: number
   pitchCount?: number
-  isWin?: boolean
-  isLose?: boolean
-  isSave?: boolean
-  isHold?: boolean
+  award?: string | null
   isHelper?: boolean
 }
 
@@ -69,10 +66,7 @@ export async function POST(
         home_runs: p.homeRuns || 0,
         batters_faced: p.battersFaced || 0,
         pitch_count: p.pitchCount || null,
-        is_win: p.isWin || false,
-        is_lose: p.isLose || false,
-        is_save: p.isSave || false,
-        is_hold: p.isHold || false,
+        pitcher_award: p.award ?? null,
         is_helper: p.isHelper || false,
         order_index: index,
       }))

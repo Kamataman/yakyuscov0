@@ -138,7 +138,7 @@ export async function PUT(
       batting_order: number
       player_id: string | null
       player_name: string
-      position: string | null
+      positions: string[] | null
       is_substitute: boolean
       entered_inning: number | null
       is_helper: boolean
@@ -151,7 +151,7 @@ export async function PUT(
           batting_order: slot.order,
           player_id: entry.playerId || null,
           player_name: entry.playerName,
-          position: entry.position || null,
+          positions: entry.positions && entry.positions.length > 0 ? entry.positions : null,
           is_substitute: entry.isSubstitute || false,
           entered_inning: entry.enteredInning || null,
           is_helper: entry.isHelper || false,
@@ -239,10 +239,7 @@ export async function PUT(
       homeRuns: number
       battersFaced?: number
       pitchCount?: number
-      isWin?: boolean
-      isLose?: boolean
-      isSave?: boolean
-      isHold?: boolean
+      award?: string | null
       isHelper?: boolean
     }, index: number) => ({
       game_id: id,
@@ -259,10 +256,7 @@ export async function PUT(
       home_runs: p.homeRuns,
       batters_faced: p.battersFaced || 0,
       pitch_count: p.pitchCount || null,
-      is_win: p.isWin || false,
-      is_lose: p.isLose || false,
-      is_save: p.isSave || false,
-      is_hold: p.isHold || false,
+      pitcher_award: p.award ?? null,
       is_helper: p.isHelper || false,
       order_index: index,
     }))
