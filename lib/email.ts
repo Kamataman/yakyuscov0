@@ -44,8 +44,7 @@ function buildHtml({ teamName, teamUrl }: HtmlParams): string {
     .steps { list-style: none; padding: 0; margin: 0; }
     .steps li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; color: #475569; }
     .steps li:last-child { border-bottom: none; }
-    .step-num { background: #2563eb; color: #fff; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-    .step-link { color: #2563eb; font-size: 12px; display: block; margin-top: 2px; }
+    .step-num { font-weight: 700; color: #1e293b; flex-shrink: 0; }
     .footer { margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8; }
   </style>
 </head>
@@ -63,31 +62,19 @@ function buildHtml({ teamName, teamUrl }: HtmlParams): string {
     <ul class="steps">
       <li>
         <span class="step-num">1</span>
-        <div>
-          <strong>管理者ログイン</strong> — チームページから管理者としてサインインします<br>
-          <a href="${teamUrl}/login" class="step-link">${teamUrl}/login</a>
-        </div>
+        <div><strong>管理者ログイン</strong> — チームページから管理者としてサインインします</div>
       </li>
       <li>
         <span class="step-num">2</span>
-        <div>
-          <strong>選手を追加する</strong> — 選手一覧ページでメンバーを登録します<br>
-          <a href="${teamUrl}/players" class="step-link">${teamUrl}/players</a>
-        </div>
+        <div><strong>選手を追加する</strong> — 選手一覧ページでメンバーを登録します</div>
       </li>
       <li>
         <span class="step-num">3</span>
-        <div>
-          <strong>試合を記録する</strong> — 新しい試合のスコアと打撃成績を入力します<br>
-          <a href="${teamUrl}/games/new" class="step-link">${teamUrl}/games/new</a>
-        </div>
+        <div><strong>試合を記録する</strong> — 試合登録からURLを共有して、みんなでスコアを入力します</div>
       </li>
       <li>
         <span class="step-num">4</span>
-        <div>
-          <strong>個人成績を確認する</strong> — 選手ごとの打率・成績を一覧で確認できます<br>
-          <a href="${teamUrl}/stats" class="step-link">${teamUrl}/stats</a>
-        </div>
+        <div><strong>個人成績を確認する</strong> — 選手ごとの打率・成績を一覧で確認できます</div>
       </li>
     </ul>
 
