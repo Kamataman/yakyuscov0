@@ -263,14 +263,12 @@ export default function StatsPage() {
                       {visibleBattingColumns.map((col) => (
                         <th
                           key={col.key}
-                          className="px-2 py-3 text-center cursor-pointer hover:bg-slate-100"
+                          className="px-2 py-3 text-center cursor-pointer hover:bg-slate-100 vertical-text"
                           onClick={() => handleBattingSort(col.key)}
                           title={col.label}
                         >
-                          <span className="flex flex-col items-center justify-center gap-1">
-                            <span className="vertical-text">{col.label}</span>
-                            <SortIcon active={battingSortKey === col.key} />
-                          </span>
+                          {col.label}
+                          <SortIcon active={battingSortKey === col.key} />
                         </th>
                       ))}
                     </tr>
@@ -340,14 +338,12 @@ export default function StatsPage() {
                       {visiblePitchingColumns.map((col) => (
                         <th
                           key={col.key}
-                          className="px-2 py-3 text-center cursor-pointer hover:bg-slate-100"
+                          className="px-2 py-3 text-center cursor-pointer hover:bg-slate-100 vertical-text"
                           onClick={() => handlePitchingSort(col.key)}
                           title={col.label}
                         >
-                          <span className="flex flex-col items-center justify-center gap-1">
-                            <span className="vertical-text">{col.label}</span>
-                            <SortIcon active={pitchingSortKey === col.key} />
-                          </span>
+                          {col.label}
+                          <SortIcon active={pitchingSortKey === col.key} />
                         </th>
                       ))}
                     </tr>

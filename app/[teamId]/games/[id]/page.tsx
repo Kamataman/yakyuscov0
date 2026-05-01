@@ -503,15 +503,15 @@ export default function GameDetailPage() {
                   <tr className="border-b bg-slate-50">
                     <th className="sticky left-0 z-20 bg-slate-50 w-10 min-w-[40px] px-2 py-2"></th>
                     <th className="sticky left-10 z-20 bg-slate-50 min-w-[5rem] px-2 py-2 text-left">投手</th>
-                    <th className="px-2 py-2"><span className="vertical-text">投球回</span></th>
-                    <th className="px-2 py-2"><span className="vertical-text">打者</span></th>
-                    <th className="px-2 py-2"><span className="vertical-text">被安</span></th>
-                    <th className="px-2 py-2"><span className="vertical-text">被本</span></th>
-                    <th className="px-2 py-2"><span className="vertical-text">三振</span></th>
-                    <th className="px-2 py-2"><span className="vertical-text">四球</span></th>
-                    <th className="px-2 py-2"><span className="vertical-text">死球</span></th>
-                    <th className="px-2 py-2"><span className="vertical-text">失点</span></th>
-                    <th className="px-2 py-2"><span className="vertical-text">自責</span></th>
+                    <th className="px-2 py-2 vertical-text">投球回</th>
+                    <th className="px-2 py-2 vertical-text">打者</th>
+                    <th className="px-2 py-2 vertical-text">被安</th>
+                    <th className="px-2 py-2 vertical-text">被本</th>
+                    <th className="px-2 py-2 vertical-text">三振</th>
+                    <th className="px-2 py-2 vertical-text">四球</th>
+                    <th className="px-2 py-2 vertical-text">死球</th>
+                    <th className="px-2 py-2 vertical-text">失点</th>
+                    <th className="px-2 py-2 vertical-text">自責</th>
                   </tr>
                 </thead>
                 <tbody>
