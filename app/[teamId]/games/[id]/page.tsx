@@ -52,10 +52,7 @@ interface GameDetail {
     walks: number
     hit_by_pitch: number
     home_runs: number
-    is_win: boolean
-    is_lose: boolean
-    is_save: boolean
-    is_hold: boolean
+    pitcher_award: string | null
   }>
 }
 
@@ -516,10 +513,10 @@ export default function GameDetailPage() {
                       <td className="px-2 py-2">{pitcher.runs}</td>
                       <td className="px-2 py-2">{pitcher.earned_runs}</td>
                       <td className="px-2 py-2">
-                        {pitcher.is_win && <span className="rounded bg-blue-100 px-1 text-blue-700">勝</span>}
-                        {pitcher.is_lose && <span className="rounded bg-red-100 px-1 text-red-700">敗</span>}
-                        {pitcher.is_save && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}
-                        {pitcher.is_hold && <span className="rounded bg-purple-100 px-1 text-purple-700">H</span>}
+                        {pitcher.pitcher_award === 'win'  && <span className="rounded bg-blue-100 px-1 text-blue-700">勝</span>}
+                        {pitcher.pitcher_award === 'lose' && <span className="rounded bg-red-100 px-1 text-red-700">敗</span>}
+                        {pitcher.pitcher_award === 'save' && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}
+                        {pitcher.pitcher_award === 'hold' && <span className="rounded bg-purple-100 px-1 text-purple-700">H</span>}
                       </td>
                     </tr>
                   ))}
