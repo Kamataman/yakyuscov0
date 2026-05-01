@@ -168,6 +168,7 @@ export interface PitchingStats {
   walks: number              // 与四球
   hitByPitch: number         // 与死球
   homeRuns: number           // 被本塁打
+  battersFaced: number       // 対戦打者数
 
   // 計算指標
   era: number                // 防御率
@@ -189,6 +190,7 @@ export function calculatePitchingStats(
     walks: number
     hit_by_pitch: number
     home_runs: number
+    batters_faced: number
     is_win: boolean
     is_lose: boolean
     is_save: boolean
@@ -210,6 +212,7 @@ export function calculatePitchingStats(
     walks: 0,
     hitByPitch: 0,
     homeRuns: 0,
+    battersFaced: 0,
     era: 0,
     whip: 0,
     strikeoutRate: 0,
@@ -229,6 +232,7 @@ export function calculatePitchingStats(
     stats.walks += result.walks || 0
     stats.hitByPitch += result.hit_by_pitch || 0
     stats.homeRuns += result.home_runs || 0
+    stats.battersFaced += result.batters_faced || 0
   }
 
   stats.inningsPitched = stats.totalOuts / 3

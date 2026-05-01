@@ -68,6 +68,7 @@ const PITCHING_COLUMNS: Array<{
     const rem = v % 3
     return rem === 0 ? `${whole}` : `${whole} ${rem}/3`
   }, primary: true },
+  { key: "battersFaced", label: "打者", shortLabel: "打者", format: (v) => v.toString() },
   { key: "hits", label: "被安打", shortLabel: "被安", format: (v) => v.toString() },
   { key: "runs", label: "失点", shortLabel: "失", format: (v) => v.toString() },
   { key: "earnedRuns", label: "自責", shortLabel: "自", format: (v) => v.toString(), primary: true },

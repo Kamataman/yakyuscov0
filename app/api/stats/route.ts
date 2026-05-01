@@ -153,6 +153,7 @@ export async function GET(request: Request) {
       walks: number
       hit_by_pitch: number
       home_runs: number
+      batters_faced: number
       is_win: boolean
       is_lose: boolean
       is_save: boolean
@@ -183,6 +184,7 @@ export async function GET(request: Request) {
       walks: result.walks || 0,
       hit_by_pitch: result.hit_by_pitch || 0,
       home_runs: result.home_runs || 0,
+      batters_faced: result.batters_faced || 0,
       is_win: result.is_win || false,
       is_lose: result.is_lose || false,
       is_save: result.is_save || false,

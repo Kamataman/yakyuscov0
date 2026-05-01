@@ -122,6 +122,7 @@ export interface PitcherResult {
   walks: number               // 与四球
   hitByPitch: number          // 与死球
   homeRuns: number            // 被本塁打
+  battersFaced?: number       // 対戦打者数
   pitchCount?: number         // 球数
   isWin?: boolean             // 勝利
   isLose?: boolean            // 敗戦

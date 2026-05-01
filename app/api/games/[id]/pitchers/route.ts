@@ -14,6 +14,7 @@ interface PitcherResult {
   walks: number
   hitByPitch: number
   homeRuns: number
+  battersFaced?: number
   pitchCount?: number
   isWin?: boolean
   isLose?: boolean
@@ -66,6 +67,7 @@ export async function POST(
         walks: p.walks || 0,
         hit_by_pitch: p.hitByPitch || 0,
         home_runs: p.homeRuns || 0,
+        batters_faced: p.battersFaced || 0,
         pitch_count: p.pitchCount || null,
         is_win: p.isWin || false,
         is_lose: p.isLose || false,
