@@ -501,29 +501,29 @@ export default function GameDetailPage() {
               <table className="w-full text-center text-sm">
                 <thead>
                   <tr className="border-b bg-slate-50">
-                    <th className="px-2 py-2"></th>
-                    <th className="px-2 py-2 text-left">投手</th>
-                    <th className="px-2 py-2">投球回</th>
-                    <th className="px-2 py-2">打者</th>
-                    <th className="px-2 py-2">被安</th>
-                    <th className="px-2 py-2">被本</th>
-                    <th className="px-2 py-2">三振</th>
-                    <th className="px-2 py-2">四球</th>
-                    <th className="px-2 py-2">死球</th>
-                    <th className="px-2 py-2">失点</th>
-                    <th className="px-2 py-2">自責</th>
+                    <th className="sticky left-0 z-20 bg-slate-50 w-10 min-w-[40px] px-2 py-2"></th>
+                    <th className="sticky left-10 z-20 bg-slate-50 min-w-[5rem] px-2 py-2 text-left">投手</th>
+                    <th className="px-2 py-2 vertical-text">投球回</th>
+                    <th className="px-2 py-2 vertical-text">打者</th>
+                    <th className="px-2 py-2 vertical-text">被安</th>
+                    <th className="px-2 py-2 vertical-text">被本</th>
+                    <th className="px-2 py-2 vertical-text">三振</th>
+                    <th className="px-2 py-2 vertical-text">四球</th>
+                    <th className="px-2 py-2 vertical-text">死球</th>
+                    <th className="px-2 py-2 vertical-text">失点</th>
+                    <th className="px-2 py-2 vertical-text">自責</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="[writing-mode:horizontal-tb]">
                   {pitcherResults.map((pitcher, index) => (
                     <tr key={index} className="border-b">
-                      <td className="px-2 py-2">
+                      <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 [text-orientation:upright]">
                         {pitcher.pitcher_award === 'win'  && <span className="rounded bg-blue-100 px-1 text-blue-700">勝</span>}
                         {pitcher.pitcher_award === 'lose' && <span className="rounded bg-red-100 px-1 text-red-700">敗</span>}
                         {pitcher.pitcher_award === 'save' && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}
                         {pitcher.pitcher_award === 'hold' && <span className="rounded bg-purple-100 px-1 text-purple-700">H</span>}
                       </td>
-                      <td className="px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
+                      <td className="sticky left-10 z-10 bg-white min-w-[5rem] px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
                       <td className="px-2 py-2">{formatInnings(pitcher.innings_outs, pitcher.is_mid_inning_exit)}</td>
                       <td className="px-2 py-2">{pitcher.batters_faced ?? 0}</td>
                       <td className="px-2 py-2">{pitcher.hits}</td>
