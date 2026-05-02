@@ -517,7 +517,7 @@ export default function GameDetailPage() {
                 <tbody className="[writing-mode:horizontal-tb]">
                   {pitcherResults.map((pitcher, index) => (
                     <tr key={index} className="border-b">
-                      <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2">
+                      <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 [text-orientation:upright]">
                         {pitcher.pitcher_award === 'win'  && <span className="rounded bg-blue-100 px-1 text-blue-700">勝</span>}
                         {pitcher.pitcher_award === 'lose' && <span className="rounded bg-red-100 px-1 text-red-700">敗</span>}
                         {pitcher.pitcher_award === 'save' && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}

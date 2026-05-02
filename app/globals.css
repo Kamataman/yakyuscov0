@@ -126,7 +126,7 @@
 
 @utility vertical-text {
   writing-mode: vertical-rl;
-  text-orientation: mixed;
+  text-orientation: upright;
 }
 
 @keyframes score-pop {
