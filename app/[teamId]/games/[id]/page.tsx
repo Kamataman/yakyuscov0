@@ -514,7 +514,7 @@ export default function GameDetailPage() {
                     <th className="px-2 py-2 vertical-text">自責</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="[writing-mode:horizontal-tb]">
                   {pitcherResults.map((pitcher, index) => (
                     <tr key={index} className="border-b">
                       <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2">

@@ -273,7 +273,7 @@ export default function StatsPage() {
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="[writing-mode:horizontal-tb]">
                     {sortedBattingStats.map((player, index) => (
                       <tr 
                         key={player.playerId} 
@@ -348,7 +348,7 @@ export default function StatsPage() {
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="[writing-mode:horizontal-tb]">
                     {sortedPitchingStats.map((player, index) => (
                       <tr 
                         key={player.playerId} 
