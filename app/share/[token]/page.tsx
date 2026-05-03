@@ -36,13 +36,21 @@ export default async function SharePage({ params }: PageProps) {
 
   const game = tokenData.games as { id: string; team_id: string; opponent: string; date: string }
 
+  const { data: players } = await supabase
+    .from("players")
+    .select("id, name, number")
+    .eq("team_id", game.team_id)
+    .order("number", { ascending: true, nullsFirst: false })
+    .order("name")
+
   return (
-    <ShareGameEditor 
+    <ShareGameEditor
       gameId={game.id}
       teamId={game.team_id}
       shareToken={token}
       opponent={game.opponent}
       date={game.date}
+      players={players ?? []}
     />
   )
 }

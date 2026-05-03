@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Loader2, CheckCircle2, AlertCircle, Share2, Copy, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BattingGrid } from "@/components/batting-grid"
@@ -25,13 +26,16 @@ interface GameEditorProps {
   shareToken?: string  // 共有URLの場合のトークン
   isAdmin: boolean     // 管理者かどうか
   onBack?: () => void  // 戻るボタンのコールバック
+  players?: Player[]   // 登録済み選手リスト（サーバーコンポーネントから渡す）
 }
 
 type SaveStatus = "idle" | "saving" | "saved" | "error"
 
 const POLLING_INTERVAL_MS = 15_000
 
-export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: GameEditorProps) {
+export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, players: initialPlayers }: GameEditorProps) {
+  const router = useRouter()
+  const handleBack = onBack ?? (() => router.push(`/${teamId}/games/${gameId}`))
   const [isLoading, setIsLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -68,7 +72,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false)
 
   // 登録済み選手
-  const [registeredPlayers, setRegisteredPlayers] = useState<Player[]>([])
+  const [registeredPlayers, setRegisteredPlayers] = useState<Player[]>(initialPlayers ?? [])
 
   // 投手成績
   const [pitchers, setPitchers] = useState<PitcherResult[]>([])
@@ -224,32 +228,21 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
 
   // データを読み込み
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/games/${gameId}`).then(res => res.json()),
-      fetch(`/api/players?teamId=${teamId}`).then(res => res.json()),
-    ])
-      .then(([gameData, playersData]) => {
+    fetch(`/api/games/${gameId}`)
+      .then(res => res.json())
+      .then((gameData) => {
         applyGameData(gameData)
         if (gameData.game) {
           setHasX(gameData.game.last_inning_x ?? false)
           setXScore(gameData.game.last_inning_x_score ?? null)
         }
-
-        if (Array.isArray(playersData)) {
-          setRegisteredPlayers(playersData.map((p: { id: string; name: string; number?: number }) => ({
-            id: p.id,
-            name: p.name,
-            number: p.number,
-          })))
-        }
-
         setIsLoading(false)
       })
       .catch((err) => {
         console.error(err)
         setIsLoading(false)
       })
-  }, [gameId, teamId, applyGameData])
+  }, [gameId, applyGameData])
 
   // 定期的に最新データを取得して反映（複数人同時編集対応）
   useEffect(() => {
@@ -585,9 +578,9 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
         {/* ページタイトルとステータス */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {onBack && (
+            {!shareToken && (
               <button
-                onClick={onBack}
+                onClick={handleBack}
                 className="rounded-lg bg-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-300"
               >
                 戻る

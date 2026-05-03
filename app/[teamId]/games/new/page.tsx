@@ -1,82 +1,46 @@
-"use client"
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import { requireTeamAdmin } from "@/lib/auth"
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
+interface Props {
+  params: Promise<{ teamId: string }>
+}
 
-export default function NewGamePage() {
-  const params = useParams()
-  const router = useRouter()
-  const teamId = params.teamId as string
-  
-  const [isCreating, setIsCreating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export default async function NewGamePage({ params }: Props) {
+  const { teamId } = await params
 
-  useEffect(() => {
-    // ページ読み込み時に空の試合を作成してリダイレクト
-    const createGame = async () => {
-      setIsCreating(true)
-      try {
-        const response = await fetch("/api/games", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            teamId,
-            date: new Date().toISOString().split("T")[0],
-            opponent: "",
-            isFirstBatting: true,
-            totalInnings: 9,
-            inningScores: Array(9).fill(null).map(() => ({ our: 0, opponent: 0 })),
-            lineupSlots: [],
-            battingResults: {},
-            pitchers: [],
-          }),
-        })
-
-        if (!response.ok) {
-          throw new Error("試合の作成に失敗しました")
-        }
-
-        const data = await response.json()
-        
-        // 作成した試合の編集ページにリダイレクト
-        router.replace(`/${teamId}/games/${data.id}/edit`)
-      } catch (err) {
-        console.error(err)
-        setError("試合の作成に失敗しました。もう一度お試しください。")
-        setIsCreating(false)
-      }
-    }
-
-    createGame()
-  }, [teamId, router])
-
-  if (error) {
-    return (
-      <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-        <div className="mx-auto max-w-md p-8">
-          <div className="rounded-2xl bg-white p-8 text-center shadow-lg">
-            <div className="mb-4 text-red-500">{error}</div>
-            <button
-              onClick={() => router.back()}
-              className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-300"
-            >
-              戻る
-            </button>
-          </div>
-        </div>
-      </main>
-    )
+  const adminSession = await requireTeamAdmin(teamId)
+  if (!adminSession) {
+    redirect(`/${teamId}/login`)
   }
 
-  return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          <p className="text-slate-600">試合を作成中...</p>
-        </div>
-      </div>
-    </main>
+  const supabase = await createClient()
+  const today = new Date().toISOString().split("T")[0]
+
+  const { data: game, error } = await supabase
+    .from("games")
+    .insert({
+      team_id: teamId,
+      date: today,
+      opponent: "",
+      is_first_batting: true,
+      total_innings: 9,
+    })
+    .select("id")
+    .single()
+
+  if (error || !game) {
+    redirect(`/${teamId}/games`)
+  }
+
+  await supabase.from("inning_scores").insert(
+    Array.from({ length: 9 }, (_, i) => ({
+      game_id: game.id,
+      inning: i + 1,
+      our_score: 0,
+      opponent_score: 0,
+    }))
   )
+
+  redirect(`/${teamId}/games/${game.id}/edit`)
 }
