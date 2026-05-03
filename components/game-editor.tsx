@@ -124,7 +124,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
     inningScores?: { inning: number; our_score: number; opponent_score: number }[]
     lineupEntries?: { batting_order: number; player_id: string; player_name: string; positions?: string[]; is_substitute: boolean; entered_inning?: number; is_helper: boolean }[]
     battingResults?: { batting_order: number; inning: number; at_bat_sequence?: number; hit_result: string; direction: string; rbi_count: number; scored?: boolean; runner_first: boolean; runner_second: boolean; runner_third: boolean; stolen_second: boolean; stolen_third: boolean; stolen_home: boolean }[]
-    pitcherResults?: { player_id?: string; player_name: string; innings_outs: number; is_mid_inning_exit: boolean; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; batters_faced?: number; pitch_count?: number; pitcher_award?: string | null; is_helper?: boolean }[]
+    pitcherResults?: { player_id?: string; player_name: string; innings_outs: number; is_mid_inning_exit: boolean; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; batters_faced?: number; pitch_count?: number; pitcher_award?: string | null; is_helper?: boolean; inningStats?: { inning: number; runs: number; hits: number; strikeouts: number; earnedRuns: number; walks: number; hitByPitch: number; homeRuns: number; battersFaced: number }[] }[]
   }) => {
     if (gameData.game) {
       setGameDate(gameData.game.date || "")
@@ -222,6 +222,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
         pitchCount: p.pitch_count,
         award: p.pitcher_award ?? null,
         isHelper: p.is_helper || false,
+        inningStats: p.inningStats ?? [],
       })))
     }
   }, [])
@@ -701,6 +702,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           pitchers={pitchers}
           onPitchersChange={handlePitchersChange}
           registeredPlayers={registeredPlayers}
+          totalInnings={totalInnings}
         />
       </div>
 

@@ -2,7 +2,19 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { requireGameAccess } from "@/lib/auth"
 
-interface PitcherResult {
+interface PitcherInningStatsInput {
+  inning: number
+  runs: number
+  hits: number
+  strikeouts: number
+  earnedRuns: number
+  walks: number
+  hitByPitch: number
+  homeRuns: number
+  battersFaced: number
+}
+
+interface PitcherResultInput {
   playerId?: string
   playerName: string
   outsPitched: number
@@ -18,6 +30,7 @@ interface PitcherResult {
   pitchCount?: number
   award?: string | null
   isHelper?: boolean
+  inningStats?: PitcherInningStatsInput[]
 }
 
 // 投手成績を保存（都度保存用 - 全体を置き換え）
@@ -28,7 +41,7 @@ export async function POST(
   const { id: gameId } = await params
   const body = await request.json()
   const { pitchers, shareToken } = body as {
-    pitchers: PitcherResult[]
+    pitchers: PitcherResultInput[]
     shareToken?: string
   }
 
@@ -40,7 +53,7 @@ export async function POST(
 
   const supabase = await createClient()
 
-  // 既存の投手成績を削除
+  // 既存の投手成績を削除（CASCADE で pitcher_inning_stats も削除）
   await supabase
     .from("pitcher_results")
     .delete()
@@ -49,7 +62,7 @@ export async function POST(
   // 新しい投手成績を挿入
   if (pitchers && pitchers.length > 0) {
     const validPitchers = pitchers.filter(p => p.playerName && p.playerName.trim() !== "")
-    
+
     if (validPitchers.length > 0) {
       const insertData = validPitchers.map((p, index) => ({
         game_id: gameId,
@@ -71,12 +84,58 @@ export async function POST(
         order_index: index,
       }))
 
-      const { error } = await supabase
+      const { data: insertedPitchers, error } = await supabase
         .from("pitcher_results")
         .insert(insertData)
+        .select("id, order_index")
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      // イニングごとの成績を挿入
+      if (insertedPitchers) {
+        const inningInserts: Array<{
+          pitcher_result_id: string
+          inning: number
+          runs: number
+          hits: number
+          strikeouts: number
+          earned_runs: number
+          walks: number
+          hit_by_pitch: number
+          home_runs: number
+          batters_faced: number
+        }> = []
+
+        for (const inserted of insertedPitchers) {
+          const pitcher = validPitchers[inserted.order_index]
+          if (pitcher?.inningStats && pitcher.inningStats.length > 0) {
+            for (const s of pitcher.inningStats) {
+              inningInserts.push({
+                pitcher_result_id: inserted.id,
+                inning: s.inning,
+                runs: s.runs,
+                hits: s.hits,
+                strikeouts: s.strikeouts,
+                earned_runs: s.earnedRuns,
+                walks: s.walks,
+                hit_by_pitch: s.hitByPitch,
+                home_runs: s.homeRuns,
+                batters_faced: s.battersFaced,
+              })
+            }
+          }
+        }
+
+        if (inningInserts.length > 0) {
+          const { error: inningError } = await supabase
+            .from("pitcher_inning_stats")
+            .insert(inningInserts)
+          if (inningError) {
+            return NextResponse.json({ error: inningError.message }, { status: 500 })
+          }
+        }
       }
     }
   }

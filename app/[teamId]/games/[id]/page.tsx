@@ -4,9 +4,10 @@ import { Edit } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { requireTeamAdmin } from "@/lib/auth"
 import { cn } from "@/lib/utils"
-import type { BattingResult } from "@/lib/batting-types"
+import type { BattingResult, PitcherInningStats } from "@/lib/batting-types"
 import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
 import { DeleteButton } from "./delete-button"
+import { PitcherResultsSection } from "./pitcher-results-section"
 
 export const dynamic = "force-dynamic"
 
@@ -45,6 +46,40 @@ export default async function GameDetailPage({ params }: Props) {
     ...r,
     player_name: r.players?.name || r.player_name,
     players: undefined,
+  }))
+
+  // イニングごとの投手成績を取得
+  const pitcherIds = pitcherResults.map((p: { id: string }) => p.id)
+  let pitcherInningStatsMap: Record<string, PitcherInningStats[]> = {}
+  if (pitcherIds.length > 0) {
+    const { data: rawInningStats } = await supabase
+      .from("pitcher_inning_stats")
+      .select("*")
+      .in("pitcher_result_id", pitcherIds)
+      .order("inning")
+    if (rawInningStats) {
+      for (const row of rawInningStats) {
+        if (!pitcherInningStatsMap[row.pitcher_result_id]) {
+          pitcherInningStatsMap[row.pitcher_result_id] = []
+        }
+        pitcherInningStatsMap[row.pitcher_result_id].push({
+          inning: row.inning,
+          runs: row.runs,
+          hits: row.hits,
+          strikeouts: row.strikeouts,
+          earnedRuns: row.earned_runs,
+          walks: row.walks,
+          hitByPitch: row.hit_by_pitch,
+          homeRuns: row.home_runs,
+          battersFaced: row.batters_faced,
+        })
+      }
+    }
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pitcherResultsWithInning = pitcherResults.map((p: any) => ({
+    ...p,
+    inningStats: pitcherInningStatsMap[p.id] ?? [],
   }))
   const isAdmin = !!adminSession
 
@@ -303,54 +338,7 @@ export default async function GameDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
-          <h2 className="px-4 py-3 text-sm font-bold text-slate-600 border-b border-slate-200 bg-slate-50">投手成績</h2>
-          {pitcherResults.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-center text-sm">
-                <thead>
-                  <tr className="border-b bg-slate-50">
-                    <th className="sticky left-0 z-20 bg-slate-50 w-10 min-w-[40px] px-2 py-2"></th>
-                    <th className="sticky left-10 z-20 bg-slate-50 min-w-[5rem] px-2 py-2 text-left">投手</th>
-                    <th className="px-2 py-2 vertical-text">投球回</th>
-                    <th className="px-2 py-2 vertical-text">打者</th>
-                    <th className="px-2 py-2 vertical-text">被安</th>
-                    <th className="px-2 py-2 vertical-text">被本</th>
-                    <th className="px-2 py-2 vertical-text">三振</th>
-                    <th className="px-2 py-2 vertical-text">四球</th>
-                    <th className="px-2 py-2 vertical-text">死球</th>
-                    <th className="px-2 py-2 vertical-text">失点</th>
-                    <th className="px-2 py-2 vertical-text">自責</th>
-                  </tr>
-                </thead>
-                <tbody className="[writing-mode:horizontal-tb]">
-                  {pitcherResults.map((pitcher: { pitcher_award: string | null; player_name: string; innings_outs: number; is_mid_inning_exit: boolean; batters_faced?: number; hits: number; home_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; runs: number; earned_runs: number }, index: number) => (
-                    <tr key={index} className="border-b">
-                      <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 [text-orientation:upright]">
-                        {pitcher.pitcher_award === "win" && <span className="rounded bg-blue-100 px-1 text-blue-700">勝</span>}
-                        {pitcher.pitcher_award === "lose" && <span className="rounded bg-red-100 px-1 text-red-700">敗</span>}
-                        {pitcher.pitcher_award === "save" && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}
-                        {pitcher.pitcher_award === "hold" && <span className="rounded bg-purple-100 px-1 text-purple-700">H</span>}
-                      </td>
-                      <td className="sticky left-10 z-10 bg-white min-w-[5rem] px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
-                      <td className="px-2 py-2">{formatInnings(pitcher.innings_outs, pitcher.is_mid_inning_exit)}</td>
-                      <td className="px-2 py-2">{pitcher.batters_faced ?? 0}</td>
-                      <td className="px-2 py-2">{pitcher.hits}</td>
-                      <td className="px-2 py-2">{pitcher.home_runs}</td>
-                      <td className="px-2 py-2">{pitcher.strikeouts}</td>
-                      <td className="px-2 py-2">{pitcher.walks}</td>
-                      <td className="px-2 py-2">{pitcher.hit_by_pitch}</td>
-                      <td className="px-2 py-2">{pitcher.runs}</td>
-                      <td className="px-2 py-2">{pitcher.earned_runs}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="p-4 py-8 text-center text-slate-400">投手成績が登録されていません</p>
-          )}
-        </div>
+        <PitcherResultsSection pitchers={pitcherResultsWithInning} totalInnings={totalInnings} />
       </div>
     </main>
   )

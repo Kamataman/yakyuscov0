@@ -54,6 +54,31 @@ export default async function StatsPage({ params }: Props) {
       .in("game_id", gameIds),
   ])
 
+  // イニングごとの成績を取得（存在する場合は集計値として使用）
+  const pitcherResultIds = (pitcherResultsResult.data ?? []).map((r: { id: string }) => r.id)
+  const inningStatsMap = new Map<string, { hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; batters_faced: number }>()
+  if (pitcherResultIds.length > 0) {
+    const { data: inningRows } = await supabase
+      .from("pitcher_inning_stats")
+      .select("*")
+      .in("pitcher_result_id", pitcherResultIds)
+    if (inningRows) {
+      for (const row of inningRows) {
+        const prev = inningStatsMap.get(row.pitcher_result_id) ?? { hits: 0, runs: 0, earned_runs: 0, strikeouts: 0, walks: 0, hit_by_pitch: 0, home_runs: 0, batters_faced: 0 }
+        inningStatsMap.set(row.pitcher_result_id, {
+          hits: prev.hits + row.hits,
+          runs: prev.runs + row.runs,
+          earned_runs: prev.earned_runs + row.earned_runs,
+          strikeouts: prev.strikeouts + row.strikeouts,
+          walks: prev.walks + row.walks,
+          hit_by_pitch: prev.hit_by_pitch + row.hit_by_pitch,
+          home_runs: prev.home_runs + row.home_runs,
+          batters_faced: prev.batters_faced + row.batters_faced,
+        })
+      }
+    }
+  }
+
   // 打順エントリーから選手とゲームの紐付けを作成
   const battingOrderMap = new Map<string, { playerId: string; playerName: string }>()
   for (const entry of lineupResult.data ?? []) {
@@ -116,19 +141,22 @@ export default async function StatsPage({ params }: Props) {
     const pitcherPlayerData = (result as any).players as { name: string } | null
     const pitcherName = pitcherPlayerData?.name || result.player_name
 
+    // イニングデータがある場合はその合計を使用、なければ集約フィールドを使用
+    const inning = inningStatsMap.get(result.id)
+
     if (!pitcherResultsMap.has(result.player_id)) {
       pitcherResultsMap.set(result.player_id, { name: pitcherName, results: [] })
     }
     pitcherResultsMap.get(result.player_id)!.results.push({
       outs_pitched: result.innings_outs || 0,
-      hits: result.hits || 0,
-      runs: result.runs || 0,
-      earned_runs: result.earned_runs || 0,
-      strikeouts: result.strikeouts || 0,
-      walks: result.walks || 0,
-      hit_by_pitch: result.hit_by_pitch || 0,
-      home_runs: result.home_runs || 0,
-      batters_faced: result.batters_faced || 0,
+      hits: inning ? inning.hits : (result.hits || 0),
+      runs: inning ? inning.runs : (result.runs || 0),
+      earned_runs: inning ? inning.earned_runs : (result.earned_runs || 0),
+      strikeouts: inning ? inning.strikeouts : (result.strikeouts || 0),
+      walks: inning ? inning.walks : (result.walks || 0),
+      hit_by_pitch: inning ? inning.hit_by_pitch : (result.hit_by_pitch || 0),
+      home_runs: inning ? inning.home_runs : (result.home_runs || 0),
+      batters_faced: inning ? inning.batters_faced : (result.batters_faced || 0),
       pitcher_award: result.pitcher_award ?? null,
     })
   }

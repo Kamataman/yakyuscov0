@@ -118,23 +118,37 @@ export interface InningScore {
 
 export type PitcherAward = 'win' | 'lose' | 'save' | 'hold'
 
+// イニングごとの投手成績
+export interface PitcherInningStats {
+  inning: number
+  runs: number
+  hits: number
+  strikeouts: number
+  earnedRuns: number
+  walks: number
+  hitByPitch: number
+  homeRuns: number
+  battersFaced: number
+}
+
 // 投手成績
 export interface PitcherResult {
   playerId: string
   playerName: string
   outsPitched: number         // 投球アウト数（投球回 × 3）
   isMidInningExit: boolean    // イニング途中0アウト降板フラグ
-  hits: number                // 被安打
-  runs: number                // 失点
-  earnedRuns: number          // 自責点
-  strikeouts: number          // 奪三振
-  walks: number               // 与四球
-  hitByPitch: number          // 与死球
-  homeRuns: number            // 被本塁打
-  battersFaced?: number       // 対戦打者数
+  hits: number                // 被安打（集約モード）
+  runs: number                // 失点（集約モード）
+  earnedRuns: number          // 自責点（集約モード）
+  strikeouts: number          // 奪三振（集約モード）
+  walks: number               // 与四球（集約モード）
+  hitByPitch: number          // 与死球（集約モード）
+  homeRuns: number            // 被本塁打（集約モード）
+  battersFaced?: number       // 対戦打者数（集約モード）
   pitchCount?: number         // 球数
   award?: PitcherAward | null // 勝利・敗戦・セーブ・ホールド（排他）
   isHelper?: boolean          // 助っ人（個人成績に含めない）
+  inningStats?: PitcherInningStats[] // イニングごとの成績（イニングモード）
 }
 
 // 結果の短縮表示を生成

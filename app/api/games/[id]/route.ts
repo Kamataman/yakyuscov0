@@ -62,12 +62,47 @@ export async function GET(
     players: undefined,
   }))
 
+  // イニングごとの投手成績を取得
+  const pitcherResultIds = pitcherResults.map((p: { id: string }) => p.id)
+  let inningStatsMap: Record<string, unknown[]> = {}
+  if (pitcherResultIds.length > 0) {
+    const { data: rawInningStats } = await supabase
+      .from("pitcher_inning_stats")
+      .select("*")
+      .in("pitcher_result_id", pitcherResultIds)
+      .order("inning")
+    if (rawInningStats) {
+      for (const row of rawInningStats) {
+        if (!inningStatsMap[row.pitcher_result_id]) {
+          inningStatsMap[row.pitcher_result_id] = []
+        }
+        inningStatsMap[row.pitcher_result_id].push({
+          inning: row.inning,
+          runs: row.runs,
+          hits: row.hits,
+          strikeouts: row.strikeouts,
+          earnedRuns: row.earned_runs,
+          walks: row.walks,
+          hitByPitch: row.hit_by_pitch,
+          homeRuns: row.home_runs,
+          battersFaced: row.batters_faced,
+        })
+      }
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pitcherResultsWithInning = pitcherResults.map((p: any) => ({
+    ...p,
+    inningStats: inningStatsMap[p.id] || [],
+  }))
+
   return NextResponse.json({
     game,
     inningScores: inningScores || [],
     lineupEntries,
     battingResults: battingResults || [],
-    pitcherResults,
+    pitcherResults: pitcherResultsWithInning,
   })
 }
 
@@ -225,7 +260,7 @@ export async function PUT(
 
   // 投手成績を挿入
   if (pitchers && pitchers.length > 0) {
-    const pitcherInserts = pitchers.map((p: {
+    type PitcherInput = {
       playerId?: string
       playerName: string
       outsPitched: number
@@ -241,7 +276,19 @@ export async function PUT(
       pitchCount?: number
       award?: string | null
       isHelper?: boolean
-    }, index: number) => ({
+      inningStats?: Array<{
+        inning: number
+        runs: number
+        hits: number
+        strikeouts: number
+        earnedRuns: number
+        walks: number
+        hitByPitch: number
+        homeRuns: number
+        battersFaced: number
+      }>
+    }
+    const pitcherInserts = (pitchers as PitcherInput[]).map((p, index) => ({
       game_id: id,
       player_id: p.playerId && p.playerId.trim() !== "" ? p.playerId : null,
       player_name: p.playerName,
@@ -260,7 +307,48 @@ export async function PUT(
       is_helper: p.isHelper || false,
       order_index: index,
     }))
-    await supabase.from("pitcher_results").insert(pitcherInserts)
+    const { data: insertedPitchers } = await supabase
+      .from("pitcher_results")
+      .insert(pitcherInserts)
+      .select("id, order_index")
+
+    // イニングごとの成績を挿入
+    if (insertedPitchers) {
+      const inningInserts: Array<{
+        pitcher_result_id: string
+        inning: number
+        runs: number
+        hits: number
+        strikeouts: number
+        earned_runs: number
+        walks: number
+        hit_by_pitch: number
+        home_runs: number
+        batters_faced: number
+      }> = []
+      for (const inserted of insertedPitchers) {
+        const pitcher = (pitchers as PitcherInput[])[inserted.order_index]
+        if (pitcher?.inningStats && pitcher.inningStats.length > 0) {
+          for (const s of pitcher.inningStats) {
+            inningInserts.push({
+              pitcher_result_id: inserted.id,
+              inning: s.inning,
+              runs: s.runs,
+              hits: s.hits,
+              strikeouts: s.strikeouts,
+              earned_runs: s.earnedRuns,
+              walks: s.walks,
+              hit_by_pitch: s.hitByPitch,
+              home_runs: s.homeRuns,
+              batters_faced: s.battersFaced,
+            })
+          }
+        }
+      }
+      if (inningInserts.length > 0) {
+        await supabase.from("pitcher_inning_stats").insert(inningInserts)
+      }
+    }
   }
 
   return NextResponse.json({ success: true })
