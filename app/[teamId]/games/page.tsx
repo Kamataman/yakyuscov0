@@ -1,9 +1,7 @@
-"use client"
-
-import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
-import { PlusCircle, Calendar, MapPin, Loader2 } from "lucide-react"
+import { Calendar, MapPin, PlusCircle } from "lucide-react"
+import { createClient } from "@/lib/supabase/server"
+import { requireTeamAdmin } from "@/lib/auth"
 
 interface GameWithScores {
   id: string
@@ -13,39 +11,31 @@ interface GameWithScores {
   inning_scores: { inning: number; our_score: number; opponent_score: number }[]
 }
 
-export default function GamesListPage() {
-  const params = useParams()
-  const teamId = params.teamId as string
-  
-  const [games, setGames] = useState<GameWithScores[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
+interface Props {
+  params: Promise<{ teamId: string }>
+}
 
-  useEffect(() => {
-    // 認証状態と試合データを並行して取得
-    Promise.all([
-      fetch(`/api/games?teamId=${teamId}`).then((res) => res.json()),
-      fetch(`/api/auth/status?teamId=${teamId}`).then((res) => res.json()),
-    ])
-      .then(([gamesData, authData]) => {
-        if (Array.isArray(gamesData)) {
-          setGames(gamesData)
-        }
-        setIsAdmin(authData.isAdmin === true)
-      })
-      .catch(console.error)
-      .finally(() => setIsLoading(false))
-  }, [teamId])
+export default async function GamesListPage({ params }: Props) {
+  const { teamId } = await params
+  const supabase = await createClient()
 
-  // 試合の合計スコアを計算
-  const getTotalScore = (scores: GameWithScores["inning_scores"]) => {
-    return {
-      our: scores.reduce((sum, s) => sum + (s.our_score || 0), 0),
-      opponent: scores.reduce((sum, s) => sum + (s.opponent_score || 0), 0),
-    }
-  }
+  const [gamesResult, adminSession] = await Promise.all([
+    supabase
+      .from("games")
+      .select("id, date, opponent, location, inning_scores(inning, our_score, opponent_score)")
+      .eq("team_id", teamId)
+      .order("date", { ascending: false }),
+    requireTeamAdmin(teamId),
+  ])
 
-  // 勝敗を判定
+  const games = (gamesResult.data ?? []) as unknown as GameWithScores[]
+  const isAdmin = !!adminSession
+
+  const getTotalScore = (scores: GameWithScores["inning_scores"]) => ({
+    our: scores.reduce((sum, s) => sum + (s.our_score || 0), 0),
+    opponent: scores.reduce((sum, s) => sum + (s.opponent_score || 0), 0),
+  })
+
   const getResult = (scores: GameWithScores["inning_scores"]) => {
     const total = getTotalScore(scores)
     if (total.our > total.opponent) return "win"
@@ -56,7 +46,6 @@ export default function GamesListPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       <div className="mx-auto max-w-6xl p-4 md:p-6">
-        {/* 新規作成ボタン（管理者のみ表示） */}
         {isAdmin && (
           <Link
             href={`/${teamId}/games/new`}
@@ -67,12 +56,7 @@ export default function GamesListPage() {
           </Link>
         )}
 
-        {/* ローディング */}
-        {isLoading ? (
-          <div className="flex items-center justify-center rounded-2xl bg-white p-8 shadow-md">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          </div>
-        ) : games.length === 0 ? (
+        {games.length === 0 ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-md">
             <Calendar className="mx-auto mb-3 h-12 w-12 text-slate-300" />
             <p className="text-slate-500">まだ試合が記録されていません</p>

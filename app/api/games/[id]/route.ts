@@ -266,38 +266,3 @@ export async function PUT(
   return NextResponse.json({ success: true })
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params
-  const supabase = await createClient()
-
-  // 管理者権限チェック
-  const session = await requireAdmin()
-  if (!session) {
-    return NextResponse.json({ error: "管理者権限が必要です" }, { status: 401 })
-  }
-
-  // この試合が管理者のチームのものか確認
-  const { data: game } = await supabase
-    .from("games")
-    .select("team_id")
-    .eq("id", id)
-    .single()
-
-  if (!game || game.team_id !== session.teamId) {
-    return NextResponse.json({ error: "この試合にアクセスできません" }, { status: 403 })
-  }
-
-  const { error } = await supabase
-    .from("games")
-    .delete()
-    .eq("id", id)
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json({ success: true })
-}

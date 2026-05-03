@@ -1,50 +1,24 @@
-"use client"
-
-import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { Loader2 } from "lucide-react"
+import { redirect } from "next/navigation"
+import { requireTeamAdmin } from "@/lib/auth"
 import { GameEditor } from "@/components/game-editor"
 
-export default function GameEditPage() {
-  const params = useParams()
-  const router = useRouter()
-  const teamId = params.teamId as string
-  const gameId = params.id as string
+interface Props {
+  params: Promise<{ teamId: string; id: string }>
+}
 
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+export default async function GameEditPage({ params }: Props) {
+  const { teamId, id: gameId } = await params
 
-  useEffect(() => {
-    // 認証状態を確認
-    fetch(`/api/auth/status?teamId=${teamId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setIsAdmin(data.isAdmin === true)
-      })
-      .catch(() => {
-        setIsAdmin(false)
-      })
-  }, [teamId])
-
-  const handleBack = () => {
-    // タイムスタンプを追加してキャッシュを無効化
-    router.push(`/${teamId}/games/${gameId}?t=${Date.now()}`)
-  }
-
-  // 認証状態確認中
-  if (isAdmin === null) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-100 to-slate-200">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-      </div>
-    )
+  const adminSession = await requireTeamAdmin(teamId)
+  if (!adminSession) {
+    redirect(`/${teamId}/login`)
   }
 
   return (
     <GameEditor
       gameId={gameId}
       teamId={teamId}
-      isAdmin={isAdmin}
-      onBack={handleBack}
+      isAdmin={true}
     />
   )
 }

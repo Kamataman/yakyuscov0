@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Loader2, CheckCircle2, AlertCircle, Share2, Copy, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BattingGrid } from "@/components/batting-grid"
@@ -32,6 +33,8 @@ type SaveStatus = "idle" | "saving" | "saved" | "error"
 const POLLING_INTERVAL_MS = 15_000
 
 export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: GameEditorProps) {
+  const router = useRouter()
+  const handleBack = onBack ?? (() => router.push(`/${teamId}/games/${gameId}`))
   const [isLoading, setIsLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -585,9 +588,9 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
         {/* ページタイトルとステータス */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {onBack && (
+            {!shareToken && (
               <button
-                onClick={onBack}
+                onClick={handleBack}
                 className="rounded-lg bg-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-300"
               >
                 戻る
