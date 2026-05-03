@@ -5,6 +5,7 @@ import Image from "next/image"
 import { usePathname, useParams, useRouter } from "next/navigation"
 import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield, ExternalLink } from "lucide-react"
 import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 import { APP_NAME } from "@/lib/constants"
 import {
@@ -44,11 +45,22 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
 
   // ログイン状態を確認
   useEffect(() => {
-    fetch("/api/auth/status")
-      .then(res => res.json())
-      .then(data => {
-        setIsLoggedIn(data.isLoggedIn)
-        setLoggedInTeamId(data.teamId)
+    const supabase = createClient()
+    supabase.auth.getUser()
+      .then(async (authResult) => {
+        const user = authResult.data?.user
+        if (!user) {
+          setIsLoggedIn(false)
+          setLoggedInTeamId(null)
+          return
+        }
+        const { data: team } = await supabase
+          .from("teams")
+          .select("id")
+          .eq("user_id", user.id)
+          .single()
+        setIsLoggedIn(!!team)
+        setLoggedInTeamId(team?.id ?? null)
       })
       .catch(() => {
         setIsLoggedIn(false)

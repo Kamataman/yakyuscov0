@@ -26,13 +26,14 @@ interface GameEditorProps {
   shareToken?: string  // 共有URLの場合のトークン
   isAdmin: boolean     // 管理者かどうか
   onBack?: () => void  // 戻るボタンのコールバック
+  players?: Player[]   // 登録済み選手リスト（サーバーコンポーネントから渡す）
 }
 
 type SaveStatus = "idle" | "saving" | "saved" | "error"
 
 const POLLING_INTERVAL_MS = 15_000
 
-export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: GameEditorProps) {
+export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, players: initialPlayers }: GameEditorProps) {
   const router = useRouter()
   const handleBack = onBack ?? (() => router.push(`/${teamId}/games/${gameId}`))
   const [isLoading, setIsLoading] = useState(true)
@@ -71,7 +72,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false)
 
   // 登録済み選手
-  const [registeredPlayers, setRegisteredPlayers] = useState<Player[]>([])
+  const [registeredPlayers, setRegisteredPlayers] = useState<Player[]>(initialPlayers ?? [])
 
   // 投手成績
   const [pitchers, setPitchers] = useState<PitcherResult[]>([])
@@ -227,32 +228,21 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack }: Game
 
   // データを読み込み
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/games/${gameId}`).then(res => res.json()),
-      fetch(`/api/players?teamId=${teamId}`).then(res => res.json()),
-    ])
-      .then(([gameData, playersData]) => {
+    fetch(`/api/games/${gameId}`)
+      .then(res => res.json())
+      .then((gameData) => {
         applyGameData(gameData)
         if (gameData.game) {
           setHasX(gameData.game.last_inning_x ?? false)
           setXScore(gameData.game.last_inning_x_score ?? null)
         }
-
-        if (Array.isArray(playersData)) {
-          setRegisteredPlayers(playersData.map((p: { id: string; name: string; number?: number }) => ({
-            id: p.id,
-            name: p.name,
-            number: p.number,
-          })))
-        }
-
         setIsLoading(false)
       })
       .catch((err) => {
         console.error(err)
         setIsLoading(false)
       })
-  }, [gameId, teamId, applyGameData])
+  }, [gameId, applyGameData])
 
   // 定期的に最新データを取得して反映（複数人同時編集対応）
   useEffect(() => {
