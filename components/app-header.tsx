@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useParams, useRouter } from "next/navigation"
-import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield } from "lucide-react"
+import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield, ExternalLink } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { APP_NAME } from "@/lib/constants"
@@ -162,6 +162,13 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                   </DropdownMenuItem>
                 </>
               )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/" className="flex items-center">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  やきゅスコについて
+                </Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </nav>
@@ -230,6 +237,14 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                 管理者ログイン
               </Link>
             )}
+            <Link
+              href="/"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            >
+              <ExternalLink className="h-5 w-5" />
+              やきゅスコについて
+            </Link>
           </div>
         </nav>
       )}
