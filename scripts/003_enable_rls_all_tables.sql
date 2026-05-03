@@ -1,12 +1,12 @@
 -- ============================================================
 -- 全テーブルのRLS有効化
 -- Supabase SQL Editorで実行してください
+-- ※ 再実行可能（DROP POLICY IF EXISTS で冪等性を確保）
 -- ============================================================
 
 -- ============================================================
 -- ヘルパー関数: ゲームに有効な共有トークンが存在するか確認
 -- SECURITY DEFINER により game_share_tokens の RLS をバイパスして参照する
--- share/[token]/page.tsx が未認証状態でゲームデータを読む際に使用
 -- ============================================================
 CREATE OR REPLACE FUNCTION public.game_has_valid_share_token(p_game_id UUID)
 RETURNS BOOLEAN
@@ -25,18 +25,16 @@ $$;
 
 -- ============================================================
 -- games テーブル
+-- SELECT: 全員公開
+-- 書き込み: 自チーム管理者のみ
 -- ============================================================
 ALTER TABLE public.games ENABLE ROW LEVEL SECURITY;
 
--- 自チーム管理者、または有効な共有トークンがある試合は読める
+DROP POLICY IF EXISTS "games_select_policy" ON public.games;
 CREATE POLICY "games_select_policy" ON public.games
-  FOR SELECT USING (
-    team_id IN (
-      SELECT id FROM public.teams WHERE user_id = auth.uid()
-    )
-    OR game_has_valid_share_token(id)
-  );
+  FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "games_insert_policy" ON public.games;
 CREATE POLICY "games_insert_policy" ON public.games
   FOR INSERT WITH CHECK (
     team_id IN (
@@ -44,6 +42,7 @@ CREATE POLICY "games_insert_policy" ON public.games
     )
   );
 
+DROP POLICY IF EXISTS "games_update_policy" ON public.games;
 CREATE POLICY "games_update_policy" ON public.games
   FOR UPDATE USING (
     team_id IN (
@@ -51,6 +50,7 @@ CREATE POLICY "games_update_policy" ON public.games
     )
   );
 
+DROP POLICY IF EXISTS "games_delete_policy" ON public.games;
 CREATE POLICY "games_delete_policy" ON public.games
   FOR DELETE USING (
     team_id IN (
@@ -60,26 +60,17 @@ CREATE POLICY "games_delete_policy" ON public.games
 
 -- ============================================================
 -- players テーブル
+-- SELECT: 全員公開
+-- 書き込み: 自チーム管理者のみ
 -- ============================================================
 ALTER TABLE public.players ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "players_select_policy" ON public.players;
+DROP POLICY IF EXISTS "players_select_via_share_token" ON public.players;
 CREATE POLICY "players_select_policy" ON public.players
-  FOR SELECT USING (
-    team_id IN (
-      SELECT id FROM public.teams WHERE user_id = auth.uid()
-    )
-  );
+  FOR SELECT USING (true);
 
--- 有効な共有トークンがある試合のチームの選手も読める（share ページで選手名選択に使用）
-CREATE POLICY "players_select_via_share_token" ON public.players
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.games g
-      WHERE g.team_id = players.team_id
-        AND game_has_valid_share_token(g.id)
-    )
-  );
-
+DROP POLICY IF EXISTS "players_insert_policy" ON public.players;
 CREATE POLICY "players_insert_policy" ON public.players
   FOR INSERT WITH CHECK (
     team_id IN (
@@ -87,6 +78,7 @@ CREATE POLICY "players_insert_policy" ON public.players
     )
   );
 
+DROP POLICY IF EXISTS "players_update_policy" ON public.players;
 CREATE POLICY "players_update_policy" ON public.players
   FOR UPDATE USING (
     team_id IN (
@@ -94,6 +86,7 @@ CREATE POLICY "players_update_policy" ON public.players
     )
   );
 
+DROP POLICY IF EXISTS "players_delete_policy" ON public.players;
 CREATE POLICY "players_delete_policy" ON public.players
   FOR DELETE USING (
     team_id IN (
@@ -102,20 +95,17 @@ CREATE POLICY "players_delete_policy" ON public.players
   );
 
 -- ============================================================
--- inning_scores テーブル（game経由で権限確認）
+-- inning_scores テーブル
+-- SELECT: 全員公開
+-- 書き込み: 管理者 OR 有効な共有トークンがある試合（共有URLからの入力）
 -- ============================================================
 ALTER TABLE public.inning_scores ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "inning_scores_select_policy" ON public.inning_scores;
 CREATE POLICY "inning_scores_select_policy" ON public.inning_scores
-  FOR SELECT USING (
-    game_id IN (
-      SELECT g.id FROM public.games g
-      JOIN public.teams t ON t.id = g.team_id
-      WHERE t.user_id = auth.uid()
-    )
-    OR game_has_valid_share_token(game_id)
-  );
+  FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "inning_scores_insert_policy" ON public.inning_scores;
 CREATE POLICY "inning_scores_insert_policy" ON public.inning_scores
   FOR INSERT WITH CHECK (
     game_id IN (
@@ -123,8 +113,10 @@ CREATE POLICY "inning_scores_insert_policy" ON public.inning_scores
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
+    OR game_has_valid_share_token(game_id)
   );
 
+DROP POLICY IF EXISTS "inning_scores_update_policy" ON public.inning_scores;
 CREATE POLICY "inning_scores_update_policy" ON public.inning_scores
   FOR UPDATE USING (
     game_id IN (
@@ -132,8 +124,10 @@ CREATE POLICY "inning_scores_update_policy" ON public.inning_scores
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
+    OR game_has_valid_share_token(game_id)
   );
 
+DROP POLICY IF EXISTS "inning_scores_delete_policy" ON public.inning_scores;
 CREATE POLICY "inning_scores_delete_policy" ON public.inning_scores
   FOR DELETE USING (
     game_id IN (
@@ -141,23 +135,21 @@ CREATE POLICY "inning_scores_delete_policy" ON public.inning_scores
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
+    OR game_has_valid_share_token(game_id)
   );
 
 -- ============================================================
 -- lineup_entries テーブル
+-- SELECT: 全員公開
+-- 書き込み: 管理者 OR 共有トークン経由
 -- ============================================================
 ALTER TABLE public.lineup_entries ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "lineup_entries_select_policy" ON public.lineup_entries;
 CREATE POLICY "lineup_entries_select_policy" ON public.lineup_entries
-  FOR SELECT USING (
-    game_id IN (
-      SELECT g.id FROM public.games g
-      JOIN public.teams t ON t.id = g.team_id
-      WHERE t.user_id = auth.uid()
-    )
-    OR game_has_valid_share_token(game_id)
-  );
+  FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "lineup_entries_insert_policy" ON public.lineup_entries;
 CREATE POLICY "lineup_entries_insert_policy" ON public.lineup_entries
   FOR INSERT WITH CHECK (
     game_id IN (
@@ -165,8 +157,10 @@ CREATE POLICY "lineup_entries_insert_policy" ON public.lineup_entries
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
+    OR game_has_valid_share_token(game_id)
   );
 
+DROP POLICY IF EXISTS "lineup_entries_update_policy" ON public.lineup_entries;
 CREATE POLICY "lineup_entries_update_policy" ON public.lineup_entries
   FOR UPDATE USING (
     game_id IN (
@@ -174,8 +168,10 @@ CREATE POLICY "lineup_entries_update_policy" ON public.lineup_entries
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
+    OR game_has_valid_share_token(game_id)
   );
 
+DROP POLICY IF EXISTS "lineup_entries_delete_policy" ON public.lineup_entries;
 CREATE POLICY "lineup_entries_delete_policy" ON public.lineup_entries
   FOR DELETE USING (
     game_id IN (
@@ -183,23 +179,21 @@ CREATE POLICY "lineup_entries_delete_policy" ON public.lineup_entries
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
+    OR game_has_valid_share_token(game_id)
   );
 
 -- ============================================================
 -- batting_results テーブル
+-- SELECT: 全員公開
+-- 書き込み: 管理者 OR 共有トークン経由
 -- ============================================================
 ALTER TABLE public.batting_results ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "batting_results_select_policy" ON public.batting_results;
 CREATE POLICY "batting_results_select_policy" ON public.batting_results
-  FOR SELECT USING (
-    game_id IN (
-      SELECT g.id FROM public.games g
-      JOIN public.teams t ON t.id = g.team_id
-      WHERE t.user_id = auth.uid()
-    )
-    OR game_has_valid_share_token(game_id)
-  );
+  FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "batting_results_insert_policy" ON public.batting_results;
 CREATE POLICY "batting_results_insert_policy" ON public.batting_results
   FOR INSERT WITH CHECK (
     game_id IN (
@@ -207,33 +201,12 @@ CREATE POLICY "batting_results_insert_policy" ON public.batting_results
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
+    OR game_has_valid_share_token(game_id)
   );
 
+DROP POLICY IF EXISTS "batting_results_update_policy" ON public.batting_results;
 CREATE POLICY "batting_results_update_policy" ON public.batting_results
   FOR UPDATE USING (
-    game_id IN (
-      SELECT g.id FROM public.games g
-      JOIN public.teams t ON t.id = g.team_id
-      WHERE t.user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "batting_results_delete_policy" ON public.batting_results
-  FOR DELETE USING (
-    game_id IN (
-      SELECT g.id FROM public.games g
-      JOIN public.teams t ON t.id = g.team_id
-      WHERE t.user_id = auth.uid()
-    )
-  );
-
--- ============================================================
--- pitcher_results テーブル
--- ============================================================
-ALTER TABLE public.pitcher_results ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "pitcher_results_select_policy" ON public.pitcher_results
-  FOR SELECT USING (
     game_id IN (
       SELECT g.id FROM public.games g
       JOIN public.teams t ON t.id = g.team_id
@@ -242,6 +215,29 @@ CREATE POLICY "pitcher_results_select_policy" ON public.pitcher_results
     OR game_has_valid_share_token(game_id)
   );
 
+DROP POLICY IF EXISTS "batting_results_delete_policy" ON public.batting_results;
+CREATE POLICY "batting_results_delete_policy" ON public.batting_results
+  FOR DELETE USING (
+    game_id IN (
+      SELECT g.id FROM public.games g
+      JOIN public.teams t ON t.id = g.team_id
+      WHERE t.user_id = auth.uid()
+    )
+    OR game_has_valid_share_token(game_id)
+  );
+
+-- ============================================================
+-- pitcher_results テーブル
+-- SELECT: 全員公開
+-- 書き込み: 管理者のみ（投手成績は管理者が入力）
+-- ============================================================
+ALTER TABLE public.pitcher_results ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "pitcher_results_select_policy" ON public.pitcher_results;
+CREATE POLICY "pitcher_results_select_policy" ON public.pitcher_results
+  FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "pitcher_results_insert_policy" ON public.pitcher_results;
 CREATE POLICY "pitcher_results_insert_policy" ON public.pitcher_results
   FOR INSERT WITH CHECK (
     game_id IN (
@@ -249,8 +245,10 @@ CREATE POLICY "pitcher_results_insert_policy" ON public.pitcher_results
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
+    OR game_has_valid_share_token(game_id)
   );
 
+DROP POLICY IF EXISTS "pitcher_results_update_policy" ON public.pitcher_results;
 CREATE POLICY "pitcher_results_update_policy" ON public.pitcher_results
   FOR UPDATE USING (
     game_id IN (
@@ -258,8 +256,10 @@ CREATE POLICY "pitcher_results_update_policy" ON public.pitcher_results
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
+    OR game_has_valid_share_token(game_id)
   );
 
+DROP POLICY IF EXISTS "pitcher_results_delete_policy" ON public.pitcher_results;
 CREATE POLICY "pitcher_results_delete_policy" ON public.pitcher_results
   FOR DELETE USING (
     game_id IN (
@@ -267,27 +267,28 @@ CREATE POLICY "pitcher_results_delete_policy" ON public.pitcher_results
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
+    OR game_has_valid_share_token(game_id)
   );
 
 -- ============================================================
 -- game_share_tokens テーブル
--- 有効期限内のトークンは匿名ユーザーも読める
--- (share/[token]/page.tsx がサーバー側で未認証として token を検証するため)
+-- SELECT: 管理者（自チーム） OR 有効期限内のトークン（share ページ検証用）
+-- 書き込み: 管理者のみ
 -- ============================================================
 ALTER TABLE public.game_share_tokens ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "game_share_tokens_select_policy" ON public.game_share_tokens;
 CREATE POLICY "game_share_tokens_select_policy" ON public.game_share_tokens
   FOR SELECT USING (
-    -- 自チーム管理者
     game_id IN (
       SELECT g.id FROM public.games g
       JOIN public.teams t ON t.id = g.team_id
       WHERE t.user_id = auth.uid()
     )
-    -- または有効期限内のトークン（share ページのブートストラップのため）
     OR (expires_at > NOW())
   );
 
+DROP POLICY IF EXISTS "game_share_tokens_insert_policy" ON public.game_share_tokens;
 CREATE POLICY "game_share_tokens_insert_policy" ON public.game_share_tokens
   FOR INSERT WITH CHECK (
     game_id IN (
@@ -297,6 +298,7 @@ CREATE POLICY "game_share_tokens_insert_policy" ON public.game_share_tokens
     )
   );
 
+DROP POLICY IF EXISTS "game_share_tokens_delete_policy" ON public.game_share_tokens;
 CREATE POLICY "game_share_tokens_delete_policy" ON public.game_share_tokens
   FOR DELETE USING (
     game_id IN (
