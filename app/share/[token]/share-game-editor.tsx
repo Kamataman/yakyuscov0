@@ -1,6 +1,7 @@
 "use client"
 
 import { GameEditor } from "@/components/game-editor"
+import type { Player } from "@/lib/batting-types"
 
 interface ShareGameEditorProps {
   gameId: string
@@ -8,9 +9,10 @@ interface ShareGameEditorProps {
   shareToken: string
   opponent: string
   date: string
+  players: Player[]
 }
 
-export function ShareGameEditor({ gameId, teamId, shareToken, opponent, date }: ShareGameEditorProps) {
+export function ShareGameEditor({ gameId, teamId, shareToken, opponent, date, players }: ShareGameEditorProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       {/* 共有用のシンプルなヘッダー */}
@@ -35,6 +37,7 @@ export function ShareGameEditor({ gameId, teamId, shareToken, opponent, date }: 
         teamId={teamId}
         shareToken={shareToken}
         isAdmin={false}
+        players={players}
       />
     </div>
   )

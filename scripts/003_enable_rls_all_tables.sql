@@ -70,6 +70,16 @@ CREATE POLICY "players_select_policy" ON public.players
     )
   );
 
+-- 有効な共有トークンがある試合のチームの選手も読める（share ページで選手名選択に使用）
+CREATE POLICY "players_select_via_share_token" ON public.players
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.games g
+      WHERE g.team_id = players.team_id
+        AND game_has_valid_share_token(g.id)
+    )
+  );
+
 CREATE POLICY "players_insert_policy" ON public.players
   FOR INSERT WITH CHECK (
     team_id IN (
