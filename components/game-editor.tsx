@@ -74,6 +74,10 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
   // 登録済み選手
   const [registeredPlayers, setRegisteredPlayers] = useState<Player[]>(initialPlayers ?? [])
 
+  const handlePlayerAdded = (player: Player) => {
+    setRegisteredPlayers((prev) => [...prev, player])
+  }
+
   // 投手成績
   const [pitchers, setPitchers] = useState<PitcherResult[]>([])
 
@@ -712,6 +716,10 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           totalInnings={totalInnings}
           activeInning={activeInning}
           onInningFocus={setActiveInning}
+          teamId={teamId}
+          onPlayerAdded={handlePlayerAdded}
+          isAdmin={isAdmin}
+          shareToken={shareToken}
         />
       </div>
 
@@ -731,6 +739,10 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
         currentEntries={currentLineupSlot?.entries || []}
         onSave={handleLineupSave}
         registeredPlayers={registeredPlayers}
+        teamId={teamId}
+        onPlayerAdded={handlePlayerAdded}
+        isAdmin={isAdmin}
+        shareToken={shareToken}
       />
 
       {/* 共有URLダイアログ */}

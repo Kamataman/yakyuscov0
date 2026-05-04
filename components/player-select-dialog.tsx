@@ -10,7 +10,7 @@ import {
 import { cn } from "@/lib/utils"
 import type { LineupEntry, FieldPosition, Player } from "@/lib/batting-types"
 import { FIELD_POSITIONS, SUBSTITUTE_ROLES } from "@/lib/batting-types"
-import { sortPlayersByNumber } from "@/lib/sort-utils"
+import { PlayerCombobox } from "@/components/player-combobox"
 
 interface PlayerSelectDialogProps {
   open: boolean
@@ -19,6 +19,10 @@ interface PlayerSelectDialogProps {
   currentEntries: LineupEntry[]
   registeredPlayers: Player[]
   onSave: (entries: LineupEntry[]) => void
+  teamId: string
+  onPlayerAdded: (player: Player) => void
+  isAdmin?: boolean
+  shareToken?: string
 }
 
 export function PlayerSelectDialog({
@@ -28,6 +32,10 @@ export function PlayerSelectDialog({
   currentEntries,
   registeredPlayers,
   onSave,
+  teamId,
+  onPlayerAdded,
+  isAdmin = false,
+  shareToken,
 }: PlayerSelectDialogProps) {
   const [entries, setEntries] = useState<LineupEntry[]>([])
 
@@ -41,8 +49,7 @@ export function PlayerSelectDialog({
     }
   }, [open, currentEntries])
 
-  const handlePlayerSelect = (index: number, playerId: string) => {
-    const player = registeredPlayers.find(p => p.id === playerId)
+  const handlePlayerSelect = (index: number, player: Player | null) => {
     setEntries((prev) => {
       const newEntries = [...prev]
       if (player) {
@@ -72,19 +79,6 @@ export function PlayerSelectDialog({
         playerId: "",
         playerName: "助っ人",
         isHelper: true,
-      }
-      return newEntries
-    })
-  }
-
-  const handleNameChange = (index: number, name: string) => {
-    setEntries((prev) => {
-      const newEntries = [...prev]
-      newEntries[index] = {
-        ...newEntries[index],
-        playerName: name,
-        playerId: "",
-        isHelper: false,
       }
       return newEntries
     })
@@ -167,55 +161,19 @@ export function PlayerSelectDialog({
                 <label className="block text-xs font-semibold text-slate-500 mb-2">
                   選手名
                 </label>
-                {registeredPlayers.length > 0 ? (
-                  <div className="space-y-2">
-                    <select
-                      value={entry.isHelper ? "" : entry.playerId}
-                      onChange={(e) => handlePlayerSelect(index, e.target.value)}
-                      className={cn(
-                        "w-full h-12 px-4 text-base rounded-xl",
-                        "bg-white border border-slate-200",
-                        "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
-                      )}
-                    >
-                      <option value="">選手を選択...</option>
-                      {sortPlayersByNumber(registeredPlayers).map((player) => (
-                        <option key={player.id} value={player.id}>
-                          {player.number ? `${player.number} ` : ""}{player.name}
-                        </option>
-                      ))}
-                    </select>
-                    {!entry.isHelper && !entry.playerId && (
-                      <input
-                        type="text"
-                        value={entry.playerName}
-                        onChange={(e) => handleNameChange(index, e.target.value)}
-                        placeholder="または名前を直接入力"
-                        className={cn(
-                          "w-full h-10 px-4 text-sm rounded-lg",
-                          "bg-white border border-slate-200",
-                          "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
-                        )}
-                      />
-                    )}
-                  </div>
-                ) : (
-                  !entry.isHelper && (
-                    <input
-                      type="text"
-                      value={entry.playerName}
-                      onChange={(e) => handleNameChange(index, e.target.value)}
-                      placeholder="名前を入力"
-                      className={cn(
-                        "w-full h-12 px-4 text-lg rounded-lg",
-                        "bg-white border border-slate-200",
-                        "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
-                      )}
-                    />
-                  )
+                {!entry.isHelper && (
+                  <PlayerCombobox
+                    players={registeredPlayers}
+                    value={entry.playerId}
+                    onChange={(player) => handlePlayerSelect(index, player)}
+                    teamId={teamId}
+                    onPlayerAdded={onPlayerAdded}
+                    isAdmin={isAdmin}
+                    shareToken={shareToken}
+                  />
                 )}
                 <button
-                  onClick={() => entry.isHelper ? handlePlayerSelect(index, "") : handleHelperSelect(index)}
+                  onClick={() => entry.isHelper ? handlePlayerSelect(index, null) : handleHelperSelect(index)}
                   className={cn(
                     "mt-2 text-xs px-3 py-1.5 rounded-lg transition-all",
                     entry.isHelper

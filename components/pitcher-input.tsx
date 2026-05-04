@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils"
 import type { PitcherResult, PitcherInningStats, Player } from "@/lib/batting-types"
 import { Plus, Trash2, Trophy, ThumbsDown, Shield, Star, Minus } from "lucide-react"
-import { sortPlayersByNumber } from "@/lib/sort-utils"
+import { PlayerCombobox } from "@/components/player-combobox"
 
 interface PitcherInputProps {
   pitchers: PitcherResult[]
@@ -15,6 +15,10 @@ interface PitcherInputProps {
   totalInnings?: number
   activeInning?: number | null
   onInningFocus?: (inning: number) => void
+  teamId: string
+  onPlayerAdded: (player: Player) => void
+  isAdmin?: boolean
+  shareToken?: string
 }
 
 export function formatInnings(outs: number, isMidInningExit: boolean): string {
@@ -104,6 +108,10 @@ export function PitcherInput({
   totalInnings = 9,
   activeInning,
   onInningFocus,
+  teamId,
+  onPlayerAdded,
+  isAdmin = false,
+  shareToken,
 }: PitcherInputProps) {
   const [inputMode, setInputMode] = useState<InputMode>("inning")
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; targetMode: InputMode }>({ open: false, targetMode: "aggregate" })
@@ -372,33 +380,21 @@ export function PitcherInput({
     <div>
       <label className="text-sm font-semibold text-slate-700 mb-2 block">選手名</label>
       {!form.isHelper && (
-        registeredPlayers.length > 0 ? (
-          <select
-            value={form.playerId}
-            onChange={(e) => {
-              const player = registeredPlayers.find(p => p.id === e.target.value)
-              if (player) {
-                setForm({ ...form, playerId: player.id, playerName: player.name, isHelper: false })
-              }
-            }}
-            className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all text-slate-800"
-          >
-            <option value="">選手を選択</option>
-            {sortPlayersByNumber(registeredPlayers).map((player) => (
-              <option key={player.id} value={player.id}>
-                {player.number ? `${player.number} ` : ""}{player.name}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <input
-            type="text"
-            value={form.playerName}
-            onChange={(e) => setForm({ ...form, playerName: e.target.value })}
-            placeholder="選手名を入力"
-            className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all text-slate-800 placeholder:text-slate-400"
-          />
-        )
+        <PlayerCombobox
+          players={registeredPlayers}
+          value={form.playerId}
+          onChange={(player) => {
+            if (player) {
+              setForm({ ...form, playerId: player.id, playerName: player.name, isHelper: false })
+            } else {
+              setForm({ ...form, playerId: "", playerName: "", isHelper: false })
+            }
+          }}
+          teamId={teamId}
+          onPlayerAdded={onPlayerAdded}
+          isAdmin={isAdmin}
+          shareToken={shareToken}
+        />
       )}
       <button
         onClick={() => {

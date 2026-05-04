@@ -2,11 +2,16 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
-import { requireTeamAdmin } from "@/lib/auth"
+import { requireTeamAdmin, getShareTokenSession } from "@/lib/auth"
 
-export async function addPlayer(teamId: string, name: string, number: string | null) {
-  const session = await requireTeamAdmin(teamId)
-  if (!session) throw new Error("管理者権限が必要です")
+export async function addPlayer(teamId: string, name: string, number: string | null, shareToken?: string) {
+  if (shareToken) {
+    const session = await getShareTokenSession(shareToken)
+    if (!session || session.teamId !== teamId) throw new Error("アクセスできません")
+  } else {
+    const session = await requireTeamAdmin(teamId)
+    if (!session) throw new Error("管理者権限が必要です")
+  }
 
   const supabase = await createClient()
   const { data, error } = await supabase
