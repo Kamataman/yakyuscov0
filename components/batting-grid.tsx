@@ -17,6 +17,7 @@ interface BattingGridProps {
   atBatSequences: Record<number, number>
   onAddAtBat: (inning: number) => void
   onRemoveAtBat: (inning: number) => void
+  activeInning?: number | null
 }
 
 export function BattingGrid({
@@ -29,6 +30,7 @@ export function BattingGrid({
   atBatSequences,
   onAddAtBat,
   onRemoveAtBat,
+  activeInning,
 }: BattingGridProps) {
   const maxBattingOrder = Math.max(lineupSlots.length, 9)
   const battingOrders = Array.from({ length: maxBattingOrder }, (_, i) => i + 1)
@@ -101,9 +103,10 @@ export function BattingGrid({
                   <th
                     key={`${col.inning}-${col.sequence}`}
                     className={cn(
-                      "px-1 py-1 text-center text-xs font-semibold",
+                      "px-1 py-1 text-center text-xs font-semibold transition-colors",
                       col.sequence === 1 ? "w-12 min-w-[48px]" : "w-10 min-w-[40px]",
-                      isLastOfInning && "border-r border-slate-200"
+                      isLastOfInning && "border-r border-slate-200",
+                      col.inning === activeInning && "bg-amber-100 text-amber-800"
                     )}
                   >
                     {col.sequence === 1 ? (
@@ -180,7 +183,11 @@ export function BattingGrid({
                     return (
                       <td
                         key={`${col.inning}-${col.sequence}`}
-                        className={cn("p-1", isLastOfInning && "border-r border-slate-100")}
+                        className={cn(
+                          "p-1 transition-colors",
+                          isLastOfInning && "border-r border-slate-100",
+                          col.inning === activeInning && "bg-amber-50"
+                        )}
                       >
                         <button
                           onClick={() => onCellClick({ battingOrder: order, inning: col.inning, atBatSequence: col.sequence })}

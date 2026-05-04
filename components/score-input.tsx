@@ -15,6 +15,8 @@ interface ScoreInputProps {
   hasX?: boolean
   xScore?: number | null
   onXChange?: (hasX: boolean, xScore: number | null) => void
+  activeInning?: number | null
+  onInningFocus?: (inning: number) => void
 }
 
 export function ScoreInput({
@@ -27,6 +29,8 @@ export function ScoreInput({
   hasX = false,
   xScore = null,
   onXChange,
+  activeInning,
+  onInningFocus,
 }: ScoreInputProps) {
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
   const isLongPressRef = useRef(false)
@@ -63,6 +67,7 @@ export function ScoreInput({
       isLongPressRef.current = false
       return
     }
+    onInningFocus?.(inning)
     const currentScore = inningScores[inning - 1]?.[team] || 0
     const newScore = currentScore >= 9 ? 0 : currentScore + 1
     updateScore(inning, team, newScore)
@@ -179,7 +184,10 @@ export function ScoreInput({
               {innings.map((inning) => (
                 <th
                   key={inning}
-                  className="w-10 min-w-[40px] px-1 py-2 text-center text-xs font-semibold"
+                  className={cn(
+                    "w-10 min-w-[40px] px-1 py-2 text-center text-xs font-semibold transition-colors",
+                    inning === activeInning ? "bg-amber-100 text-amber-800" : ""
+                  )}
                 >
                   {inning}
                 </th>
@@ -199,7 +207,7 @@ export function ScoreInput({
                 {isFirstBatting ? "自チーム" : "相手"}
               </td>
               {innings.map((inning) => (
-                <td key={inning} className="p-1">
+                <td key={inning} className={cn("p-1 transition-colors", inning === activeInning && "bg-amber-50")}>
                   <button
                     onClick={() => handleScoreClick(inning, isFirstBatting ? "our" : "opponent")}
                     onMouseDown={() => handleLongPressStart(inning, isFirstBatting ? "our" : "opponent")}
@@ -244,7 +252,7 @@ export function ScoreInput({
               {innings.map((inning) => {
                 const isLastInningX = hasX && inning === totalInnings
                 return (
-                  <td key={inning} className="p-1">
+                  <td key={inning} className={cn("p-1 transition-colors", inning === activeInning && "bg-amber-50")}>
                     {isLastInningX ? (
                       <div className="w-full h-10 flex items-center justify-center text-lg font-bold rounded-lg bg-amber-50 text-amber-700 select-none">
                         {xScore === null ? "✕" : `${xScore}✕`}
