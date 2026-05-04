@@ -185,15 +185,12 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
                       <>
                         <td rowSpan={3} className="px-2 py-1 text-center text-slate-500 align-middle">{pIdx + 1}</td>
                         <td rowSpan={3} className="px-2 py-1 align-middle min-w-[4rem] max-w-[5rem]">
-                          <div className="flex flex-col gap-0.5">
-                            <div className="flex items-center gap-1">
-                              {pitcher.pitcher_award === "win"  && <span className="text-xs text-amber-500 font-bold">勝</span>}
-                              {pitcher.pitcher_award === "lose" && <span className="text-xs text-slate-500 font-bold">敗</span>}
-                              {pitcher.pitcher_award === "save" && <span className="text-xs text-blue-500 font-bold">S</span>}
-                              {pitcher.pitcher_award === "hold" && <span className="text-xs text-emerald-500 font-bold">H</span>}
-                              <span className="font-medium text-slate-800">{pitcher.player_name}</span>
-                            </div>
-                            <span className="text-xs text-slate-400">{formatInnings(pitcher.innings_outs, pitcher.is_mid_inning_exit)}</span>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {pitcher.pitcher_award === "win"  && <span className="text-xs text-amber-500 font-bold">勝</span>}
+                            {pitcher.pitcher_award === "lose" && <span className="text-xs text-slate-500 font-bold">敗</span>}
+                            {pitcher.pitcher_award === "save" && <span className="text-xs text-blue-500 font-bold">S</span>}
+                            {pitcher.pitcher_award === "hold" && <span className="text-xs text-emerald-500 font-bold">H</span>}
+                            <span className="font-medium text-slate-800">{pitcher.player_name}</span>
                           </div>
                         </td>
                       </>

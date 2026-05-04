@@ -283,6 +283,19 @@ export function PitcherInput({
     setIsInningDialogOpen(false)
   }
 
+  const handleInningStatsDelete = () => {
+    const updated = [...pitchers]
+    const pitcher = { ...updated[inningDialogPitcherIndex] }
+    const stats = (pitcher.inningStats ?? []).filter(s => s.inning !== inningDialogInning)
+    pitcher.inningStats = stats
+    const agg = sumInningStats(stats)
+    pitcher.outsPitched = agg.outsPitched
+    pitcher.isMidInningExit = agg.isMidInningExit
+    updated[inningDialogPitcherIndex] = pitcher
+    onPitchersChange(updated)
+    setIsInningDialogOpen(false)
+  }
+
   // ── 共通UIパーツ ──
   const StatButton = ({
     label,
@@ -494,19 +507,16 @@ export function PitcherInput({
                     </td>
                     <td
                       rowSpan={3}
-                      className="px-3 py-1 align-middle cursor-pointer hover:bg-blue-50 transition-colors"
+                      className="px-2 py-1 align-middle min-w-[4rem] max-w-[5rem] cursor-pointer hover:bg-blue-50 transition-colors"
                       onClick={() => handleInningEditPlayer(pIdx)}
                     >
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-1">
-                          {pitcher.award === "win"  && <span className="text-xs text-amber-500 font-bold">勝</span>}
-                          {pitcher.award === "lose" && <span className="text-xs text-slate-500 font-bold">敗</span>}
-                          {pitcher.award === "save" && <span className="text-xs text-blue-500 font-bold">S</span>}
-                          {pitcher.award === "hold" && <span className="text-xs text-emerald-500 font-bold">H</span>}
-                          <span className="font-medium text-slate-800">{pitcher.playerName || <span className="text-slate-400">名前を設定</span>}</span>
-                          {pitcher.isHelper && <span className="text-xs px-1 rounded bg-purple-100 text-purple-600">助っ人</span>}
-                        </div>
-                        <span className="text-xs text-slate-400">{formatInnings(pitcher.outsPitched, pitcher.isMidInningExit)}</span>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {pitcher.award === "win"  && <span className="text-xs text-amber-500 font-bold">勝</span>}
+                        {pitcher.award === "lose" && <span className="text-xs text-slate-500 font-bold">敗</span>}
+                        {pitcher.award === "save" && <span className="text-xs text-blue-500 font-bold">S</span>}
+                        {pitcher.award === "hold" && <span className="text-xs text-emerald-500 font-bold">H</span>}
+                        <span className="font-medium text-slate-800">{pitcher.playerName || <span className="text-slate-400">名前を設定</span>}</span>
+                        {pitcher.isHelper && <span className="text-xs px-1 rounded bg-purple-100 text-purple-600">助っ人</span>}
                       </div>
                     </td>
                   </>
@@ -780,6 +790,15 @@ export function PitcherInput({
               <StatButton label="自責点" value={inningForm.earnedRuns} onChange={(v) => setInningForm({ ...inningForm, earnedRuns: v })} />
               <StatButton label="被本塁打" value={inningForm.homeRuns} onChange={(v) => setInningForm({ ...inningForm, homeRuns: v })} />
             </div>
+            {pitchers[inningDialogPitcherIndex]?.inningStats?.some(s => s.inning === inningDialogInning) && (
+              <Button
+                variant="outline"
+                className="w-full h-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                onClick={handleInningStatsDelete}
+              >
+                このイニングのデータを削除
+              </Button>
+            )}
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setIsInningDialogOpen(false)}>キャンセル</Button>
               <Button className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold" onClick={handleInningStatsSave}>保存</Button>
