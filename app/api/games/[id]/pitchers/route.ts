@@ -4,6 +4,7 @@ import { requireGameAccess } from "@/lib/auth"
 
 interface PitcherInningStatsInput {
   inning: number
+  outs: number
   runs: number
   hits: number
   strikeouts: number
@@ -98,6 +99,7 @@ export async function POST(
         const inningInserts: Array<{
           pitcher_result_id: string
           inning: number
+          outs: number
           runs: number
           hits: number
           strikeouts: number
@@ -115,6 +117,7 @@ export async function POST(
               inningInserts.push({
                 pitcher_result_id: inserted.id,
                 inning: s.inning,
+                outs: s.outs ?? 3,
                 runs: s.runs,
                 hits: s.hits,
                 strikeouts: s.strikeouts,

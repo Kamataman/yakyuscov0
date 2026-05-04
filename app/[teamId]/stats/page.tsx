@@ -56,7 +56,7 @@ export default async function StatsPage({ params }: Props) {
 
   // イニングごとの成績を取得（存在する場合は集計値として使用）
   const pitcherResultIds = (pitcherResultsResult.data ?? []).map((r: { id: string }) => r.id)
-  const inningStatsMap = new Map<string, { hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; batters_faced: number }>()
+  const inningStatsMap = new Map<string, { hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; batters_faced: number; outs_pitched: number }>()
   if (pitcherResultIds.length > 0) {
     const { data: inningRows } = await supabase
       .from("pitcher_inning_stats")
@@ -64,7 +64,7 @@ export default async function StatsPage({ params }: Props) {
       .in("pitcher_result_id", pitcherResultIds)
     if (inningRows) {
       for (const row of inningRows) {
-        const prev = inningStatsMap.get(row.pitcher_result_id) ?? { hits: 0, runs: 0, earned_runs: 0, strikeouts: 0, walks: 0, hit_by_pitch: 0, home_runs: 0, batters_faced: 0 }
+        const prev = inningStatsMap.get(row.pitcher_result_id) ?? { hits: 0, runs: 0, earned_runs: 0, strikeouts: 0, walks: 0, hit_by_pitch: 0, home_runs: 0, batters_faced: 0, outs_pitched: 0 }
         inningStatsMap.set(row.pitcher_result_id, {
           hits: prev.hits + row.hits,
           runs: prev.runs + row.runs,
@@ -74,6 +74,7 @@ export default async function StatsPage({ params }: Props) {
           hit_by_pitch: prev.hit_by_pitch + row.hit_by_pitch,
           home_runs: prev.home_runs + row.home_runs,
           batters_faced: prev.batters_faced + row.batters_faced,
+          outs_pitched: prev.outs_pitched + (row.outs ?? 3),
         })
       }
     }
@@ -148,7 +149,7 @@ export default async function StatsPage({ params }: Props) {
       pitcherResultsMap.set(result.player_id, { name: pitcherName, results: [] })
     }
     pitcherResultsMap.get(result.player_id)!.results.push({
-      outs_pitched: result.innings_outs || 0,
+      outs_pitched: inning ? inning.outs_pitched : (result.innings_outs || 0),
       hits: inning ? inning.hits : (result.hits || 0),
       runs: inning ? inning.runs : (result.runs || 0),
       earned_runs: inning ? inning.earned_runs : (result.earned_runs || 0),

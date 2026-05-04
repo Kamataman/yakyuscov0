@@ -35,7 +35,7 @@ function formatInnings(outs: number, isMidInningExit: boolean): string {
 }
 
 function sumInningStats(stats: PitcherInningStats[]) {
-  return stats.reduce(
+  const totals = stats.reduce(
     (acc, s) => ({
       hits: acc.hits + s.hits,
       runs: acc.runs + s.runs,
@@ -45,9 +45,12 @@ function sumInningStats(stats: PitcherInningStats[]) {
       hitByPitch: acc.hitByPitch + s.hitByPitch,
       homeRuns: acc.homeRuns + s.homeRuns,
       battersFaced: acc.battersFaced + s.battersFaced,
+      totalOuts: acc.totalOuts + (s.outs ?? 3),
     }),
-    { hits: 0, runs: 0, earnedRuns: 0, strikeouts: 0, walks: 0, hitByPitch: 0, homeRuns: 0, battersFaced: 0 }
+    { hits: 0, runs: 0, earnedRuns: 0, strikeouts: 0, walks: 0, hitByPitch: 0, homeRuns: 0, battersFaced: 0, totalOuts: 0 }
   )
+  const lastInning = stats[stats.length - 1]
+  return { ...totals, isMidInningExit: lastInning ? (lastInning.outs ?? 3) < 3 : false }
 }
 
 const STAT_ROWS = ["失点", "安打", "三振"] as const
@@ -123,18 +126,20 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
             </thead>
             <tbody className="[writing-mode:horizontal-tb]">
               {pitchers.map((pitcher, index) => {
-                const stats = pitcher.inningStats.length > 0
-                  ? sumInningStats(pitcher.inningStats)
-                  : {
-                      hits: pitcher.hits,
-                      runs: pitcher.runs,
-                      earnedRuns: pitcher.earned_runs,
-                      strikeouts: pitcher.strikeouts,
-                      walks: pitcher.walks,
-                      hitByPitch: pitcher.hit_by_pitch,
-                      homeRuns: pitcher.home_runs,
-                      battersFaced: pitcher.batters_faced ?? 0,
-                    }
+                const hasInning = pitcher.inningStats.length > 0
+                const inningSum = hasInning ? sumInningStats(pitcher.inningStats) : null
+                const stats = inningSum ?? {
+                  hits: pitcher.hits,
+                  runs: pitcher.runs,
+                  earnedRuns: pitcher.earned_runs,
+                  strikeouts: pitcher.strikeouts,
+                  walks: pitcher.walks,
+                  hitByPitch: pitcher.hit_by_pitch,
+                  homeRuns: pitcher.home_runs,
+                  battersFaced: pitcher.batters_faced ?? 0,
+                }
+                const inningsOuts = inningSum ? inningSum.totalOuts : pitcher.innings_outs
+                const isMidInningExit = inningSum ? inningSum.isMidInningExit : pitcher.is_mid_inning_exit
                 return (
                   <tr key={index} className="border-b">
                     <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 [text-orientation:upright]">
@@ -143,8 +148,8 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
                       {pitcher.pitcher_award === "save" && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}
                       {pitcher.pitcher_award === "hold" && <span className="rounded bg-purple-100 px-1 text-purple-700">H</span>}
                     </td>
-                    <td className="sticky left-10 z-10 bg-white min-w-[5rem] px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
-                    <td className="px-2 py-2">{formatInnings(pitcher.innings_outs, pitcher.is_mid_inning_exit)}</td>
+                    <td className="sticky left-10 z-10 bg-white min-w-[4rem] max-w-[5rem] px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
+                    <td className="px-2 py-2">{formatInnings(inningsOuts, isMidInningExit)}</td>
                     <td className="px-2 py-2">{stats.battersFaced}</td>
                     <td className="px-2 py-2">{stats.hits}</td>
                     <td className="px-2 py-2">{stats.homeRuns}</td>
@@ -165,7 +170,7 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
             <thead className="bg-slate-50 text-slate-600">
               <tr>
                 <th className="px-2 py-2 text-center font-medium w-8">#</th>
-                <th className="px-3 py-2 text-left font-medium min-w-[5rem]">投手</th>
+                <th className="px-2 py-2 text-left font-medium min-w-[4rem] max-w-[5rem]">投手</th>
                 <th className="px-2 py-2 text-center font-medium w-10">項目</th>
                 {inningColumns.map(n => (
                   <th key={n} className="px-1 py-2 text-center font-medium w-8">{n}</th>
@@ -179,7 +184,7 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
                     {sIdx === 0 && (
                       <>
                         <td rowSpan={3} className="px-2 py-1 text-center text-slate-500 align-middle">{pIdx + 1}</td>
-                        <td rowSpan={3} className="px-3 py-1 align-middle">
+                        <td rowSpan={3} className="px-2 py-1 align-middle min-w-[4rem] max-w-[5rem]">
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-1">
                               {pitcher.pitcher_award === "win"  && <span className="text-xs text-amber-500 font-bold">勝</span>}

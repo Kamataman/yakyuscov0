@@ -58,6 +58,7 @@ const EMPTY_PITCHER: PitcherResult = {
 
 const EMPTY_INNING_STATS: PitcherInningStats = {
   inning: 0,
+  outs: 3,
   runs: 0,
   hits: 0,
   strikeouts: 0,
@@ -68,8 +69,15 @@ const EMPTY_INNING_STATS: PitcherInningStats = {
   battersFaced: 0,
 }
 
-function sumInningStats(inningStats: PitcherInningStats[]): Pick<PitcherResult, "hits" | "runs" | "earnedRuns" | "strikeouts" | "walks" | "hitByPitch" | "homeRuns" | "battersFaced"> {
-  return inningStats.reduce(
+const OUTS_OPTIONS = [
+  { outs: 0, label: "0/3" },
+  { outs: 1, label: "1/3" },
+  { outs: 2, label: "2/3" },
+  { outs: 3, label: "1回" },
+] as const
+
+function sumInningStats(inningStats: PitcherInningStats[]): Pick<PitcherResult, "hits" | "runs" | "earnedRuns" | "strikeouts" | "walks" | "hitByPitch" | "homeRuns" | "battersFaced" | "outsPitched" | "isMidInningExit"> {
+  const totals = inningStats.reduce(
     (acc, s) => ({
       hits: acc.hits + s.hits,
       runs: acc.runs + s.runs,
@@ -79,9 +87,12 @@ function sumInningStats(inningStats: PitcherInningStats[]): Pick<PitcherResult, 
       hitByPitch: acc.hitByPitch + s.hitByPitch,
       homeRuns: acc.homeRuns + s.homeRuns,
       battersFaced: acc.battersFaced + s.battersFaced,
+      outsPitched: acc.outsPitched + (s.outs ?? 3),
     }),
-    { hits: 0, runs: 0, earnedRuns: 0, strikeouts: 0, walks: 0, hitByPitch: 0, homeRuns: 0, battersFaced: 0 }
+    { hits: 0, runs: 0, earnedRuns: 0, strikeouts: 0, walks: 0, hitByPitch: 0, homeRuns: 0, battersFaced: 0, outsPitched: 0 }
   )
+  const lastInning = inningStats[inningStats.length - 1]
+  return { ...totals, isMidInningExit: lastInning ? (lastInning.outs ?? 3) < 3 : false }
 }
 
 export function PitcherInput({
@@ -154,6 +165,8 @@ export function PitcherInput({
       // 集約 → イニング: aggregate フィールド → inning=1 のデータに変換、aggregate フィールドをリセット
       const updated = pitchers.map(p => ({
         ...p,
+        outsPitched: 0,
+        isMidInningExit: false,
         hits: 0,
         runs: 0,
         earnedRuns: 0,
@@ -165,6 +178,7 @@ export function PitcherInput({
         inningStats: [
           {
             inning: 1,
+            outs: 3,
             runs: p.runs,
             hits: p.hits,
             strikeouts: p.strikeouts,
@@ -260,6 +274,10 @@ export function PitcherInput({
       stats.sort((a, b) => a.inning - b.inning)
     }
     pitcher.inningStats = stats
+    // outsPitched / isMidInningExit をイニングデータから再計算
+    const agg = sumInningStats(stats)
+    pitcher.outsPitched = agg.outsPitched
+    pitcher.isMidInningExit = agg.isMidInningExit
     updated[inningDialogPitcherIndex] = pitcher
     onPitchersChange(updated)
     setIsInningDialogOpen(false)
@@ -457,7 +475,7 @@ export function PitcherInput({
         <thead className="bg-slate-50 text-slate-600">
           <tr>
             <th className="px-2 py-2 text-center font-medium w-8">#</th>
-            <th className="px-3 py-2 text-left font-medium min-w-[5rem]">投手</th>
+            <th className="px-2 py-2 text-left font-medium min-w-[4rem] max-w-[5rem]">投手</th>
             <th className="px-2 py-2 text-center font-medium w-10">項目</th>
             {inningColumns.map(n => (
               <th key={n} className="px-1 py-2 text-center font-medium w-8">{n}</th>
@@ -570,9 +588,9 @@ export function PitcherInput({
                 {pitcher.award === "save" && <span className="text-blue-500 font-bold">S</span>}
                 {pitcher.award === "hold" && <span className="text-emerald-500 font-bold">H</span>}
               </td>
-              <td className="px-3 py-2 font-medium text-slate-800">
-                <div className="flex items-center gap-1.5">
-                  {pitcher.playerName}
+              <td className="px-2 py-2 font-medium text-slate-800 min-w-[4rem] max-w-[5rem]">
+                <div className="flex items-center gap-1 flex-wrap">
+                  <span>{pitcher.playerName}</span>
                   {pitcher.isHelper && <span className="text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-600 font-medium">助っ人</span>}
                 </div>
               </td>
@@ -685,13 +703,13 @@ export function PitcherInput({
             <div className="bg-slate-50 rounded-xl p-4">
               <div className="grid grid-cols-1 gap-y-3 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-4">
                 <StatButton label="打者" value={aggForm.battersFaced ?? 0} onChange={(v) => setAggForm({ ...aggForm, battersFaced: v })} />
+                <StatButton label="失点" value={aggForm.runs} onChange={(v) => setAggForm({ ...aggForm, runs: v })} />
                 <StatButton label="被安打" value={aggForm.hits} onChange={(v) => setAggForm({ ...aggForm, hits: v })} />
-                <StatButton label="被本塁打" value={aggForm.homeRuns} onChange={(v) => setAggForm({ ...aggForm, homeRuns: v })} />
                 <StatButton label="奪三振" value={aggForm.strikeouts} onChange={(v) => setAggForm({ ...aggForm, strikeouts: v })} />
                 <StatButton label="四球" value={aggForm.walks} onChange={(v) => setAggForm({ ...aggForm, walks: v })} />
                 <StatButton label="死球" value={aggForm.hitByPitch} onChange={(v) => setAggForm({ ...aggForm, hitByPitch: v })} />
-                <StatButton label="失点" value={aggForm.runs} onChange={(v) => setAggForm({ ...aggForm, runs: v })} />
                 <StatButton label="自責点" value={aggForm.earnedRuns} onChange={(v) => setAggForm({ ...aggForm, earnedRuns: v })} />
+                <StatButton label="被本塁打" value={aggForm.homeRuns} onChange={(v) => setAggForm({ ...aggForm, homeRuns: v })} />
               </div>
             </div>
             <AwardSection form={aggForm} setForm={setAggForm} />
@@ -713,11 +731,10 @@ export function PitcherInput({
           </DialogHeader>
           <div className="space-y-6 py-4">
             <PlayerNameSection form={playerForm} setForm={setPlayerForm} />
-            <InningsSection form={playerForm} setForm={setPlayerForm} />
             <AwardSection form={playerForm} setForm={setPlayerForm} />
             <div className="flex gap-3 pt-2">
               <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setIsPlayerDialogOpen(false)}>キャンセル</Button>
-              <Button className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold" onClick={handlePlayerSave} disabled={!playerForm.playerName.trim()}>保存</Button>
+              <Button className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold" onClick={handlePlayerSave} disabled={!playerForm.playerName.trim() && !playerForm.isHelper}>保存</Button>
             </div>
           </div>
         </DialogContent>
@@ -732,15 +749,36 @@ export function PitcherInput({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* 投球回 */}
+            <div>
+              <label className="text-sm font-semibold text-slate-700 mb-2 block">投球回</label>
+              <div className="flex gap-2">
+                {OUTS_OPTIONS.map(opt => (
+                  <button
+                    key={opt.outs}
+                    onClick={() => setInningForm({ ...inningForm, outs: opt.outs })}
+                    className={cn(
+                      "flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all border",
+                      inningForm.outs === opt.outs
+                        ? "bg-blue-600 text-white border-blue-600 shadow"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* スタッツ */}
             <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+              <StatButton label="打者数" value={inningForm.battersFaced} onChange={(v) => setInningForm({ ...inningForm, battersFaced: v })} />
               <StatButton label="失点" value={inningForm.runs} onChange={(v) => setInningForm({ ...inningForm, runs: v })} />
-              <StatButton label="自責点" value={inningForm.earnedRuns} onChange={(v) => setInningForm({ ...inningForm, earnedRuns: v })} />
               <StatButton label="安打" value={inningForm.hits} onChange={(v) => setInningForm({ ...inningForm, hits: v })} />
               <StatButton label="三振" value={inningForm.strikeouts} onChange={(v) => setInningForm({ ...inningForm, strikeouts: v })} />
               <StatButton label="四球" value={inningForm.walks} onChange={(v) => setInningForm({ ...inningForm, walks: v })} />
               <StatButton label="死球" value={inningForm.hitByPitch} onChange={(v) => setInningForm({ ...inningForm, hitByPitch: v })} />
+              <StatButton label="自責点" value={inningForm.earnedRuns} onChange={(v) => setInningForm({ ...inningForm, earnedRuns: v })} />
               <StatButton label="被本塁打" value={inningForm.homeRuns} onChange={(v) => setInningForm({ ...inningForm, homeRuns: v })} />
-              <StatButton label="打者数" value={inningForm.battersFaced} onChange={(v) => setInningForm({ ...inningForm, battersFaced: v })} />
             </div>
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setIsInningDialogOpen(false)}>キャンセル</Button>

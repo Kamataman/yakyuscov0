@@ -64,6 +64,7 @@ export default async function GameDetailPage({ params }: Props) {
         }
         pitcherInningStatsMap[row.pitcher_result_id].push({
           inning: row.inning,
+          outs: row.outs ?? 3,
           runs: row.runs,
           hits: row.hits,
           strikeouts: row.strikeouts,

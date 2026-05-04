@@ -78,6 +78,7 @@ export async function GET(
         }
         inningStatsMap[row.pitcher_result_id].push({
           inning: row.inning,
+          outs: row.outs ?? 3,
           runs: row.runs,
           hits: row.hits,
           strikeouts: row.strikeouts,
@@ -278,6 +279,7 @@ export async function PUT(
       isHelper?: boolean
       inningStats?: Array<{
         inning: number
+        outs: number
         runs: number
         hits: number
         strikeouts: number
@@ -317,6 +319,7 @@ export async function PUT(
       const inningInserts: Array<{
         pitcher_result_id: string
         inning: number
+        outs: number
         runs: number
         hits: number
         strikeouts: number
@@ -333,6 +336,7 @@ export async function PUT(
             inningInserts.push({
               pitcher_result_id: inserted.id,
               inning: s.inning,
+              outs: s.outs ?? 3,
               runs: s.runs,
               hits: s.hits,
               strikeouts: s.strikeouts,

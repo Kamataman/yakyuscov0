@@ -121,6 +121,7 @@ export type PitcherAward = 'win' | 'lose' | 'save' | 'hold'
 // イニングごとの投手成績
 export interface PitcherInningStats {
   inning: number
+  outs: number        // 0, 1, 2, or 3 outs pitched in this inning (default 3 = 1回)
   runs: number
   hits: number
   strikeouts: number
