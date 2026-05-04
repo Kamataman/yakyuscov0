@@ -77,6 +77,9 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
   // 投手成績
   const [pitchers, setPitchers] = useState<PitcherResult[]>([])
 
+  // 現在入力中のイニング（ハイライト用）
+  const [activeInning, setActiveInning] = useState<number | null>(null)
+
   // 共有URL関連
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [generatedShareToken, setGeneratedShareToken] = useState<string | null>(null)
@@ -449,6 +452,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
   }, [apiRequest, gameId])
 
   const handleCellClick = (position: CellPosition) => {
+    setActiveInning(position.inning)
     setSelectedCell(position)
     setDialogOpen(true)
   }
@@ -670,6 +674,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           hasX={hasX}
           xScore={xScore}
           onXChange={handleXChange}
+          activeInning={activeInning}
+          onInningFocus={setActiveInning}
           onTotalInningsChange={(value) => {
             handleGameInfoChange("totalInnings", value)
             // イニングスコア配列も調整
@@ -696,6 +702,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           atBatSequences={atBatSequences}
           onAddAtBat={handleAddAtBat}
           onRemoveAtBat={handleRemoveAtBat}
+          activeInning={activeInning}
         />
 
         <PitcherInput
@@ -703,6 +710,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           onPitchersChange={handlePitchersChange}
           registeredPlayers={registeredPlayers}
           totalInnings={totalInnings}
+          activeInning={activeInning}
+          onInningFocus={setActiveInning}
         />
       </div>
 

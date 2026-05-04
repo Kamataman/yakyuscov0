@@ -13,6 +13,8 @@ interface PitcherInputProps {
   onPitchersChange: (pitchers: PitcherResult[]) => void
   registeredPlayers?: Player[]
   totalInnings?: number
+  activeInning?: number | null
+  onInningFocus?: (inning: number) => void
 }
 
 export function formatInnings(outs: number, isMidInningExit: boolean): string {
@@ -100,6 +102,8 @@ export function PitcherInput({
   onPitchersChange,
   registeredPlayers = [],
   totalInnings = 9,
+  activeInning,
+  onInningFocus,
 }: PitcherInputProps) {
   const [inputMode, setInputMode] = useState<InputMode>("inning")
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; targetMode: InputMode }>({ open: false, targetMode: "aggregate" })
@@ -254,6 +258,7 @@ export function PitcherInput({
   }
 
   const handleInningCellClick = (pitcherIndex: number, inning: number) => {
+    onInningFocus?.(inning)
     setInningDialogPitcherIndex(pitcherIndex)
     setInningDialogInning(inning)
     const existing = pitchers[pitcherIndex].inningStats?.find(s => s.inning === inning)
@@ -491,7 +496,7 @@ export function PitcherInput({
             <th className="px-2 py-2 text-left font-medium min-w-[4rem] max-w-[5rem]">投手</th>
             <th className="px-2 py-2 text-center font-medium w-10">項目</th>
             {inningColumns.map(n => (
-              <th key={n} className="px-1 py-2 text-center font-medium w-8">{n}</th>
+              <th key={n} className={cn("px-1 py-2 text-center font-medium w-8 transition-colors", n === activeInning && "bg-amber-100 text-amber-800")}>{n}</th>
             ))}
             <th className="w-8"></th>
           </tr>
@@ -527,7 +532,10 @@ export function PitcherInput({
                   return (
                     <td
                       key={inning}
-                      className="px-1 py-1 text-center cursor-pointer hover:bg-blue-50 transition-colors rounded"
+                      className={cn(
+                        "px-1 py-1 text-center cursor-pointer hover:bg-blue-50 transition-colors rounded",
+                        inning === activeInning && "bg-amber-50"
+                      )}
                       onClick={() => handleInningCellClick(pIdx, inning)}
                     >
                       {val !== null ? (
