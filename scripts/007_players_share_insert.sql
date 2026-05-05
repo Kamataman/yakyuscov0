@@ -4,7 +4,7 @@
 -- ============================================================
 
 -- team_id に有効な共有トークンが存在するか確認するヘルパー関数
-CREATE OR REPLACE FUNCTION public.team_has_valid_share_token(p_team_id UUID)
+CREATE OR REPLACE FUNCTION public.team_has_valid_share_token(p_team_id TEXT)
 RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
