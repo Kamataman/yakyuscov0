@@ -3,7 +3,12 @@
 import { useState } from "react"
 import { Check, ChevronsUpDown, UserPlus } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Command,
   CommandEmpty,
@@ -12,8 +17,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Player } from "@/lib/batting-types"
 import { sortPlayersByNumber } from "@/lib/sort-utils"
@@ -46,7 +49,7 @@ export function PlayerCombobox({
   placeholder = "選手を選択...",
   className,
 }: PlayerComboboxProps) {
-  const [open, setOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   const [registerOpen, setRegisterOpen] = useState(false)
   const [newName, setNewName] = useState("")
@@ -68,7 +71,7 @@ export function PlayerCombobox({
       onPlayerAdded?.(player)
       onChange(player)
       setRegisterOpen(false)
-      setOpen(false)
+      setSearchOpen(false)
       setNewName("")
       setNewNumber("")
     } catch (e) {
@@ -80,33 +83,40 @@ export function PlayerCombobox({
 
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            role="combobox"
-            aria-expanded={open}
-            className={cn(
-              "w-full h-12 px-4 flex items-center justify-between rounded-xl",
-              "bg-white border border-slate-200 text-base",
-              "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400",
-              className
-            )}
-          >
-            <span className={selectedPlayer ? "text-slate-800" : "text-slate-400"}>
-              {selectedPlayer ? formatPlayerLabel(selectedPlayer) : placeholder}
-            </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+      {/* 選手選択トリガーボタン */}
+      <button
+        type="button"
+        onClick={() => {
+          setSearchValue("")
+          setSearchOpen(true)
+        }}
+        className={cn(
+          "w-full h-12 px-4 flex items-center justify-between rounded-xl",
+          "bg-white border border-slate-200 text-base",
+          "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400",
+          className
+        )}
+      >
+        <span className={selectedPlayer ? "text-slate-800" : "text-slate-400"}>
+          {selectedPlayer ? formatPlayerLabel(selectedPlayer) : placeholder}
+        </span>
+        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </button>
+
+      {/* 選手検索ダイアログ */}
+      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <DialogContent className="max-w-sm p-0 gap-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>選手を選択</DialogTitle>
+          </DialogHeader>
           <Command>
             <CommandInput
               placeholder="名前で検索..."
               value={searchValue}
               onValueChange={setSearchValue}
+              className="h-14 text-base"
             />
-            <CommandList>
+            <CommandList className="max-h-[50vh] overflow-y-auto">
               <CommandEmpty>
                 {canAddPlayer ? (
                   <button
@@ -115,13 +125,13 @@ export function PlayerCombobox({
                       setNewName(searchValue)
                       setRegisterOpen(true)
                     }}
-                    className="w-full py-3 px-4 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+                    className="w-full py-4 px-4 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
                   >
                     <UserPlus className="h-4 w-4 shrink-0" />
                     {searchValue ? `「${searchValue}」を登録` : "選手を登録"}
                   </button>
                 ) : (
-                  <p className="py-3 text-sm text-slate-400">一致する選手がいません</p>
+                  <p className="py-4 text-sm text-slate-400">一致する選手がいません</p>
                 )}
               </CommandEmpty>
               <CommandGroup>
@@ -129,14 +139,15 @@ export function PlayerCombobox({
                   <CommandItem
                     key={player.id}
                     value={player.name}
+                    className="py-3 text-base"
                     onSelect={() => {
                       onChange(player)
-                      setOpen(false)
+                      setSearchOpen(false)
                       setSearchValue("")
                     }}
                   >
                     <Check
-                      className={cn("mr-2 h-4 w-4", value === player.id ? "opacity-100" : "opacity-0")}
+                      className={cn("mr-2 h-4 w-4 shrink-0", value === player.id ? "opacity-100" : "opacity-0")}
                     />
                     {formatPlayerLabel(player)}
                   </CommandItem>
@@ -144,9 +155,10 @@ export function PlayerCombobox({
               </CommandGroup>
             </CommandList>
           </Command>
-        </PopoverContent>
-      </Popover>
+        </DialogContent>
+      </Dialog>
 
+      {/* 選手登録ダイアログ */}
       <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -178,23 +190,24 @@ export function PlayerCombobox({
             {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1"
+            <button
+              type="button"
               onClick={() => {
                 setRegisterOpen(false)
                 setError(null)
               }}
+              className="flex-1 h-12 rounded-xl font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all"
             >
               キャンセル
-            </Button>
-            <Button
-              className="flex-1"
+            </button>
+            <button
+              type="button"
               onClick={handleRegister}
               disabled={!newName.trim() || isSubmitting}
+              className="flex-1 h-12 rounded-xl font-semibold bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50 disabled:pointer-events-none"
             >
               {isSubmitting ? "登録中..." : "登録"}
-            </Button>
+            </button>
           </div>
         </DialogContent>
       </Dialog>
