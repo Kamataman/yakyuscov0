@@ -38,9 +38,11 @@ export function PlayerSelectDialog({
   shareToken,
 }: PlayerSelectDialogProps) {
   const [entries, setEntries] = useState<LineupEntry[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (open) {
+      setError(null)
       if (currentEntries.length > 0) {
         setEntries(currentEntries)
       } else {
@@ -120,6 +122,12 @@ export function PlayerSelectDialog({
 
   const handleSave = () => {
     const validEntries = entries.filter((e) => e.playerName.trim() !== "")
+    const missingInning = validEntries.some((e) => e.isSubstitute && !e.enteredInning)
+    if (missingInning) {
+      setError("途中出場選手の出場イニングを選択してください")
+      return
+    }
+    setError(null)
     onSave(validEntries)
     onOpenChange(false)
   }
@@ -252,6 +260,7 @@ export function PlayerSelectDialog({
                       <button
                         key={inning}
                         onClick={() => {
+                          setError(null)
                           setEntries((prev) => {
                             const newEntries = [...prev]
                             newEntries[index] = { ...newEntries[index], enteredInning: inning }
@@ -286,6 +295,13 @@ export function PlayerSelectDialog({
             + 途中出場を追加
           </button>
         </div>
+
+        {/* バリデーションエラー */}
+        {error && (
+          <p className="text-sm text-red-600 font-medium text-center">
+            {error}
+          </p>
+        )}
 
         {/* 保存ボタン */}
         <div className="flex gap-3">
