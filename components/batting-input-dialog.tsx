@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
 import { cn } from "@/lib/utils"
 import type { BattingResult, HitResult, HitDirection, CellPosition, RunnerState, StolenBase } from "@/lib/batting-types"
 
@@ -63,6 +64,7 @@ export function BattingInputDialog({
   const [scored, setScored] = useState<boolean>(false)
   const [runners, setRunners] = useState<RunnerState>({ first: false, second: false, third: false })
   const [stolenBases, setStolenBases] = useState<StolenBase>({ second: false, third: false, home: false })
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   useEffect(() => {
     if (existingResult) {
@@ -471,13 +473,22 @@ export function BattingInputDialog({
         {/* 固定フッター - アクションボタン */}
         <div className="sticky bottom-0 z-20 flex gap-3 p-4 bg-white border-t border-slate-200 flex-shrink-0">
           {existingResult && (
-            <Button
-              variant="destructive"
-              onClick={onDelete}
-              className="flex-1 h-12 text-base font-bold rounded-xl"
-            >
-              削除
-            </Button>
+            <>
+              <Button
+                variant="destructive"
+                onClick={() => setDeleteConfirmOpen(true)}
+                className="flex-1 h-12 text-base font-bold rounded-xl"
+              >
+                削除
+              </Button>
+              <ConfirmDeleteDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+                title="打席結果を削除しますか？"
+                description="この打席の記録が削除されます。"
+                onConfirm={() => { setDeleteConfirmOpen(false); onDelete() }}
+              />
+            </>
           )}
           <Button
             variant="outline"

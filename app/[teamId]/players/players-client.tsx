@@ -4,6 +4,7 @@ import { useState } from "react"
 import { PlusCircle, Users, Loader2, X, Pencil, Trash2, Check } from "lucide-react"
 import { sortPlayersByNumber } from "@/lib/sort-utils"
 import { addPlayer, updatePlayer, deletePlayer } from "./actions"
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
 
 interface Player {
   id: string
@@ -26,6 +27,7 @@ export function PlayersClient({ initialPlayers, isAdmin, teamId }: PlayersClient
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
   const [editNumber, setEditNumber] = useState("")
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
 
   const handleAdd = async () => {
     if (!newName.trim()) {
@@ -66,8 +68,14 @@ export function PlayersClient({ initialPlayers, isAdmin, teamId }: PlayersClient
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("この選手を削除しますか？")) return
+  const handleDelete = (id: string) => {
+    setDeleteTargetId(id)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId) return
+    const id = deleteTargetId
+    setDeleteTargetId(null)
     try {
       await deletePlayer(teamId, id)
       setPlayers((prev) => prev.filter((p) => p.id !== id))
@@ -185,6 +193,13 @@ export function PlayersClient({ initialPlayers, isAdmin, teamId }: PlayersClient
           </div>
         )}
       </div>
+      <ConfirmDeleteDialog
+        open={deleteTargetId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTargetId(null) }}
+        title="選手を削除しますか？"
+        description="この操作は取り消せません。選手に関連するすべてのデータが削除されます。"
+        onConfirm={handleConfirmDelete}
+      />
     </main>
   )
 }
