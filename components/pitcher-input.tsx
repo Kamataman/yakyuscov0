@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import type { PitcherResult, PitcherInningStats, Player } from "@/lib/batting-types"
 import { Plus, Trash2, Trophy, ThumbsDown, Shield, Star, Minus, HelpCircle } from "lucide-react"
 import { PlayerCombobox } from "@/components/player-combobox"
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
 
 interface PitcherInputProps {
   pitchers: PitcherResult[]
@@ -144,6 +145,11 @@ export function PitcherInput({
   const [inningDialogInning, setInningDialogInning] = useState<number>(1)
   const [inningForm, setInningForm] = useState<PitcherInningStats>(EMPTY_INNING_STATS)
 
+  // 削除確認ダイアログ
+  const [aggDeleteTarget, setAggDeleteTarget] = useState<number | null>(null)
+  const [inningDeleteTarget, setInningDeleteTarget] = useState<number | null>(null)
+  const [inningStatsDeleteOpen, setInningStatsDeleteOpen] = useState(false)
+
   const handleModeToggle = (newMode: InputMode) => {
     if (newMode === inputMode) return
 
@@ -222,7 +228,13 @@ export function PitcherInput({
   }
 
   const handleAggDelete = (index: number) => {
-    onPitchersChange(pitchers.filter((_, i) => i !== index))
+    setAggDeleteTarget(index)
+  }
+
+  const handleAggDeleteConfirm = () => {
+    if (aggDeleteTarget === null) return
+    onPitchersChange(pitchers.filter((_, i) => i !== aggDeleteTarget))
+    setAggDeleteTarget(null)
   }
 
   const handleAggSave = () => {
@@ -251,7 +263,13 @@ export function PitcherInput({
   }
 
   const handleInningDeletePitcher = (index: number) => {
-    onPitchersChange(pitchers.filter((_, i) => i !== index))
+    setInningDeleteTarget(index)
+  }
+
+  const handleInningDeleteConfirm = () => {
+    if (inningDeleteTarget === null) return
+    onPitchersChange(pitchers.filter((_, i) => i !== inningDeleteTarget))
+    setInningDeleteTarget(null)
   }
 
   const handlePlayerSave = () => {
@@ -298,6 +316,10 @@ export function PitcherInput({
   }
 
   const handleInningStatsDelete = () => {
+    setInningStatsDeleteOpen(true)
+  }
+
+  const handleInningStatsDeleteConfirm = () => {
     const updated = [...pitchers]
     const pitcher = { ...updated[inningDialogPitcherIndex] }
     const stats = (pitcher.inningStats ?? []).filter(s => s.inning !== inningDialogInning)
@@ -307,6 +329,7 @@ export function PitcherInput({
     pitcher.isMidInningExit = agg.isMidInningExit
     updated[inningDialogPitcherIndex] = pitcher
     onPitchersChange(updated)
+    setInningStatsDeleteOpen(false)
     setIsInningDialogOpen(false)
   }
 
@@ -841,6 +864,28 @@ export function PitcherInput({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDeleteDialog
+        open={aggDeleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setAggDeleteTarget(null) }}
+        title="投手を削除しますか？"
+        description="この投手の記録が削除されます。"
+        onConfirm={handleAggDeleteConfirm}
+      />
+      <ConfirmDeleteDialog
+        open={inningDeleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setInningDeleteTarget(null) }}
+        title="投手を削除しますか？"
+        description="この投手の記録が削除されます。"
+        onConfirm={handleInningDeleteConfirm}
+      />
+      <ConfirmDeleteDialog
+        open={inningStatsDeleteOpen}
+        onOpenChange={setInningStatsDeleteOpen}
+        title="イニングのデータを削除しますか？"
+        description="このイニングの成績が削除されます。"
+        onConfirm={handleInningStatsDeleteConfirm}
+      />
     </div>
   )
 }

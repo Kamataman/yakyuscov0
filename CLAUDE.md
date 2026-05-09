@@ -28,6 +28,15 @@
 
 ---
 
+## 削除処理のガイドライン
+
+- 削除操作には必ず `ConfirmDeleteDialog` コンポーネントで確認を挟む
+- `confirm()` や `alert()` などのブラウザネイティブダイアログは使用しない
+- コンポーネント: `components/confirm-delete-dialog.tsx`
+  - props: `open`, `onOpenChange`, `title`, `description`, `onConfirm`, `isPending?`
+
+---
+
 ## 禁止事項
 
 - README・ドキュメントを確認なしに生成・変更しない
