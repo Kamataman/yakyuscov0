@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { GameEditor } from "@/components/game-editor"
 import type { Player } from "@/lib/batting-types"
 
@@ -25,8 +26,16 @@ export function ShareGameEditor({ gameId, teamId, shareToken, opponent, date, pl
                 {date} vs {opponent}
               </p>
             </div>
-            <div className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">
-              共有リンクからのアクセス
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/${teamId}`}
+                className="text-xs text-slate-600 hover:text-slate-900 underline"
+              >
+                チームトップへ
+              </Link>
+              <div className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                共有リンクからのアクセス
+              </div>
             </div>
           </div>
         </div>
