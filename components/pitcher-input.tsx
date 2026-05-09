@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import type { PitcherResult, PitcherInningStats, Player } from "@/lib/batting-types"
-import { Plus, Trash2, Trophy, ThumbsDown, Shield, Star, Minus } from "lucide-react"
+import { Plus, Trash2, Trophy, ThumbsDown, Shield, Star, Minus, HelpCircle } from "lucide-react"
 import { PlayerCombobox } from "@/components/player-combobox"
 
 interface PitcherInputProps {
@@ -115,6 +115,7 @@ export function PitcherInput({
 }: PitcherInputProps) {
   const [inputMode, setInputMode] = useState<InputMode>("inning")
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; targetMode: InputMode }>({ open: false, targetMode: "aggregate" })
+  const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false)
 
   // プレーヤーデータに基づいてモードを初期化
   useEffect(() => {
@@ -638,6 +639,14 @@ export function PitcherInput({
       <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2">
         <h2 className="font-bold text-slate-700">投手成績</h2>
         <div className="flex items-center gap-2">
+          {/* ヘルプアイコン */}
+          <button
+            onClick={() => setIsHelpDialogOpen(true)}
+            className="text-slate-400 hover:text-slate-600 transition-colors"
+            aria-label="入力モードの説明"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
           {/* モードトグル */}
           <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
             <button
@@ -680,6 +689,28 @@ export function PitcherInput({
       ) : (
         renderAggregateTable()
       )}
+
+      {/* ── ヘルプダイアログ ── */}
+      <Dialog open={isHelpDialogOpen} onOpenChange={setIsHelpDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-slate-800">入力モードについて</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2 text-sm text-slate-600">
+            <div>
+              <p className="font-semibold text-slate-700 mb-1">イニングごと</p>
+              <p>各イニングの投球内容（被安打・奪三振・与四球など）をイニング単位で記録します。登板・交代のタイミングも管理できます。</p>
+            </div>
+            <div>
+              <p className="font-semibold text-slate-700 mb-1">試合集約</p>
+              <p>試合全体の投手成績（投球回・被安打・奪三振・与四球・失点など）をまとめて入力します。イニング詳細は記録しません。</p>
+            </div>
+          </div>
+          <Button className="w-full" onClick={() => setIsHelpDialogOpen(false)}>
+            閉じる
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       {/* ── 確認ダイアログ ── */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog(prev => ({ ...prev, open: false }))}>
