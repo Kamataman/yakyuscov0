@@ -393,7 +393,7 @@ export function BattingInputDialog({
                       key={result.value}
                       onClick={() => handleHitResultClick(result.value)}
                       className={cn(
-                        "px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200",
+                        "px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 active:opacity-75",
                         getCategoryColor(result.category),
                         getSelectedStyle(result)
                       )}
@@ -415,7 +415,7 @@ export function BattingInputDialog({
                   key={n}
                   onClick={() => setRbiCount(n)}
                   className={cn(
-                    "flex-1 h-12 rounded-xl font-bold text-lg transition-all duration-200",
+                    "flex-1 h-12 rounded-xl font-bold text-lg transition-all duration-200 active:opacity-75",
                     rbiCount === n
                       ? "bg-slate-800 text-white shadow-lg scale-105"
                       : "bg-white border-2 border-slate-200 text-slate-600 hover:border-slate-400"
@@ -433,7 +433,7 @@ export function BattingInputDialog({
             <button
               onClick={() => setScored(prev => !prev)}
               className={cn(
-                "h-12 px-6 rounded-xl font-bold text-sm transition-all duration-200",
+                "h-12 px-6 rounded-xl font-bold text-sm transition-all duration-200 active:opacity-75",
                 scored
                   ? "bg-rose-500 text-white shadow-lg scale-105"
                   : "bg-white border-2 border-slate-200 text-slate-600 hover:border-rose-400"
@@ -456,7 +456,7 @@ export function BattingInputDialog({
                   key={key}
                   onClick={() => toggleStolenBase(key)}
                   className={cn(
-                    "flex-1 h-12 rounded-xl font-bold text-sm transition-all duration-200",
+                    "flex-1 h-12 rounded-xl font-bold text-sm transition-all duration-200 active:opacity-75",
                     stolenBases[key]
                       ? "bg-orange-500 text-white shadow-lg scale-105"
                       : "bg-white border-2 border-slate-200 text-slate-600 hover:border-orange-400"

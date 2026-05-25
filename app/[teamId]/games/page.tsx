@@ -70,7 +70,7 @@ export default async function GamesListPage({ params }: Props) {
                 <Link
                   key={game.id}
                   href={`/${teamId}/games/${game.id}`}
-                  className="block rounded-xl bg-white p-4 shadow-md transition-all hover:shadow-lg"
+                  className="block rounded-xl bg-white p-4 shadow-md transition-all hover:shadow-lg active:scale-[0.98] active:opacity-80"
                 >
                   <div className="flex items-center justify-between">
                     <div>
