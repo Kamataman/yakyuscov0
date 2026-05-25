@@ -5,6 +5,15 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+@layer base {
+  button:not(:disabled):active {
+    opacity: 0.75;
+  }
+  a:active {
+    opacity: 0.8;
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

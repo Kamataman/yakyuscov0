@@ -70,7 +70,7 @@ export default async function TeamDashboardPage({ params }: Props) {
           {/* 試合一覧 */}
           <Link
             href={`/${teamId}/games`}
-            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg"
+            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg active:scale-[0.98] active:opacity-80"
           >
             <div className="flex items-start gap-4">
               <div className="rounded-xl bg-emerald-100 p-3">
@@ -93,7 +93,7 @@ export default async function TeamDashboardPage({ params }: Props) {
           {/* 個人成績 */}
           <Link
             href={`/${teamId}/stats`}
-            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg"
+            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg active:scale-[0.98] active:opacity-80"
           >
             <div className="flex items-start gap-4">
               <div className="rounded-xl bg-amber-100 p-3">
@@ -116,7 +116,7 @@ export default async function TeamDashboardPage({ params }: Props) {
           {/* 選手一覧 */}
           <Link
             href={`/${teamId}/players`}
-            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg"
+            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg active:scale-[0.98] active:opacity-80"
           >
             <div className="flex items-start gap-4">
               <div className="rounded-xl bg-purple-100 p-3">
@@ -163,7 +163,7 @@ export default async function TeamDashboardPage({ params }: Props) {
                     <Link
                       key={game.id}
                       href={`/${teamId}/games/${game.id}`}
-                      className="flex items-center justify-between rounded-lg border border-slate-100 p-3 transition-all hover:bg-slate-50"
+                      className="flex items-center justify-between rounded-lg border border-slate-100 p-3 transition-all hover:bg-slate-50 active:opacity-80 active:bg-slate-50"
                     >
                       <div>
                         <p className="text-sm text-slate-500">{game.date}</p>
