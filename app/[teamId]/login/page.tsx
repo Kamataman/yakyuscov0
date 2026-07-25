@@ -49,13 +49,12 @@ export default function TeamLoginPage() {
       }
 
       // ログインしたユーザーがこのチームの管理者か確認
-      const { data: team } = await supabase
-        .from("teams")
-        .select("id")
-        .eq("id", teamId)
-        .single();
+      const sessionRes = await fetch("/api/auth/session");
+      const { teamId: adminTeamId } = (await sessionRes.json()) as {
+        teamId: string | null;
+      };
 
-      if (!team) {
+      if (adminTeamId !== teamId) {
         await supabase.auth.signOut();
         setError("このチームの管理者ではありません");
         return;
