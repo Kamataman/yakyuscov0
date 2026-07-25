@@ -1,8 +1,15 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, PlusCircle, Shield } from "lucide-react"
+import { Calendar, PlusCircle, Shield, ImageIcon } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel"
 
 interface GameSummary {
   id: string
@@ -11,8 +18,7 @@ interface GameSummary {
   inning_scores: { our_score: number; opponent_score: number }[]
 }
 
-interface TeamProfile {
-  name: string
+interface TeamProfileExtra {
   description: string | null
   image_url: string | null
 }
@@ -21,11 +27,13 @@ interface Props {
   params: Promise<{ teamId: string }>
 }
 
+const galleryImages = [{ id: "dummy", label: "準備中" }]
+
 export default async function TeamDashboardPage({ params }: Props) {
   const { teamId } = await params
   const supabase = createServiceClient()
 
-  const [gamesResult, teamResult, adminSession] = await Promise.all([
+  const [gamesResult, nameResult, profileResult, adminSession] = await Promise.all([
     supabase
       .from("games")
       .select("id, date, opponent, inning_scores(our_score, opponent_score)")
@@ -33,14 +41,20 @@ export default async function TeamDashboardPage({ params }: Props) {
       .order("date", { ascending: false }),
     supabase
       .from("teams")
-      .select("name, description, image_url")
+      .select("name")
       .eq("id", teamId)
       .single(),
+    supabase
+      .from("teams")
+      .select("description, image_url")
+      .eq("id", teamId)
+      .maybeSingle(),
     requireTeamAdmin(teamId),
   ])
 
   const games = (gamesResult.data ?? []) as unknown as GameSummary[]
-  const team = teamResult.data as TeamProfile | null
+  const teamName = nameResult.data?.name ?? teamId
+  const profile = profileResult.data as TeamProfileExtra | null
   const isAdmin = !!adminSession
 
   const getTotalScore = (scores: GameSummary["inning_scores"]) => ({
@@ -62,27 +76,42 @@ export default async function TeamDashboardPage({ params }: Props) {
       <div className="mx-auto max-w-6xl p-4 md:p-6">
         {/* チームプロフィール */}
         <div className="mb-8 overflow-hidden rounded-2xl bg-white shadow-md">
-          <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center">
-            <div className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-100 to-slate-200 md:h-40 md:w-40">
-              {team?.image_url ? (
-                <Image
-                  src={team.image_url}
-                  alt={team?.name ?? teamId}
-                  width={160}
-                  height={160}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <Shield className="h-16 w-16 text-blue-300 md:h-20 md:w-20" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-bold text-slate-800">
-                {team?.name ?? teamId}
-              </h1>
-              <p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">
-                {team?.description || "チーム紹介文は準備中です"}
-              </p>
+          {/* ヘッダー画像 */}
+          <div className="flex h-40 w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-100 to-slate-200 md:h-56">
+            {profile?.image_url ? (
+              <Image
+                src={profile.image_url}
+                alt={teamName}
+                width={1200}
+                height={400}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <Shield className="h-16 w-16 text-blue-300 md:h-20 md:w-20" />
+            )}
+          </div>
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-slate-800">{teamName}</h1>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">
+              {profile?.description || "チーム紹介文は準備中です"}
+            </p>
+
+            {/* チーム写真カルーセル */}
+            <div className="mt-6">
+              <h2 className="mb-3 text-sm font-bold text-slate-700">チーム写真</h2>
+              <Carousel className="mx-auto w-full max-w-xl">
+                <CarouselContent>
+                  {galleryImages.map((image) => (
+                    <CarouselItem key={image.id}>
+                      <div className="flex aspect-[16/9] w-full items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200">
+                        <ImageIcon className="h-10 w-10 text-slate-400" />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
             </div>
           </div>
         </div>
