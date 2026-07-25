@@ -41,7 +41,7 @@ pnpm supabase:start
 pnpm supabase:status
 ```
 
-`pnpm supabase:status` で表示された値を `.env.local` の `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` に設定してから、別ターミナルで `pnpm dev` を起動してください。起動時に `supabase/migrations/` 配下のマイグレーションが自動適用されます。
+`pnpm supabase:status` で表示された値を `.env.local` の `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` に設定してから、別ターミナルで `pnpm dev` を起動してください。起動時に `supabase/migrations/` 配下のマイグレーションと `supabase/seed.sql`（`/demo` 用のデモチームデータ）が自動適用されます。
 
 ```bash
 # ローカルスタックを停止
