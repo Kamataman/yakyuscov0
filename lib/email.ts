@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { APP_NAME } from "@/lib/constants";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export interface TeamRegistrationEmailParams {
   to: string;
@@ -12,6 +12,11 @@ export interface TeamRegistrationEmailParams {
 export async function sendTeamRegistrationEmail(
   params: TeamRegistrationEmailParams
 ): Promise<void> {
+  if (!resend) {
+    console.warn("RESEND_API_KEY が未設定のため、チーム登録メールの送信をスキップしました。");
+    return;
+  }
+
   const { to, teamName, teamUrl } = params;
   await resend.emails.send({
     from: process.env.EMAIL_FROM ?? "noreply@example.com",
