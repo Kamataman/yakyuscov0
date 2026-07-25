@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Calendar, MapPin, PlusCircle } from "lucide-react"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 
 interface GameWithScores {
@@ -17,7 +17,7 @@ interface Props {
 
 export default async function GamesListPage({ params }: Props) {
   const { teamId } = await params
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const [gamesResult, adminSession] = await Promise.all([
     supabase

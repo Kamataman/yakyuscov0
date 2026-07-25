@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 
 interface Props {
@@ -14,7 +14,7 @@ export default async function NewGamePage({ params }: Props) {
     redirect(`/${teamId}/login`)
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const today = new Date().toISOString().split("T")[0]
 
   const { data: game, error } = await supabase

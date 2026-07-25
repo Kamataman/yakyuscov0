@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { NextResponse } from "next/server"
 import { requireGameAccess } from "@/lib/auth"
 
@@ -17,7 +17,7 @@ export async function POST(
     return NextResponse.json({ error: "アクセス権限がありません" }, { status: 401 })
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // upsert（あれば更新、なければ挿入）
   const { error } = await supabase

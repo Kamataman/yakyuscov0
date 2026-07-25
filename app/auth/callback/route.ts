@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { sendTeamRegistrationEmail } from "@/lib/email";
 import { NextResponse } from "next/server";
 
@@ -11,6 +12,7 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createClient();
+  const db = createServiceClient();
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
   if (exchangeError) {
@@ -34,14 +36,14 @@ export async function GET(request: Request) {
   }
 
   // 既存チームのチェック（再確認クリック対策）
-  const { data: existingTeam } = await supabase
+  const { data: existingTeam } = await db
     .from("teams")
     .select("id")
     .eq("id", teamId)
     .single();
 
   if (!existingTeam) {
-    const { error: insertError } = await supabase.from("teams").insert({
+    const { error: insertError } = await db.from("teams").insert({
       id: teamId,
       name: teamName,
       user_id: user.id,

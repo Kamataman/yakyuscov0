@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { calculateBattingStats, calculatePitchingStats, type BattingStats, type PitchingStats } from "@/lib/stats"
 import type { HitResult } from "@/lib/batting-types"
@@ -22,7 +22,7 @@ interface Props {
 
 export default async function StatsPage({ params }: Props) {
   const { teamId } = await params
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const [adminSession, gamesResult] = await Promise.all([
     requireTeamAdmin(teamId),

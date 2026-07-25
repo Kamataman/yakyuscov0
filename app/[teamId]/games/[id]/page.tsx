@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Edit } from "lucide-react"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 import type { BattingResult, PitcherInningStats } from "@/lib/batting-types"
@@ -17,7 +17,7 @@ interface Props {
 
 export default async function GameDetailPage({ params }: Props) {
   const { teamId, id: gameId } = await params
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const [adminSession, gameResult, inningScoresResult, rawLineupResult, battingResultsResult, rawPitcherResult] =
     await Promise.all([

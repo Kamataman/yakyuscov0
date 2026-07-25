@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { AppHeader } from "@/components/app-header"
 import { AppFooter } from "@/components/app-footer"
 
@@ -10,7 +10,7 @@ interface Props {
 
 export default async function TeamLayout({ children, params }: Props) {
   const { teamId } = await params
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data } = await supabase
     .from("teams")

@@ -2,8 +2,13 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 /**
- * サーバー専用: service role key を使うため RLS をバイパスする。
- * クライアントコンポーネントから import しないこと。
+ * サーバー専用・セッション(Cookie)連携クライアント。
+ * auth.getUser() 等の認証操作にのみ使うこと。
+ * テーブルアクセス(.from())は lib/supabase/service.ts の
+ * createServiceClient() を使うこと — このクライアントはログイン中は
+ * Authorization がユーザー自身のJWT(role=authenticated)に自動的に
+ * 差し替わるため、RLSポリシーを持たない現在の構成では .from() が
+ * 常に0件になってしまう。
  *
  * Especially important if using Fluid compute: Don't put this client in a
  * global variable. Always create a new client within each function when using
@@ -14,7 +19,7 @@ export async function createClient() {
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
