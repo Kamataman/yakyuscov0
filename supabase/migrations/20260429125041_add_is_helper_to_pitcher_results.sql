@@ -1,0 +1,1 @@
+ALTER TABLE pitcher_results ADD COLUMN IF NOT EXISTS is_helper BOOLEAN NOT NULL DEFAULT false;

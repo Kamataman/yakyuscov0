@@ -1,0 +1,1 @@
+ALTER TABLE lineup_entries ADD COLUMN IF NOT EXISTS is_helper BOOLEAN NOT NULL DEFAULT false;
