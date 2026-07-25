@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Calendar, Users, PlusCircle, TrendingUp } from "lucide-react"
+import Image from "next/image"
+import { Calendar, PlusCircle, Shield } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 
@@ -10,6 +11,12 @@ interface GameSummary {
   inning_scores: { our_score: number; opponent_score: number }[]
 }
 
+interface TeamProfile {
+  name: string
+  description: string | null
+  image_url: string | null
+}
+
 interface Props {
   params: Promise<{ teamId: string }>
 }
@@ -18,21 +25,22 @@ export default async function TeamDashboardPage({ params }: Props) {
   const { teamId } = await params
   const supabase = createServiceClient()
 
-  const [gamesResult, playersResult, adminSession] = await Promise.all([
+  const [gamesResult, teamResult, adminSession] = await Promise.all([
     supabase
       .from("games")
       .select("id, date, opponent, inning_scores(our_score, opponent_score)")
       .eq("team_id", teamId)
       .order("date", { ascending: false }),
     supabase
-      .from("players")
-      .select("id")
-      .eq("team_id", teamId),
+      .from("teams")
+      .select("name, description, image_url")
+      .eq("id", teamId)
+      .single(),
     requireTeamAdmin(teamId),
   ])
 
   const games = (gamesResult.data ?? []) as unknown as GameSummary[]
-  const playerCount = playersResult.data?.length ?? 0
+  const team = teamResult.data as TeamProfile | null
   const isAdmin = !!adminSession
 
   const getTotalScore = (scores: GameSummary["inning_scores"]) => ({
@@ -52,6 +60,33 @@ export default async function TeamDashboardPage({ params }: Props) {
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       <div className="mx-auto max-w-6xl p-4 md:p-6">
+        {/* チームプロフィール */}
+        <div className="mb-8 overflow-hidden rounded-2xl bg-white shadow-md">
+          <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center">
+            <div className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-100 to-slate-200 md:h-40 md:w-40">
+              {team?.image_url ? (
+                <Image
+                  src={team.image_url}
+                  alt={team?.name ?? teamId}
+                  width={160}
+                  height={160}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Shield className="h-16 w-16 text-blue-300 md:h-20 md:w-20" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-bold text-slate-800">
+                {team?.name ?? teamId}
+              </h1>
+              <p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">
+                {team?.description || "チーム紹介文は準備中です"}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* クイックアクション（管理者のみ表示） */}
         {isAdmin && (
           <div className="mb-8">
@@ -64,78 +99,6 @@ export default async function TeamDashboardPage({ params }: Props) {
             </Link>
           </div>
         )}
-
-        {/* ナビゲーションカード */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* 試合一覧 */}
-          <Link
-            href={`/${teamId}/games`}
-            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg active:scale-[0.98] active:opacity-80"
-          >
-            <div className="flex items-start gap-4">
-              <div className="rounded-xl bg-emerald-100 p-3">
-                <Calendar className="h-7 w-7 text-emerald-600" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-bold text-slate-800 group-hover:text-emerald-600">
-                  試合一覧
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  過去の試合結果を確認・編集
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  <span>{games.length} 試合</span>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          {/* 個人成績 */}
-          <Link
-            href={`/${teamId}/stats`}
-            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg active:scale-[0.98] active:opacity-80"
-          >
-            <div className="flex items-start gap-4">
-              <div className="rounded-xl bg-amber-100 p-3">
-                <TrendingUp className="h-7 w-7 text-amber-600" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-bold text-slate-800 group-hover:text-amber-600">
-                  個人成績
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  選手ごとの打撃・投手成績を確認
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  <span>{playerCount} 選手</span>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          {/* 選手一覧 */}
-          <Link
-            href={`/${teamId}/players`}
-            className="group rounded-2xl bg-white p-6 shadow-md transition-all hover:shadow-lg active:scale-[0.98] active:opacity-80"
-          >
-            <div className="flex items-start gap-4">
-              <div className="rounded-xl bg-purple-100 p-3">
-                <Users className="h-7 w-7 text-purple-600" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-bold text-slate-800 group-hover:text-purple-600">
-                  選手一覧
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  登録選手の確認
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  <span>{playerCount} 選手登録済み</span>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
 
         {/* 直近の試合 */}
         <div className="mt-8">
