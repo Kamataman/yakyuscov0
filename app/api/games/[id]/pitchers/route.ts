@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { NextResponse } from "next/server"
 import { requireGameAccess } from "@/lib/auth"
 
@@ -52,7 +52,7 @@ export async function POST(
     return NextResponse.json({ error: "アクセス権限がありません" }, { status: 401 })
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // 既存の投手成績を削除（CASCADE で pitcher_inning_stats も削除）
   await supabase

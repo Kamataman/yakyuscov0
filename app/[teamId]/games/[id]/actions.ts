@@ -1,14 +1,14 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 
 export async function deleteGame(teamId: string, gameId: string) {
   const session = await requireTeamAdmin(teamId)
   if (!session) throw new Error("管理者権限が必要です")
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data: game } = await supabase
     .from("games")

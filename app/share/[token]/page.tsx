@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { notFound } from "next/navigation"
 import { ShareGameEditor } from "./share-game-editor"
 
@@ -10,7 +10,7 @@ interface PageProps {
 
 export default async function SharePage({ params }: PageProps) {
   const { token } = await params
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // トークンの有効性を確認
   const { data: tokenData, error } = await supabase

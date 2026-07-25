@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export interface AuthSession {
   teamId: string;
@@ -27,7 +28,8 @@ export async function getAdminSession(): Promise<AuthSession | null> {
     return null;
   }
 
-  const { data: team } = await supabase
+  const db = createServiceClient();
+  const { data: team } = await db
     .from("teams")
     .select("id")
     .eq("user_id", user.id)
@@ -46,9 +48,9 @@ export async function getAdminSession(): Promise<AuthSession | null> {
 export async function getShareTokenSession(
   token: string
 ): Promise<ShareTokenSession | null> {
-  const supabase = await createClient();
+  const db = createServiceClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("game_share_tokens")
     .select("game_id, games!inner(team_id)")
     .eq("token", token)
@@ -88,7 +90,8 @@ export async function requireTeamAdmin(
     return null;
   }
 
-  const { data: team } = await supabase
+  const db = createServiceClient();
+  const { data: team } = await db
     .from("teams")
     .select("id")
     .eq("id", teamId)
@@ -111,8 +114,8 @@ export async function requireGameAccess(
 ): Promise<Session | null> {
   const adminSession = await getAdminSession();
   if (adminSession) {
-    const supabase = await createClient();
-    const { data } = await supabase
+    const db = createServiceClient();
+    const { data } = await db
       .from("games")
       .select("team_id")
       .eq("id", gameId)

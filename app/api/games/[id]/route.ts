@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth"
 
@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // 試合基本情報を取得
   const { data: game, error: gameError } = await supabase
@@ -112,7 +112,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const body = await request.json()
 
   const { date, opponent, location, memo, inningScores, lineupSlots, battingResults, pitchers } = body

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { NextResponse } from "next/server"
 import { requireAdmin, generateShareToken } from "@/lib/auth"
 
@@ -15,7 +15,7 @@ export async function POST(
     return NextResponse.json({ error: "管理者権限が必要です" }, { status: 401 })
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // この試合が管理者のチームに属するか確認
   const { data: game } = await supabase
@@ -82,7 +82,7 @@ export async function DELETE(
     return NextResponse.json({ error: "管理者権限が必要です" }, { status: 401 })
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // この試合が管理者のチームに属するか確認
   const { data: game } = await supabase

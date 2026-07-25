@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { requireTeamAdmin } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { GameEditor } from "@/components/game-editor"
 
 interface Props {
@@ -10,10 +10,8 @@ interface Props {
 export default async function GameEditPage({ params }: Props) {
   const { teamId, id: gameId } = await params
 
-  const [adminSession, supabase] = await Promise.all([
-    requireTeamAdmin(teamId),
-    createClient(),
-  ])
+  const adminSession = await requireTeamAdmin(teamId)
+  const supabase = createServiceClient()
 
   if (!adminSession) {
     redirect(`/${teamId}/login`)
