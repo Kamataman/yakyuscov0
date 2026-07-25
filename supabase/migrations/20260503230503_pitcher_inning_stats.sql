@@ -14,3 +14,7 @@ CREATE TABLE IF NOT EXISTS pitcher_inning_stats (
   UNIQUE(pitcher_result_id, inning)
 );
 ALTER TABLE pitcher_inning_stats ADD COLUMN IF NOT EXISTS outs INTEGER NOT NULL DEFAULT 3;
+
+GRANT ALL ON TABLE pitcher_inning_stats TO anon;
+GRANT ALL ON TABLE pitcher_inning_stats TO authenticated;
+GRANT ALL ON TABLE pitcher_inning_stats TO service_role;

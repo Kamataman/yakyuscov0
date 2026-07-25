@@ -11,6 +11,12 @@ CREATE TABLE IF NOT EXISTS teams (
   image_url TEXT
 );
 
+-- 他テーブルと同様、PostgREST 経由でアクセスするロールに権限を付与
+-- （本番では新規テーブル作成時に自動付与されるが、マイグレーションでは明示が必要）
+GRANT ALL ON TABLE teams TO anon;
+GRANT ALL ON TABLE teams TO authenticated;
+GRANT ALL ON TABLE teams TO service_role;
+
 ALTER TABLE games ADD COLUMN IF NOT EXISTS team_id TEXT REFERENCES teams(id) ON DELETE CASCADE;
 ALTER TABLE games ADD COLUMN IF NOT EXISTS is_first_batting BOOLEAN DEFAULT TRUE;
 ALTER TABLE games ADD COLUMN IF NOT EXISTS total_innings INTEGER DEFAULT 9;
