@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useParams, useRouter } from "next/navigation"
-import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield, ExternalLink } from "lucide-react"
+import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield, ExternalLink, UserCog, Plus } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { APP_NAME } from "@/lib/constants"
@@ -27,8 +27,7 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
   const teamId = params.teamId as string | undefined
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [teamName, setTeamName] = useState<string | null>(initialTeamName ?? null)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [loggedInTeamId, setLoggedInTeamId] = useState<string | null>(null)
+  const [isTeamAdmin, setIsTeamAdmin] = useState(false)
 
   // teamName が prop で渡されなかった場合のフォールバック
   useEffect(() => {
@@ -42,29 +41,27 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
     }
   }, [teamId, initialTeamName])
 
-  // ログイン状態を確認
+  // このチームの管理者としてログインしているか確認
   useEffect(() => {
-    fetch("/api/auth/session")
+    if (!teamId) {
+      setIsTeamAdmin(false)
+      return
+    }
+    fetch(`/api/auth/session?teamId=${teamId}`)
       .then((res) => res.json())
       .then((data: { teamId: string | null }) => {
-        setIsLoggedIn(!!data.teamId)
-        setLoggedInTeamId(data.teamId)
+        setIsTeamAdmin(!!data.teamId)
       })
       .catch(() => {
-        setIsLoggedIn(false)
-        setLoggedInTeamId(null)
+        setIsTeamAdmin(false)
       })
-  }, [pathname])
+  }, [pathname, teamId])
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })
-    setIsLoggedIn(false)
-    setLoggedInTeamId(null)
+    setIsTeamAdmin(false)
     router.refresh()
   }
-
-  // このチームの管理者としてログインしているか
-  const isTeamAdmin = isLoggedIn && loggedInTeamId === teamId
 
   const navItems = [
     { href: `/${teamId}`, label: "ホーム", icon: Home },
@@ -147,6 +144,19 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                     {teamName || teamId} の管理者
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href={`/${teamId}/admins`} className="flex items-center">
+                      <UserCog className="h-4 w-4 mr-2" />
+                      管理者を管理
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/teams/new" className="flex items-center">
+                      <Plus className="h-4 w-4 mr-2" />
+                      新しいチームを作る
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="h-4 w-4 mr-2" />
                     ログアウト
@@ -216,6 +226,22 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                   <Shield className="h-4 w-4" />
                   管理者としてログイン中
                 </div>
+                <Link
+                  href={`/${teamId}/admins`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                >
+                  <UserCog className="h-5 w-5" />
+                  管理者を管理
+                </Link>
+                <Link
+                  href="/teams/new"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                >
+                  <Plus className="h-5 w-5" />
+                  新しいチームを作る
+                </Link>
                 <button
                   onClick={() => {
                     handleLogout()

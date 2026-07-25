@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service"
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/lib/auth"
+import { requireTeamAdmin } from "@/lib/auth"
 
 export async function GET(
   request: Request,
@@ -117,21 +117,21 @@ export async function PUT(
 
   const { date, opponent, location, memo, inningScores, lineupSlots, battingResults, pitchers } = body
 
-  // 管理者権限チェック（この試合のチームの管理者かどうか）
-  const session = await requireAdmin()
-  if (!session) {
-    return NextResponse.json({ error: "管理者権限が必要です" }, { status: 401 })
-  }
-
-  // この試合が管理者のチームのものか確認
+  // この試合の所属チームを確認
   const { data: game } = await supabase
     .from("games")
     .select("team_id")
     .eq("id", id)
     .single()
 
-  if (!game || game.team_id !== session.teamId) {
+  if (!game) {
     return NextResponse.json({ error: "この試合にアクセスできません" }, { status: 403 })
+  }
+
+  // 管理者権限チェック（この試合のチームの管理者かどうか）
+  const session = await requireTeamAdmin(game.team_id)
+  if (!session) {
+    return NextResponse.json({ error: "管理者権限が必要です" }, { status: 401 })
   }
 
   // 試合基本情報を更新

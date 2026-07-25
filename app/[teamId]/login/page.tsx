@@ -49,7 +49,7 @@ export default function TeamLoginPage() {
       }
 
       // ログインしたユーザーがこのチームの管理者か確認
-      const sessionRes = await fetch("/api/auth/session");
+      const sessionRes = await fetch(`/api/auth/session?teamId=${teamId}`);
       const { teamId: adminTeamId } = (await sessionRes.json()) as {
         teamId: string | null;
       };
