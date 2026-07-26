@@ -162,6 +162,10 @@ export function TeamPhotoCarousel({ photos, teamName }: TeamPhotoCarouselProps) 
         <DialogContent
           showCloseButton={false}
           className="max-w-[100vw] border-none bg-transparent p-0 shadow-none sm:max-w-5xl"
+          // 写真の外側（余白）をタップしたら閉じる
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeLightbox()
+          }}
         >
           <DialogTitle className="sr-only">{teamName}のチーム写真</DialogTitle>
 
@@ -183,13 +187,19 @@ export function TeamPhotoCarousel({ photos, teamName }: TeamPhotoCarouselProps) 
               <CarouselContent>
                 {photos.map((photo) => (
                   <CarouselItem key={photo.id}>
-                    <div className="flex h-[80vh] w-full items-center justify-center">
+                    {/* 写真の左右・上下の余白をタップしても閉じられるようにする */}
+                    <div
+                      role="presentation"
+                      onClick={closeLightbox}
+                      className="flex h-[80vh] w-full cursor-zoom-out items-center justify-center"
+                    >
                       <Image
                         src={photo.url}
                         alt={`${teamName}のチーム写真`}
                         width={photo.width ?? 640}
                         height={photo.height ?? 360}
-                        className="max-h-full w-auto max-w-full object-contain"
+                        onClick={(event) => event.stopPropagation()}
+                        className="max-h-full w-auto max-w-full cursor-default object-contain"
                       />
                     </div>
                   </CarouselItem>
