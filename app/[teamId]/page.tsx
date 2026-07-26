@@ -1,16 +1,10 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, PlusCircle, Shield, ImageIcon } from "lucide-react"
+import { Calendar, PlusCircle, Shield } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { fetchTeamHeaderImage, fetchTeamImages } from "@/lib/team-images-server"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-} from "@/components/ui/carousel"
+import { TeamPhotoCarousel } from "@/components/team-photo-carousel"
 
 interface GameSummary {
   id: string
@@ -101,35 +95,7 @@ export default async function TeamDashboardPage({ params }: Props) {
             {/* チーム写真カルーセル */}
             <div className="mt-6">
               <h2 className="mb-3 text-sm font-bold text-slate-700">チーム写真</h2>
-              <Carousel className="mx-auto w-full max-w-xl">
-                <CarouselContent>
-                  {photos.length === 0 ? (
-                    <CarouselItem>
-                      <div className="flex aspect-[16/9] w-full items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200">
-                        <ImageIcon className="h-10 w-10 text-slate-400" />
-                      </div>
-                    </CarouselItem>
-                  ) : (
-                    photos.map((photo) => (
-                      <CarouselItem key={photo.id}>
-                        <Image
-                          src={photo.url}
-                          alt={`${teamName}のチーム写真`}
-                          width={photo.width ?? 640}
-                          height={photo.height ?? 360}
-                          className="aspect-[16/9] w-full rounded-xl object-cover"
-                        />
-                      </CarouselItem>
-                    ))
-                  )}
-                </CarouselContent>
-                {photos.length > 1 && (
-                  <>
-                    <CarouselPrevious />
-                    <CarouselNext />
-                  </>
-                )}
-              </Carousel>
+              <TeamPhotoCarousel photos={photos} teamName={teamName} />
             </div>
           </div>
         </div>

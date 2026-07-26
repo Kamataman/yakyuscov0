@@ -245,14 +245,15 @@ export function SettingsClient({
               {photos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="overflow-hidden rounded-lg bg-slate-100"
+                  className="flex aspect-[16/9] items-center justify-center overflow-hidden rounded-lg bg-slate-100"
                 >
+                  {/* チームトップと同じく切り抜かずに全体を表示する */}
                   <Image
                     src={photo.url}
                     alt=""
                     width={photo.width ?? 640}
                     height={photo.height ?? 360}
-                    className="aspect-[16/9] w-full object-cover"
+                    className="max-h-full w-auto max-w-full object-contain"
                   />
                 </div>
               ))}
