@@ -60,6 +60,10 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })
     setIsTeamAdmin(false)
+    // 管理者専用ページ(admins/accountなど)にいる場合、そのままrefreshすると
+    // セッションが無くなったページがnotFound()を呼び404になるため、
+    // 常にアクセスできるチームホームへ遷移させる
+    router.push(`/${teamId}`)
     router.refresh()
   }
 
