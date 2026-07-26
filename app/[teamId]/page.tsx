@@ -3,6 +3,7 @@ import Image from "next/image"
 import { Calendar, PlusCircle, Shield, ImageIcon } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
+import { fetchTeamHeaderImage, fetchTeamImages } from "@/lib/team-images-server"
 import {
   Carousel,
   CarouselContent,
@@ -20,20 +21,17 @@ interface GameSummary {
 
 interface TeamProfileExtra {
   description: string | null
-  image_url: string | null
 }
 
 interface Props {
   params: Promise<{ teamId: string }>
 }
 
-const galleryImages = [{ id: "dummy", label: "準備中" }]
-
 export default async function TeamDashboardPage({ params }: Props) {
   const { teamId } = await params
   const supabase = createServiceClient()
 
-  const [gamesResult, nameResult, profileResult, adminSession] = await Promise.all([
+  const [gamesResult, nameResult, profileResult, adminSession, headerImage, photos] = await Promise.all([
     supabase
       .from("games")
       .select("id, date, opponent, inning_scores(our_score, opponent_score)")
@@ -46,10 +44,12 @@ export default async function TeamDashboardPage({ params }: Props) {
       .single(),
     supabase
       .from("teams")
-      .select("description, image_url")
+      .select("description")
       .eq("id", teamId)
       .maybeSingle(),
     requireTeamAdmin(teamId),
+    fetchTeamHeaderImage(teamId),
+    fetchTeamImages(teamId, "photo"),
   ])
 
   const games = (gamesResult.data ?? []) as unknown as GameSummary[]
@@ -78,13 +78,15 @@ export default async function TeamDashboardPage({ params }: Props) {
         <div className="mb-8 overflow-hidden rounded-2xl bg-white shadow-md">
           {/* ヘッダー画像 */}
           <div className="flex h-40 w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-100 to-slate-200 md:h-56">
-            {profile?.image_url ? (
+            {headerImage ? (
               <Image
-                src={profile.image_url}
+                src={headerImage.url}
                 alt={teamName}
-                width={1200}
-                height={400}
+                width={headerImage.width ?? 1200}
+                height={headerImage.height ?? 400}
                 className="h-full w-full object-cover"
+                style={{ objectPosition: `50% ${headerImage.positionY}%` }}
+                priority
               />
             ) : (
               <Shield className="h-16 w-16 text-blue-300 md:h-20 md:w-20" />
@@ -101,16 +103,32 @@ export default async function TeamDashboardPage({ params }: Props) {
               <h2 className="mb-3 text-sm font-bold text-slate-700">チーム写真</h2>
               <Carousel className="mx-auto w-full max-w-xl">
                 <CarouselContent>
-                  {galleryImages.map((image) => (
-                    <CarouselItem key={image.id}>
+                  {photos.length === 0 ? (
+                    <CarouselItem>
                       <div className="flex aspect-[16/9] w-full items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200">
                         <ImageIcon className="h-10 w-10 text-slate-400" />
                       </div>
                     </CarouselItem>
-                  ))}
+                  ) : (
+                    photos.map((photo) => (
+                      <CarouselItem key={photo.id}>
+                        <Image
+                          src={photo.url}
+                          alt={`${teamName}のチーム写真`}
+                          width={photo.width ?? 640}
+                          height={photo.height ?? 360}
+                          className="aspect-[16/9] w-full rounded-xl object-cover"
+                        />
+                      </CarouselItem>
+                    ))
+                  )}
                 </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
+                {photos.length > 1 && (
+                  <>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </>
+                )}
               </Carousel>
             </div>
           </div>
