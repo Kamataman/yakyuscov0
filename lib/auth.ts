@@ -1,9 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
+export type TeamRole = "owner" | "admin";
+
 export interface AuthSession {
   teamId: string;
+  userId: string;
   isAdmin: true;
+  role: TeamRole;
 }
 
 export interface ShareTokenSession {
@@ -13,34 +17,6 @@ export interface ShareTokenSession {
 }
 
 export type Session = AuthSession | ShareTokenSession;
-
-/**
- * 管理者セッションを取得（Supabase Auth ベース）
- */
-export async function getAdminSession(): Promise<AuthSession | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return null;
-  }
-
-  const db = createServiceClient();
-  const { data: team } = await db
-    .from("teams")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!team) {
-    return null;
-  }
-
-  return { teamId: team.id, isAdmin: true };
-}
 
 /**
  * 共有トークンからセッションを取得
@@ -69,14 +45,7 @@ export async function getShareTokenSession(
 }
 
 /**
- * 管理者権限が必要なAPIで使用
- */
-export async function requireAdmin(): Promise<AuthSession | null> {
-  return getAdminSession();
-}
-
-/**
- * 特定のチームの管理者かどうかを確認
+ * 特定のチームの管理者（owner/admin）かどうかを確認
  */
 export async function requireTeamAdmin(
   teamId: string
@@ -91,18 +60,28 @@ export async function requireTeamAdmin(
   }
 
   const db = createServiceClient();
-  const { data: team } = await db
-    .from("teams")
-    .select("id")
-    .eq("id", teamId)
+  const { data: member } = await db
+    .from("team_members")
+    .select("role")
+    .eq("team_id", teamId)
     .eq("user_id", user.id)
     .single();
 
-  if (!team) {
+  if (!member) {
     return null;
   }
 
-  return { teamId, isAdmin: true };
+  return { teamId, userId: user.id, isAdmin: true, role: member.role as TeamRole };
+}
+
+/**
+ * 特定のチームのオーナーかどうかを確認
+ */
+export async function requireTeamOwner(
+  teamId: string
+): Promise<AuthSession | null> {
+  const session = await requireTeamAdmin(teamId);
+  return session?.role === "owner" ? session : null;
 }
 
 /**
@@ -112,16 +91,16 @@ export async function requireGameAccess(
   gameId: string,
   shareToken?: string
 ): Promise<Session | null> {
-  const adminSession = await getAdminSession();
-  if (adminSession) {
-    const db = createServiceClient();
-    const { data } = await db
-      .from("games")
-      .select("team_id")
-      .eq("id", gameId)
-      .single();
+  const db = createServiceClient();
+  const { data: game } = await db
+    .from("games")
+    .select("team_id")
+    .eq("id", gameId)
+    .single();
 
-    if (data && data.team_id === adminSession.teamId) {
+  if (game) {
+    const adminSession = await requireTeamAdmin(game.team_id);
+    if (adminSession) {
       return adminSession;
     }
   }

@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service"
 import { NextResponse } from "next/server"
-import { requireAdmin, generateShareToken } from "@/lib/auth"
+import { requireTeamAdmin, generateShareToken } from "@/lib/auth"
 
 // 共有トークンを取得または作成
 export async function POST(
@@ -8,24 +8,24 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: gameId } = await params
-  
-  // 管理者権限チェック
-  const session = await requireAdmin()
-  if (!session) {
-    return NextResponse.json({ error: "管理者権限が必要です" }, { status: 401 })
-  }
 
   const supabase = createServiceClient()
 
-  // この試合が管理者のチームに属するか確認
+  // この試合が所属するチームを確認
   const { data: game } = await supabase
     .from("games")
     .select("team_id")
     .eq("id", gameId)
     .single()
 
-  if (!game || game.team_id !== session.teamId) {
+  if (!game) {
     return NextResponse.json({ error: "この試合にアクセスできません" }, { status: 403 })
+  }
+
+  // 管理者権限チェック
+  const session = await requireTeamAdmin(game.team_id)
+  if (!session) {
+    return NextResponse.json({ error: "管理者権限が必要です" }, { status: 401 })
   }
 
   // 既存の有効なトークンを確認
@@ -76,23 +76,23 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: gameId } = await params
-  
-  const session = await requireAdmin()
-  if (!session) {
-    return NextResponse.json({ error: "管理者権限が必要です" }, { status: 401 })
-  }
 
   const supabase = createServiceClient()
 
-  // この試合が管理者のチームに属するか確認
+  // この試合が所属するチームを確認
   const { data: game } = await supabase
     .from("games")
     .select("team_id")
     .eq("id", gameId)
     .single()
 
-  if (!game || game.team_id !== session.teamId) {
+  if (!game) {
     return NextResponse.json({ error: "この試合にアクセスできません" }, { status: 403 })
+  }
+
+  const session = await requireTeamAdmin(game.team_id)
+  if (!session) {
+    return NextResponse.json({ error: "管理者権限が必要です" }, { status: 401 })
   }
 
   // 全てのトークンを削除

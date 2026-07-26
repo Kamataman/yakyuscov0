@@ -1,0 +1,99 @@
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { createServiceClient } from "@/lib/supabase/service"
+import { requireTeamAdmin } from "@/lib/auth"
+import { SITE_URL } from "@/lib/constants"
+
+export async function inviteMember(teamId: string, email: string, role: "owner" | "admin") {
+  const session = await requireTeamAdmin(teamId)
+  if (!session) throw new Error("管理者権限が必要です")
+  if (role === "owner" && session.role !== "owner") {
+    throw new Error("オーナー権限の付与はオーナーのみ行えます")
+  }
+
+  const trimmedEmail = email.trim().toLowerCase()
+  if (!trimmedEmail) throw new Error("メールアドレスを入力してください")
+
+  const db = createServiceClient()
+
+  const { data: existingProfile } = await db
+    .from("profiles")
+    .select("id")
+    .eq("email", trimmedEmail)
+    .maybeSingle()
+
+  let targetUserId: string
+
+  if (existingProfile) {
+    targetUserId = existingProfile.id
+  } else {
+    const { data: inviteData, error: inviteError } = await db.auth.admin.inviteUserByEmail(
+      trimmedEmail,
+      { redirectTo: `${SITE_URL}/auth/callback` }
+    )
+
+    if (inviteError || !inviteData.user) {
+      throw new Error(inviteError?.message || "招待メールの送信に失敗しました")
+    }
+
+    targetUserId = inviteData.user.id
+  }
+
+  const { error: insertError } = await db.from("team_members").insert({
+    team_id: teamId,
+    user_id: targetUserId,
+    role,
+  })
+
+  if (insertError) {
+    if (insertError.code === "23505") {
+      throw new Error("このユーザーは既にこのチームの管理者です")
+    }
+    throw new Error(insertError.message)
+  }
+
+  revalidatePath(`/${teamId}/admins`)
+}
+
+export async function removeMember(teamId: string, targetUserId: string) {
+  const session = await requireTeamAdmin(teamId)
+  if (!session) throw new Error("管理者権限が必要です")
+
+  const db = createServiceClient()
+
+  const { data: target } = await db
+    .from("team_members")
+    .select("role")
+    .eq("team_id", teamId)
+    .eq("user_id", targetUserId)
+    .single()
+
+  if (!target) throw new Error("対象の管理者が見つかりません")
+
+  if (target.role === "owner") {
+    if (session.role !== "owner") {
+      throw new Error("オーナーを外すことはオーナーのみ行えます")
+    }
+
+    const { count } = await db
+      .from("team_members")
+      .select("id", { count: "exact", head: true })
+      .eq("team_id", teamId)
+      .eq("role", "owner")
+
+    if ((count ?? 0) <= 1) {
+      throw new Error("最後のオーナーは削除できません")
+    }
+  }
+
+  const { error } = await db
+    .from("team_members")
+    .delete()
+    .eq("team_id", teamId)
+    .eq("user_id", targetUserId)
+
+  if (error) throw new Error(error.message)
+
+  revalidatePath(`/${teamId}/admins`)
+}
