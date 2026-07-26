@@ -44,7 +44,7 @@ export async function inviteMember(teamId: string, email: string, role: "owner" 
       throw new Error(insertError.message)
     }
 
-    revalidatePath(`/${teamId}/admins`)
+    revalidatePath(`/${teamId}/settings`)
     return
   }
 
@@ -71,7 +71,7 @@ export async function inviteMember(teamId: string, email: string, role: "owner" 
     inviteUrl: `${SITE_URL}/invite/${token}`,
   })
 
-  revalidatePath(`/${teamId}/admins`)
+  revalidatePath(`/${teamId}/settings`)
 }
 
 export async function removeMember(teamId: string, targetUserId: string) {
@@ -113,5 +113,5 @@ export async function removeMember(teamId: string, targetUserId: string) {
 
   if (error) throw new Error(error.message)
 
-  revalidatePath(`/${teamId}/admins`)
+  revalidatePath(`/${teamId}/settings`)
 }

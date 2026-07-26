@@ -16,12 +16,18 @@ import {
   isAllowedTeamImageMime,
 } from "@/lib/team-images"
 import { updateHeaderImagePosition, uploadTeamImage } from "./actions"
+import { TeamProfileSection } from "./team-profile-section"
+import { AdminsSection, type TeamMember } from "./admins-section"
 
 interface SettingsClientProps {
   teamId: string
   teamName: string
+  teamDescription: string
   initialHeaderImage: TeamImage | null
   initialPhotos: TeamImage[]
+  currentUserId: string
+  currentRole: "owner" | "admin"
+  initialMembers: TeamMember[]
 }
 
 const ACCEPT = TEAM_IMAGE_ALLOWED_MIME_TYPES.join(",")
@@ -40,8 +46,12 @@ function validateSource(file: File): void {
 export function SettingsClient({
   teamId,
   teamName,
+  teamDescription,
   initialHeaderImage,
   initialPhotos,
+  currentUserId,
+  currentRole,
+  initialMembers,
 }: SettingsClientProps) {
   const router = useRouter()
   const headerInputRef = useRef<HTMLInputElement>(null)
@@ -148,6 +158,19 @@ export function SettingsClient({
             {message}
           </p>
         )}
+
+        <TeamProfileSection
+          teamId={teamId}
+          initialName={teamName}
+          initialDescription={teamDescription}
+        />
+
+        <AdminsSection
+          teamId={teamId}
+          currentUserId={currentUserId}
+          currentRole={currentRole}
+          initialMembers={initialMembers}
+        />
 
         {/* ヘッダー画像 */}
         <section className="mb-6 rounded-2xl bg-white p-6 shadow-md">
