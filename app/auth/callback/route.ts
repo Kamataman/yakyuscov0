@@ -31,10 +31,8 @@ export async function GET(request: Request) {
   const teamId = user.user_metadata?.teamId as string | undefined;
   const teamName = user.user_metadata?.teamName as string | undefined;
 
-  // teamId/teamName が無い場合、招待された管理者がパスワード設定を
-  // 完了させるための確認メールリンクとみなす
   if (!teamId || !teamName) {
-    return NextResponse.redirect(`${origin}/auth/set-password`);
+    return NextResponse.redirect(`${origin}/register?error=missing_team_info`);
   }
 
   // 既存チームのチェック（再確認クリック対策）

@@ -30,7 +30,7 @@ export async function inviteMember(teamId: string, email: string, role: "owner" 
   } else {
     const { data: inviteData, error: inviteError } = await db.auth.admin.inviteUserByEmail(
       trimmedEmail,
-      { redirectTo: `${SITE_URL}/auth/callback` }
+      { redirectTo: `${SITE_URL}/auth/set-password` }
     )
 
     if (inviteError || !inviteData.user) {
