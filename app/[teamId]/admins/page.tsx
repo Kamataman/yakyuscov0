@@ -16,21 +16,37 @@ export default async function AdminsPage({ params }: Props) {
   }
 
   const db = createServiceClient()
-  const { data } = await db
+  const { data: teamMembers, error: teamMembersError } = await db
     .from("team_members")
-    .select("id, user_id, role, created_at, profiles(email, display_name)")
+    .select("id, user_id, role, created_at")
     .eq("team_id", teamId)
 
-  const members: TeamMember[] = (data ?? [])
+  if (teamMembersError) {
+    throw new Error(teamMembersError.message)
+  }
+
+  const userIds = (teamMembers ?? []).map((m) => m.user_id)
+  const { data: profiles, error: profilesError } = await db
+    .from("profiles")
+    .select("id, email, display_name")
+    .in("id", userIds.length > 0 ? userIds : [""])
+
+  if (profilesError) {
+    throw new Error(profilesError.message)
+  }
+
+  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]))
+
+  const members: TeamMember[] = (teamMembers ?? [])
     .map((m) => {
-      const profile = m.profiles as unknown as { email: string | null; display_name: string | null } | null
+      const profile = profileById.get(m.user_id)
       return {
-        id: m.id as string,
-        userId: m.user_id as string,
+        id: m.id,
+        userId: m.user_id,
         role: m.role as "owner" | "admin",
         email: profile?.email ?? null,
         displayName: profile?.display_name ?? null,
-        createdAt: m.created_at as string,
+        createdAt: m.created_at,
       }
     })
     .sort((a, b) => {
