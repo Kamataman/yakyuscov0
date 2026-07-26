@@ -95,6 +95,66 @@ function buildInviteHtml({ teamName, role, inviteUrl }: InviteHtmlParams): strin
 </html>`;
 }
 
+export interface PasswordResetEmailParams {
+  to: string;
+  resetUrl: string;
+}
+
+export async function sendPasswordResetEmail(
+  params: PasswordResetEmailParams
+): Promise<void> {
+  if (!resend) {
+    console.warn("RESEND_API_KEY が未設定のため、パスワード再設定メールの送信をスキップしました。");
+    return;
+  }
+
+  const { to, resetUrl } = params;
+  await resend.emails.send({
+    from: process.env.EMAIL_FROM ?? "noreply@example.com",
+    to,
+    subject: `【${APP_NAME}】パスワード再設定のご案内`,
+    html: buildPasswordResetHtml({ resetUrl }),
+  });
+}
+
+function buildPasswordResetHtml({ resetUrl }: { resetUrl: string }): string {
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${APP_NAME} パスワード再設定</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 24px; }
+    .container { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .header { text-align: center; margin-bottom: 32px; }
+    .header h1 { font-size: 22px; color: #1e293b; margin: 0 0 8px; }
+    .header p { font-size: 14px; color: #64748b; margin: 0; }
+    .cta-box { display: block; background: #2563eb; border-radius: 8px; padding: 14px 20px; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; text-align: center; margin: 24px 0; }
+    .note { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 8px; }
+    .footer { margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>パスワード再設定のご案内</h1>
+      <p>${APP_NAME} のパスワード再設定リクエストを受け付けました</p>
+    </div>
+
+    <p style="font-size:14px;color:#475569;margin:0 0 8px;">以下のボタンから新しいパスワードを設定してください：</p>
+    <a href="${resetUrl}" class="cta-box">パスワードを再設定する</a>
+    <p class="note">このリンクの有効期限は1時間です</p>
+
+    <div class="footer">
+      <p>${APP_NAME} — チームの記録を管理するアプリ</p>
+      <p>心当たりがない場合は、このメールを破棄してください。パスワードは変更されません。</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 interface HtmlParams {
   teamName: string;
   teamUrl: string;

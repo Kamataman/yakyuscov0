@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useParams, useRouter } from "next/navigation"
-import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield, ExternalLink, UserCog, Plus, Settings } from "lucide-react"
+import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield, ExternalLink, UserCog, Plus, Settings, KeyRound } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { APP_NAME } from "@/lib/constants"
@@ -162,6 +162,12 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                       新しいチームを作る
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/${teamId}/account`} className="flex items-center">
+                      <KeyRound className="h-4 w-4 mr-2" />
+                      パスワードを変更
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="h-4 w-4 mr-2" />
@@ -255,6 +261,14 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                 >
                   <Plus className="h-5 w-5" />
                   新しいチームを作る
+                </Link>
+                <Link
+                  href={`/${teamId}/account`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                >
+                  <KeyRound className="h-5 w-5" />
+                  パスワードを変更
                 </Link>
                 <button
                   onClick={() => {
