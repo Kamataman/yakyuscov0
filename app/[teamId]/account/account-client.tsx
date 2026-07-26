@@ -80,11 +80,11 @@ export function AccountClient({ teamId }: Props) {
     <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       <div className="mx-auto max-w-md p-4 md:p-6">
         <Link
-          href={`/${teamId}/admins`}
+          href={`/${teamId}/settings`}
           className="mb-4 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800"
         >
           <ArrowLeft className="h-4 w-4" />
-          管理者一覧に戻る
+          チーム設定に戻る
         </Link>
 
         <div className="rounded-2xl bg-white p-6 shadow-md md:p-8">

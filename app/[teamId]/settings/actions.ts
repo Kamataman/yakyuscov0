@@ -15,6 +15,32 @@ import {
   formatMegabytes,
 } from "@/lib/team-images"
 
+/** チーム名・紹介文を更新する */
+export async function updateTeamProfile(
+  teamId: string,
+  name: string,
+  description: string
+): Promise<void> {
+  const session = await requireTeamAdmin(teamId)
+  if (!session) throw new Error("管理者権限が必要です")
+
+  const trimmedName = name.trim()
+  if (!trimmedName) throw new Error("チーム名を入力してください")
+
+  const supabase = createServiceClient()
+  const { error } = await supabase
+    .from("teams")
+    .update({ name: trimmedName, description: description.trim() || null })
+    .eq("id", teamId)
+
+  if (error) {
+    throw new Error(`チーム情報の保存に失敗しました: ${error.message}`)
+  }
+
+  revalidatePath(`/${teamId}`)
+  revalidatePath(`/${teamId}/settings`)
+}
+
 const KINDS: TeamImageKind[] = ["header", "photo"]
 
 function parseKind(value: FormDataEntryValue | null): TeamImageKind {
