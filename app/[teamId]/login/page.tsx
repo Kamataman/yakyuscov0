@@ -133,6 +133,12 @@ export default function TeamLoginPage() {
           </Button>
         </form>
 
+        <div className="mt-4 text-center">
+          <Link href="/password-reset" className="text-sm text-slate-500 hover:text-slate-700">
+            パスワードをお忘れですか？
+          </Link>
+        </div>
+
         {IS_PREVIEW && (
           <div className="mt-4">
             <div className="relative">
