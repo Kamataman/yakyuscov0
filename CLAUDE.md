@@ -28,6 +28,16 @@
 
 ---
 
+## データベースマイグレーション
+
+- `scripts/NNN_*.sql` を追加したら、必ず対になる `supabase/migrations/<timestamp>_*.sql` も同時に追加する
+  - `supabase/migrations/` にファイルが無いと、ローカル Supabase CLI（`supabase db reset` 等）や CI で変更が一切反映されない
+  - 内容は `scripts/` 側と同一にする（過去のマイグレーションは全て一致している）
+- `scripts/` の連番は既存の最大番号 + 1 を使う（他ブランチと番号が衝突していないか `ls scripts/` で確認する）
+- 追加後は `supabase db reset` をローカルで実行し、エラーなく最後まで適用できることを確認する
+
+---
+
 ## 削除処理のガイドライン
 
 - 削除操作には必ず `ConfirmDeleteDialog` コンポーネントで確認を挟む
