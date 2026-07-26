@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,15 @@ export default function SetPasswordPage() {
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
+
+  // 招待メールのリンク（URLフラグメント経由）からセッションが確立されたか確認
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setHasSession(!!user);
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,56 +77,66 @@ export default function SetPasswordPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              パスワード
-            </label>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="8文字以上"
-              required
-              className="h-12"
-            />
+        {hasSession === null ? (
+          <div className="flex items-center justify-center py-8 text-slate-400">
+            <Loader2 className="w-6 h-6 animate-spin" />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              パスワード（確認）
-            </label>
-            <Input
-              type="password"
-              value={passwordConfirm}
-              onChange={(e) => setPasswordConfirm(e.target.value)}
-              placeholder="もう一度入力"
-              required
-              className="h-12"
-            />
+        ) : hasSession === false ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            招待リンクが無効か、有効期限が切れています。管理者に再招待を依頼してください
           </div>
-
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                設定中...
-              </>
-            ) : (
-              "パスワードを設定してはじめる"
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
             )}
-          </Button>
-        </form>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                パスワード
+              </label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="8文字以上"
+                required
+                className="h-12"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                パスワード（確認）
+              </label>
+              <Input
+                type="password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                placeholder="もう一度入力"
+                required
+                className="h-12"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  設定中...
+                </>
+              ) : (
+                "パスワードを設定してはじめる"
+              )}
+            </Button>
+          </form>
+        )}
       </div>
     </div>
   );
