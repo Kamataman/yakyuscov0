@@ -26,6 +26,75 @@ export async function sendTeamRegistrationEmail(
   });
 }
 
+export interface AdminInviteEmailParams {
+  to: string;
+  teamName: string;
+  role: "owner" | "admin";
+  inviteUrl: string;
+}
+
+export async function sendAdminInviteEmail(
+  params: AdminInviteEmailParams
+): Promise<void> {
+  if (!resend) {
+    console.warn("RESEND_API_KEY が未設定のため、管理者招待メールの送信をスキップしました。");
+    return;
+  }
+
+  const { to, teamName, role, inviteUrl } = params;
+  await resend.emails.send({
+    from: process.env.EMAIL_FROM ?? "noreply@example.com",
+    to,
+    subject: `【${APP_NAME}】${teamName} の管理者に招待されました`,
+    html: buildInviteHtml({ teamName, role, inviteUrl }),
+  });
+}
+
+interface InviteHtmlParams {
+  teamName: string;
+  role: "owner" | "admin";
+  inviteUrl: string;
+}
+
+function buildInviteHtml({ teamName, role, inviteUrl }: InviteHtmlParams): string {
+  const roleLabel = role === "owner" ? "オーナー" : "管理者";
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${APP_NAME} 管理者招待</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 24px; }
+    .container { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .header { text-align: center; margin-bottom: 32px; }
+    .header h1 { font-size: 22px; color: #1e293b; margin: 0 0 8px; }
+    .header p { font-size: 14px; color: #64748b; margin: 0; }
+    .cta-box { display: block; background: #2563eb; border-radius: 8px; padding: 14px 20px; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; text-align: center; margin: 24px 0; }
+    .note { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 8px; }
+    .footer { margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>${roleLabel}として招待されました</h1>
+      <p><strong>${teamName}</strong> の${roleLabel}として ${APP_NAME} への招待が届いています</p>
+    </div>
+
+    <p style="font-size:14px;color:#475569;margin:0 0 8px;">以下のボタンからパスワードを設定して、ログインしてください：</p>
+    <a href="${inviteUrl}" class="cta-box">パスワードを設定してはじめる</a>
+    <p class="note">このリンクの有効期限は7日間です</p>
+
+    <div class="footer">
+      <p>${APP_NAME} — チームの記録を管理するアプリ</p>
+      <p>心当たりがない場合は、このメールを破棄してください。</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 interface HtmlParams {
   teamName: string;
   teamUrl: string;

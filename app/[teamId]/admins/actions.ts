@@ -1,9 +1,13 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { randomBytes } from "crypto"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { SITE_URL } from "@/lib/constants"
+import { sendAdminInviteEmail } from "@/lib/email"
+
+const INVITE_EXPIRES_IN_MS = 7 * 24 * 60 * 60 * 1000
 
 export async function inviteMember(teamId: string, email: string, role: "owner" | "admin") {
   const session = await requireTeamAdmin(teamId)
@@ -17,41 +21,55 @@ export async function inviteMember(teamId: string, email: string, role: "owner" 
 
   const db = createServiceClient()
 
+  const { data: team } = await db.from("teams").select("name").eq("id", teamId).single()
+  if (!team) throw new Error("チームが見つかりません")
+
   const { data: existingProfile } = await db
     .from("profiles")
     .select("id")
     .eq("email", trimmedEmail)
     .maybeSingle()
 
-  let targetUserId: string
-
   if (existingProfile) {
-    targetUserId = existingProfile.id
-  } else {
-    const { data: inviteData, error: inviteError } = await db.auth.admin.inviteUserByEmail(
-      trimmedEmail,
-      { redirectTo: `${SITE_URL}/auth/set-password` }
-    )
+    const { error: insertError } = await db.from("team_members").insert({
+      team_id: teamId,
+      user_id: existingProfile.id,
+      role,
+    })
 
-    if (inviteError || !inviteData.user) {
-      throw new Error(inviteError?.message || "招待メールの送信に失敗しました")
+    if (insertError) {
+      if (insertError.code === "23505") {
+        throw new Error("このユーザーは既にこのチームの管理者です")
+      }
+      throw new Error(insertError.message)
     }
 
-    targetUserId = inviteData.user.id
+    revalidatePath(`/${teamId}/admins`)
+    return
   }
 
-  const { error: insertError } = await db.from("team_members").insert({
+  const token = randomBytes(32).toString("hex")
+  const expiresAt = new Date(Date.now() + INVITE_EXPIRES_IN_MS).toISOString()
+
+  const { error: inviteInsertError } = await db.from("team_invites").insert({
     team_id: teamId,
-    user_id: targetUserId,
+    email: trimmedEmail,
     role,
+    token,
+    invited_by: session.userId,
+    expires_at: expiresAt,
   })
 
-  if (insertError) {
-    if (insertError.code === "23505") {
-      throw new Error("このユーザーは既にこのチームの管理者です")
-    }
-    throw new Error(insertError.message)
+  if (inviteInsertError) {
+    throw new Error(inviteInsertError.message)
   }
+
+  await sendAdminInviteEmail({
+    to: trimmedEmail,
+    teamName: team.name,
+    role,
+    inviteUrl: `${SITE_URL}/invite/${token}`,
+  })
 
   revalidatePath(`/${teamId}/admins`)
 }
