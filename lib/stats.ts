@@ -108,6 +108,7 @@ export function calculateBattingStats(
         stats.hitByPitch++
         break
       case "三振":
+      case "振り逃げ":
         stats.strikeouts++
         stats.atBats++
         break

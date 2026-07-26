@@ -40,6 +40,7 @@ const HIT_RESULTS: { label: string; value: HitResult; category: "hit" | "walk" |
   { label: "犠打", value: "犠打", category: "other" },
   { label: "犠飛", value: "犠飛", category: "other" },
   { label: "エラー", value: "エラー", category: "other" },
+  { label: "振逃", value: "振り逃げ", category: "other" },
   { label: "野選", value: "野選", category: "other" },
 ]
 
@@ -97,12 +98,12 @@ export function BattingInputDialog({
   }
 
   // 打撃結果が未選択、または四球・死球・三振以外の場合は打球方向を入力可能
-  const needsDirection = !hitResult || !["四球", "死球", "三振"].includes(hitResult)
+  const needsDirection = !hitResult || !["四球", "死球", "三振", "振り逃げ"].includes(hitResult)
 
   const handleHitResultClick = (value: HitResult) => {
     setHitResult(value)
     // 四球、死球、三振は打球方向不要なのでクリア
-    if (["四球", "死球", "三振"].includes(value)) {
+    if (["四球", "死球", "三振", "振り逃げ"].includes(value)) {
       setDirection(undefined)
     }
   }

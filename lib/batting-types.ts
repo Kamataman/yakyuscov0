@@ -7,8 +7,9 @@ export type HitResult =
   | "死球" 
   | "犠打" 
   | "犠飛" 
-  | "三振" 
-  | "ゴロ" 
+  | "三振"
+  | "振り逃げ"
+  | "ゴロ"
   | "フライ" 
   | "ライナー" 
   | "併殺打" 
@@ -167,6 +168,7 @@ export function getResultSummary(result: BattingResult): string {
     "犠打": "犠",
     "犠飛": "犠飛",
     "三振": "三振",
+    "振り逃げ": "振逃",
     "ゴロ": "ゴ",
     "フライ": "飛",
     "ライナー": "直",
@@ -202,7 +204,7 @@ export function isHit(result: HitResult): boolean {
 
 // 結果が出塁かどうか
 export function isOnBase(result: HitResult): boolean {
-  return ["単打", "二塁打", "三塁打", "本塁打", "四球", "死球", "エラー", "野選"].includes(result)
+  return ["単打", "二塁打", "三塁打", "本塁打", "四球", "死球", "エラー", "野選", "振り逃げ"].includes(result)
 }
 
 // 試合データ
