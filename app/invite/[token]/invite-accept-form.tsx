@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, KeyRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,12 @@ export function InviteAcceptForm({ token, email, teamName, role }: Props) {
   const [password, setPassword] = useState("")
   const [passwordConfirm, setPasswordConfirm] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isNavigating, startNavigation] = useTransition()
   const [error, setError] = useState("")
+
+  // router.push は遷移完了を待たないため、finally で isLoading を戻すと
+  // 遷移中だけボタンが通常表示に戻ってしまう。transition の pending で覆う。
+  const isBusy = isLoading || isNavigating
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,12 +49,16 @@ export function InviteAcceptForm({ token, email, teamName, role }: Props) {
 
       if (signInError) {
         // 招待前から同じメールアドレスのアカウントが既に存在していたケース
-        router.push(`/${teamId}/login`)
+        startNavigation(() => {
+          router.push(`/${teamId}/login`)
+        })
         return
       }
 
-      router.push(`/${teamId}`)
-      router.refresh()
+      startNavigation(() => {
+        router.push(`/${teamId}`)
+        router.refresh()
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : "パスワードの設定に失敗しました")
     } finally {
@@ -105,10 +114,10 @@ export function InviteAcceptForm({ token, email, teamName, role }: Props) {
 
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={isBusy}
           className="w-full h-12 bg-turf hover:bg-turf/90 text-turf-foreground font-semibold"
         >
-          {isLoading ? (
+          {isBusy ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               設定中...

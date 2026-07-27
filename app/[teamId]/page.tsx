@@ -6,6 +6,7 @@ import { requireTeamAdmin } from "@/lib/auth"
 import { fetchTeamHeaderImage, fetchTeamImages } from "@/lib/team-images-server"
 import { TeamPhotoCarousel } from "@/components/team-photo-carousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { LinkPendingIndicator } from "@/components/link-pending-indicator"
 import { cn } from "@/lib/utils"
 
 interface GameSummary {
@@ -163,7 +164,7 @@ export default async function TeamDashboardPage({ params }: Props) {
               <div className="mt-6">
                 <Link
                   href={`/${teamId}/contact`}
-                  className="flex items-center justify-center gap-2 border border-border px-4 py-2.5 text-sm font-medium text-foreground/70 transition-colors hover:bg-muted"
+                  className="flex items-center justify-center gap-2 border border-border px-4 py-2.5 text-sm font-medium text-foreground/70 transition-colors hover:bg-muted active:bg-muted"
                 >
                   <MessageCircle className="h-4 w-4" />
                   このチームに問い合わせる
@@ -182,6 +183,7 @@ export default async function TeamDashboardPage({ params }: Props) {
             >
               <PlusCircle className="h-6 w-6" />
               <span className="text-lg font-bold">新しい試合を記録</span>
+              <LinkPendingIndicator className="h-6 w-6" />
             </Link>
           </div>
         )}
@@ -212,7 +214,7 @@ export default async function TeamDashboardPage({ params }: Props) {
                     <Link
                       key={game.id}
                       href={`/${teamId}/games/${game.id}`}
-                      className="flex items-center justify-between py-3 transition-colors hover:bg-muted/50"
+                      className="flex items-center justify-between py-3 transition-colors hover:bg-muted/50 active:bg-muted/50"
                     >
                       <div>
                         <p className="text-sm text-muted-foreground">{game.date}</p>

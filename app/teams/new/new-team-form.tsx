@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Loader2 } from "lucide-react"
@@ -11,7 +11,12 @@ export function NewTeamForm() {
   const [teamId, setTeamId] = useState("")
   const [teamName, setTeamName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isNavigating, startNavigation] = useTransition()
   const [error, setError] = useState("")
+
+  // router.push は遷移完了を待たないため、finally で isSubmitting を戻すと
+  // 遷移中だけボタンが通常表示に戻ってしまう。transition の pending で覆う。
+  const isBusy = isSubmitting || isNavigating
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,8 +38,10 @@ export function NewTeamForm() {
     setIsSubmitting(true)
     try {
       const createdTeamId = await createTeam(teamId, teamName)
-      router.push(`/${createdTeamId}`)
-      router.refresh()
+      startNavigation(() => {
+        router.push(`/${createdTeamId}`)
+        router.refresh()
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : "作成に失敗しました")
     } finally {
@@ -97,10 +104,10 @@ export function NewTeamForm() {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isBusy}
               className="flex w-full items-center justify-center gap-2 bg-turf px-4 py-3 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {isSubmitting ? (
+              {isBusy ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   作成中...
