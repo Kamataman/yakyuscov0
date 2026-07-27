@@ -61,9 +61,9 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
 
   if (pitchers.length === 0) {
     return (
-      <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
-        <h2 className="px-4 py-3 text-sm font-bold text-slate-600 border-b border-slate-200 bg-slate-50">投手成績</h2>
-        <p className="p-4 py-8 text-center text-slate-400">投手成績が登録されていません</p>
+      <div className="border border-border">
+        <h2 className="px-4 py-3 text-sm font-bold text-foreground border-b border-border bg-muted">投手成績</h2>
+        <p className="p-4 py-8 text-center text-muted-foreground">投手成績が登録されていません</p>
       </div>
     )
   }
@@ -79,16 +79,16 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
   }
 
   return (
-    <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
-        <h2 className="text-sm font-bold text-slate-600">投手成績</h2>
+    <div className="border border-border">
+      <div className="px-4 py-3 border-b border-border bg-muted flex items-center justify-between gap-2">
+        <h2 className="text-sm font-bold text-foreground">投手成績</h2>
         {hasInningData && (
-          <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+          <div className="flex border border-border overflow-hidden text-xs font-medium">
             <button
               onClick={() => setViewMode("aggregate")}
               className={cn(
                 "px-3 py-1.5 transition-colors",
-                viewMode === "aggregate" ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
+                viewMode === "aggregate" ? "bg-turf text-turf-foreground" : "bg-background text-muted-foreground hover:bg-muted"
               )}
             >
               試合合計
@@ -97,7 +97,7 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
               onClick={() => setViewMode("inning")}
               className={cn(
                 "px-3 py-1.5 transition-colors",
-                viewMode === "inning" ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
+                viewMode === "inning" ? "bg-turf text-turf-foreground" : "bg-background text-muted-foreground hover:bg-muted"
               )}
             >
               イニングごと
@@ -110,9 +110,9 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
         <div className="overflow-x-auto">
           <table className="w-full text-center text-sm">
             <thead>
-              <tr className="border-b bg-slate-50">
-                <th className="sticky left-0 z-20 bg-slate-50 w-10 min-w-[40px] px-2 py-2"></th>
-                <th className="sticky left-10 z-20 bg-slate-50 min-w-[5rem] px-2 py-2 text-left">投手</th>
+              <tr className="border-b border-border bg-muted">
+                <th className="sticky left-0 z-20 bg-muted w-10 min-w-[40px] px-2 py-2"></th>
+                <th className="sticky left-10 z-20 bg-muted min-w-[5rem] px-2 py-2 text-left">投手</th>
                 <th className="px-2 py-2 vertical-text">投球回</th>
                 <th className="px-2 py-2 vertical-text">打者</th>
                 <th className="px-2 py-2 vertical-text">被安</th>
@@ -141,14 +141,14 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
                 const inningsOuts = inningSum ? inningSum.totalOuts : pitcher.innings_outs
                 const isMidInningExit = inningSum ? inningSum.isMidInningExit : pitcher.is_mid_inning_exit
                 return (
-                  <tr key={index} className="border-b">
-                    <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 [text-orientation:upright]">
-                      {pitcher.pitcher_award === "win"  && <span className="rounded bg-blue-100 px-1 text-blue-700">勝</span>}
-                      {pitcher.pitcher_award === "lose" && <span className="rounded bg-red-100 px-1 text-red-700">敗</span>}
-                      {pitcher.pitcher_award === "save" && <span className="rounded bg-green-100 px-1 text-green-700">S</span>}
-                      {pitcher.pitcher_award === "hold" && <span className="rounded bg-purple-100 px-1 text-purple-700">H</span>}
+                  <tr key={index} className="border-b border-border">
+                    <td className="sticky left-0 z-10 bg-background w-10 min-w-[40px] px-2 py-2 [text-orientation:upright]">
+                      {pitcher.pitcher_award === "win"  && <span className="bg-turf px-1 text-turf-foreground">勝</span>}
+                      {pitcher.pitcher_award === "lose" && <span className="bg-stitch px-1 text-stitch-foreground">敗</span>}
+                      {pitcher.pitcher_award === "save" && <span className="border border-foreground px-1 text-foreground">S</span>}
+                      {pitcher.pitcher_award === "hold" && <span className="border border-foreground px-1 text-foreground">H</span>}
                     </td>
-                    <td className="sticky left-10 z-10 bg-white min-w-[4rem] max-w-[5rem] px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
+                    <td className="sticky left-10 z-10 bg-background min-w-[4rem] max-w-[5rem] px-2 py-2 text-left font-medium">{pitcher.player_name}</td>
                     <td className="px-2 py-2">{formatInnings(inningsOuts, isMidInningExit)}</td>
                     <td className="px-2 py-2">{stats.battersFaced}</td>
                     <td className="px-2 py-2">{stats.hits}</td>
@@ -167,7 +167,7 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
-            <thead className="bg-slate-50 text-slate-600">
+            <thead className="bg-muted text-foreground">
               <tr>
                 <th className="px-2 py-2 text-center font-medium w-8">#</th>
                 <th className="px-2 py-2 text-left font-medium min-w-[4rem] max-w-[5rem]">投手</th>
@@ -180,30 +180,30 @@ export function PitcherResultsSection({ pitchers, totalInnings }: Props) {
             <tbody>
               {pitchers.map((pitcher, pIdx) =>
                 STAT_ROWS.map((stat, sIdx) => (
-                  <tr key={`${pIdx}-${stat}`} className={cn("border-t border-slate-100", sIdx === 0 && pIdx > 0 && "border-t-2 border-slate-200")}>
+                  <tr key={`${pIdx}-${stat}`} className={cn("border-t border-border", sIdx === 0 && pIdx > 0 && "border-t-2")}>
                     {sIdx === 0 && (
                       <>
-                        <td rowSpan={3} className="px-2 py-1 text-center text-slate-500 align-middle">{pIdx + 1}</td>
+                        <td rowSpan={3} className="px-2 py-1 text-center text-muted-foreground align-middle">{pIdx + 1}</td>
                         <td rowSpan={3} className="px-2 py-1 align-middle min-w-[4rem] max-w-[5rem]">
                           <div className="flex items-center gap-1 flex-wrap">
-                            {pitcher.pitcher_award === "win"  && <span className="text-xs text-amber-500 font-bold">勝</span>}
-                            {pitcher.pitcher_award === "lose" && <span className="text-xs text-slate-500 font-bold">敗</span>}
-                            {pitcher.pitcher_award === "save" && <span className="text-xs text-blue-500 font-bold">S</span>}
-                            {pitcher.pitcher_award === "hold" && <span className="text-xs text-emerald-500 font-bold">H</span>}
-                            <span className="font-medium text-slate-800">{pitcher.player_name}</span>
+                            {pitcher.pitcher_award === "win"  && <span className="text-xs text-turf font-bold">勝</span>}
+                            {pitcher.pitcher_award === "lose" && <span className="text-xs text-stitch font-bold">敗</span>}
+                            {pitcher.pitcher_award === "save" && <span className="text-xs text-foreground font-bold">S</span>}
+                            {pitcher.pitcher_award === "hold" && <span className="text-xs text-foreground font-bold">H</span>}
+                            <span className="font-medium text-foreground">{pitcher.player_name}</span>
                           </div>
                         </td>
                       </>
                     )}
-                    <td className="px-2 py-1 text-center text-xs text-slate-500 whitespace-nowrap">{stat}</td>
+                    <td className="px-2 py-1 text-center text-xs text-muted-foreground whitespace-nowrap">{stat}</td>
                     {inningColumns.map(inning => {
                       const val = getInningValue(pitcher, inning, stat)
                       return (
                         <td key={inning} className="px-1 py-1 text-center">
                           {val !== null ? (
-                            <span className={cn("font-medium", val > 0 && stat === "失点" && "text-red-600")}>{val}</span>
+                            <span className={cn("font-medium", val > 0 && stat === "失点" && "text-stitch")}>{val}</span>
                           ) : (
-                            <span className="text-slate-200">-</span>
+                            <span className="text-muted-foreground/30">-</span>
                           )}
                         </td>
                       )

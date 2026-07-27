@@ -63,21 +63,21 @@ export function ResetPasswordForm({ token }: Props) {
   return (
     <>
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <KeyRound className="w-8 h-8 text-blue-600" />
+        <div className="diamond-mark w-16 h-16 bg-turf flex items-center justify-center mx-auto mb-4">
+          <KeyRound className="w-8 h-8 text-turf-foreground -rotate-45" />
         </div>
-        <h1 className="text-2xl font-bold text-slate-800">新しいパスワードを設定</h1>
+        <h1 className="text-2xl font-bold text-foreground">新しいパスワードを設定</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-stitch/10 border border-stitch/40 text-stitch px-4 py-3 text-sm">
             {error}
           </div>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">新しいパスワード</label>
+          <label className="block text-sm font-medium text-foreground mb-1">新しいパスワード</label>
           <Input
             type="password"
             value={password}
@@ -89,7 +89,7 @@ export function ResetPasswordForm({ token }: Props) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">新しいパスワード（確認）</label>
+          <label className="block text-sm font-medium text-foreground mb-1">新しいパスワード（確認）</label>
           <Input
             type="password"
             value={passwordConfirm}
@@ -103,7 +103,7 @@ export function ResetPasswordForm({ token }: Props) {
         <Button
           type="submit"
           disabled={isLoading}
-          className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+          className="w-full h-12 bg-turf hover:bg-turf/90 text-turf-foreground font-semibold"
         >
           {isLoading ? (
             <>

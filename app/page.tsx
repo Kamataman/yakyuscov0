@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { Users, BarChart3, Calendar, ChevronRight, Share2, Smartphone, Trophy, ClipboardList, TrendingUp, Shield } from "lucide-react"
 import { APP_NAME, SITE_URL } from "@/lib/constants"
 import { ScoreSharingDemo } from "@/components/score-sharing-demo"
@@ -81,15 +82,18 @@ const faqJsonLd = {
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
+    <main className="min-h-screen bg-background">
       {/* ヘッダー */}
       <header className="mx-auto max-w-6xl px-4 py-6">
         <nav className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-white">{APP_NAME}</span>
+          <span className="flex items-center gap-2 text-2xl font-black text-foreground">
+            <Image src="/apple-icon.png" alt={APP_NAME} width={32} height={32} priority />
+            {APP_NAME}
+          </span>
           <div className="flex items-center gap-4">
             <Link
               href="/register"
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+              className="bg-turf px-4 py-2 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90"
             >
               チーム登録（無料）
             </Link>
@@ -99,13 +103,13 @@ export default function LandingPage() {
 
       {/* ヒーローセクション */}
       <section className="mx-auto max-w-6xl px-4 py-16 text-center md:py-24">
-        <p className="mb-4 inline-block rounded-full bg-blue-500/20 px-4 py-1.5 text-sm font-semibold text-blue-300">
+        <p className="mb-4 inline-block border border-turf px-4 py-1.5 text-sm font-semibold text-turf">
           草野球・少年野球・社会人野球チームに最適
         </p>
-        <h1 className="text-4xl font-bold leading-tight text-white md:text-5xl">
+        <h1 className="text-4xl font-black leading-tight text-foreground md:text-5xl">
           チームの試合結果と<br />個人成績を簡単管理
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-300">
+        <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
           野球チームの試合スコア・打撃成績・投手成績を一元管理。
           打率・OPS・防御率を自動計算し、スマートフォンからいつでも記録・確認できます。
           チーム登録は無料・クレジットカード不要。
@@ -113,77 +117,77 @@ export default function LandingPage() {
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
             href="/register"
-            className="flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"
+            className="diagonal-cut flex items-center gap-2 bg-turf px-8 py-4 text-lg font-bold text-turf-foreground transition-opacity hover:opacity-90"
           >
             無料でチームを作成
             <ChevronRight className="h-5 w-5" />
           </Link>
           <Link
             href="/demo"
-            className="rounded-xl border border-slate-600 px-8 py-4 text-lg font-bold text-white transition-all hover:bg-slate-700"
+            className="border border-border px-8 py-4 text-lg font-bold text-foreground transition-all hover:bg-muted"
           >
             デモチームを見てみる
           </Link>
         </div>
-        <p className="mt-4 text-sm text-slate-500">クレジットカード不要・登録1分</p>
+        <p className="mt-4 text-sm text-muted-foreground">クレジットカード不要・登録1分</p>
       </section>
 
       {/* 主な機能 */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="mb-4 text-center text-3xl font-bold text-white">主な機能</h2>
-        <p className="mb-12 text-center text-slate-400">試合記録から成績集計まで、チーム運営に必要な機能をすべて無料で</p>
+        <h2 className="mb-4 text-center text-3xl font-bold text-foreground">主な機能</h2>
+        <p className="mb-12 text-center text-muted-foreground">試合記録から成績集計まで、チーム運営に必要な機能をすべて無料で</p>
         <div className="grid gap-8 md:grid-cols-3">
-          <div className="rounded-2xl bg-slate-800/50 p-6">
-            <div className="mb-4 inline-flex rounded-xl bg-blue-500/20 p-3">
-              <Calendar className="h-8 w-8 text-blue-400" />
+          <div className="border border-border p-6">
+            <div className="mb-4 inline-flex bg-muted p-3">
+              <Calendar className="h-8 w-8 text-foreground" />
             </div>
-            <h3 className="mb-2 text-xl font-bold text-white">試合結果の記録</h3>
-            <p className="text-slate-400">
+            <h3 className="mb-2 text-xl font-bold text-foreground">試合結果の記録</h3>
+            <p className="text-muted-foreground">
               スコアボード形式でイニング別のスコアを記録。打撃結果（安打・三振・四球・本塁打など）もタップ操作で簡単入力できます。
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-800/50 p-6">
-            <div className="mb-4 inline-flex rounded-xl bg-emerald-500/20 p-3">
-              <BarChart3 className="h-8 w-8 text-emerald-400" />
+          <div className="border border-border p-6">
+            <div className="mb-4 inline-flex bg-muted p-3">
+              <BarChart3 className="h-8 w-8 text-foreground" />
             </div>
-            <h3 className="mb-2 text-xl font-bold text-white">成績の自動計算</h3>
-            <p className="text-slate-400">
+            <h3 className="mb-2 text-xl font-bold text-foreground">成績の自動計算</h3>
+            <p className="text-muted-foreground">
               打率・出塁率・長打率・OPS・打点・本塁打を自動集計。投手は防御率・奪三振・与四球も自動計算。選手ごとの成績を一覧で確認できます。
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-800/50 p-6">
-            <div className="mb-4 inline-flex rounded-xl bg-purple-500/20 p-3">
-              <Users className="h-8 w-8 text-purple-400" />
+          <div className="border border-border p-6">
+            <div className="mb-4 inline-flex bg-muted p-3">
+              <Users className="h-8 w-8 text-foreground" />
             </div>
-            <h3 className="mb-2 text-xl font-bold text-white">選手管理</h3>
-            <p className="text-slate-400">
+            <h3 className="mb-2 text-xl font-bold text-foreground">選手管理</h3>
+            <p className="text-muted-foreground">
               チームメンバーを登録して試合ごとの出場選手を選択。背番号・ポジションも管理でき、投手・野手の区別も設定できます。
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-800/50 p-6">
-            <div className="mb-4 inline-flex rounded-xl bg-orange-500/20 p-3">
-              <Share2 className="h-8 w-8 text-orange-400" />
+          <div className="border border-border p-6">
+            <div className="mb-4 inline-flex bg-turf/10 p-3">
+              <Share2 className="h-8 w-8 text-turf" />
             </div>
-            <h3 className="mb-2 text-xl font-bold text-white">試合結果の共有</h3>
-            <p className="text-slate-400">
+            <h3 className="mb-2 text-xl font-bold text-foreground">試合結果の共有</h3>
+            <p className="text-muted-foreground">
               試合結果をURLで共有できます。LINEやSNSに貼るだけで、チームメンバーや相手チームにスコアを伝えられます。
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-800/50 p-6">
-            <div className="mb-4 inline-flex rounded-xl bg-cyan-500/20 p-3">
-              <Smartphone className="h-8 w-8 text-cyan-400" />
+          <div className="border border-border p-6">
+            <div className="mb-4 inline-flex bg-muted p-3">
+              <Smartphone className="h-8 w-8 text-foreground" />
             </div>
-            <h3 className="mb-2 text-xl font-bold text-white">スマホ完全対応</h3>
-            <p className="text-slate-400">
+            <h3 className="mb-2 text-xl font-bold text-foreground">スマホ完全対応</h3>
+            <p className="text-muted-foreground">
               アプリのインストール不要。スマートフォンのブラウザからそのまま使えます。試合中もスコアをリアルタイムで入力できます。
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-800/50 p-6">
-            <div className="mb-4 inline-flex rounded-xl bg-yellow-500/20 p-3">
-              <Trophy className="h-8 w-8 text-yellow-400" />
+          <div className="border border-border p-6">
+            <div className="mb-4 inline-flex bg-muted p-3">
+              <Trophy className="h-8 w-8 text-foreground" />
             </div>
-            <h3 className="mb-2 text-xl font-bold text-white">シーズン成績管理</h3>
-            <p className="text-slate-400">
+            <h3 className="mb-2 text-xl font-bold text-foreground">シーズン成績管理</h3>
+            <p className="text-muted-foreground">
               複数試合の成績を累計で管理。シーズン通算の打率・防御率など、チーム全体の成長をトラッキングできます。
             </p>
           </div>
@@ -192,40 +196,40 @@ export default function LandingPage() {
 
       {/* 計算できる成績一覧 */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="mb-4 text-center text-3xl font-bold text-white">自動計算される成績</h2>
-        <p className="mb-12 text-center text-slate-400">入力したデータから以下の成績を自動で集計します</p>
+        <h2 className="mb-4 text-center text-3xl font-bold text-foreground">自動計算される成績</h2>
+        <p className="mb-12 text-center text-muted-foreground">入力したデータから以下の成績を自動で集計します</p>
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-2xl bg-slate-800/50 p-6">
+          <div className="border border-border p-6">
             <div className="mb-4 flex items-center gap-3">
-              <div className="inline-flex rounded-xl bg-blue-500/20 p-2">
-                <ClipboardList className="h-6 w-6 text-blue-400" />
+              <div className="inline-flex bg-muted p-2">
+                <ClipboardList className="h-6 w-6 text-foreground" />
               </div>
-              <h3 className="text-xl font-bold text-white">打撃成績</h3>
+              <h3 className="text-xl font-bold text-foreground">打撃成績</h3>
             </div>
-            <ul className="space-y-2 text-slate-300">
-              <li className="flex items-center gap-2"><span className="text-blue-400">•</span>打率（AVG）</li>
-              <li className="flex items-center gap-2"><span className="text-blue-400">•</span>出塁率（OBP）</li>
-              <li className="flex items-center gap-2"><span className="text-blue-400">•</span>長打率（SLG）</li>
-              <li className="flex items-center gap-2"><span className="text-blue-400">•</span>OPS（出塁率＋長打率）</li>
-              <li className="flex items-center gap-2"><span className="text-blue-400">•</span>打点・本塁打・二塁打・三塁打</li>
-              <li className="flex items-center gap-2"><span className="text-blue-400">•</span>三振・四球・死球</li>
-              <li className="flex items-center gap-2"><span className="text-blue-400">•</span>盗塁・盗塁刺</li>
+            <ul className="space-y-2 text-muted-foreground">
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>打率（AVG）</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>出塁率（OBP）</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>長打率（SLG）</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>OPS（出塁率＋長打率）</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>打点・本塁打・二塁打・三塁打</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>三振・四球・死球</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>盗塁・盗塁刺</li>
             </ul>
           </div>
-          <div className="rounded-2xl bg-slate-800/50 p-6">
+          <div className="border border-border p-6">
             <div className="mb-4 flex items-center gap-3">
-              <div className="inline-flex rounded-xl bg-emerald-500/20 p-2">
-                <TrendingUp className="h-6 w-6 text-emerald-400" />
+              <div className="inline-flex bg-muted p-2">
+                <TrendingUp className="h-6 w-6 text-foreground" />
               </div>
-              <h3 className="text-xl font-bold text-white">投手成績</h3>
+              <h3 className="text-xl font-bold text-foreground">投手成績</h3>
             </div>
-            <ul className="space-y-2 text-slate-300">
-              <li className="flex items-center gap-2"><span className="text-emerald-400">•</span>防御率（ERA）</li>
-              <li className="flex items-center gap-2"><span className="text-emerald-400">•</span>投球回数</li>
-              <li className="flex items-center gap-2"><span className="text-emerald-400">•</span>奪三振・与四球・与死球</li>
-              <li className="flex items-center gap-2"><span className="text-emerald-400">•</span>被安打・被本塁打</li>
-              <li className="flex items-center gap-2"><span className="text-emerald-400">•</span>勝利・敗北・セーブ</li>
-              <li className="flex items-center gap-2"><span className="text-emerald-400">•</span>自責点・失点</li>
+            <ul className="space-y-2 text-muted-foreground">
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>防御率（ERA）</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>投球回数</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>奪三振・与四球・与死球</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>被安打・被本塁打</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>勝利・敗北・セーブ</li>
+              <li className="flex items-center gap-2"><span className="text-turf">•</span>自責点・失点</li>
             </ul>
           </div>
         </div>
@@ -233,23 +237,23 @@ export default function LandingPage() {
 
       {/* 使い方ステップ */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="mb-4 text-center text-3xl font-bold text-white">かんたん3ステップで始められる</h2>
-        <p className="mb-12 text-center text-slate-400">難しい設定は不要。すぐに使い始められます</p>
+        <h2 className="mb-4 text-center text-3xl font-bold text-foreground">かんたん3ステップで始められる</h2>
+        <p className="mb-12 text-center text-muted-foreground">難しい設定は不要。すぐに使い始められます</p>
         <div className="grid gap-8 md:grid-cols-3">
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">1</div>
-            <h3 className="mb-2 text-lg font-bold text-white">チームを作成</h3>
-            <p className="text-slate-400">チーム名を決めてメールアドレスで登録するだけ。1分で完了します。</p>
+            <div className="font-display mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-turf text-2xl font-bold text-turf-foreground">1</div>
+            <h3 className="mb-2 text-lg font-bold text-foreground">チームを作成</h3>
+            <p className="text-muted-foreground">チーム名を決めてメールアドレスで登録するだけ。1分で完了します。</p>
           </div>
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">2</div>
-            <h3 className="mb-2 text-lg font-bold text-white">選手を登録</h3>
-            <p className="text-slate-400">チームメンバーの名前・背番号・ポジションを登録します。あとから追加・編集も自由。</p>
+            <div className="font-display mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-turf text-2xl font-bold text-turf-foreground">2</div>
+            <h3 className="mb-2 text-lg font-bold text-foreground">選手を登録</h3>
+            <p className="text-muted-foreground">チームメンバーの名前・背番号・ポジションを登録します。あとから追加・編集も自由。</p>
           </div>
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">3</div>
-            <h3 className="mb-2 text-lg font-bold text-white">試合を記録</h3>
-            <p className="text-slate-400">試合のスコアと打撃結果を入力すると成績が自動集計。結果はURLで共有できます。</p>
+            <div className="font-display mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-turf text-2xl font-bold text-turf-foreground">3</div>
+            <h3 className="mb-2 text-lg font-bold text-foreground">試合を記録</h3>
+            <p className="text-muted-foreground">試合のスコアと打撃結果を入力すると成績が自動集計。結果はURLで共有できます。</p>
           </div>
         </div>
       </section>
@@ -259,8 +263,8 @@ export default function LandingPage() {
 
       {/* こんなチームにおすすめ */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="mb-4 text-center text-3xl font-bold text-white">こんなチームにおすすめ</h2>
-        <p className="mb-12 text-center text-slate-400">あらゆる野球チームのスコア管理・成績管理に対応</p>
+        <h2 className="mb-4 text-center text-3xl font-bold text-foreground">こんなチームにおすすめ</h2>
+        <p className="mb-12 text-center text-muted-foreground">あらゆる野球チームのスコア管理・成績管理に対応</p>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[
             { label: "草野球チーム", desc: "週末の試合スコアを手軽に記録・共有したい" },
@@ -270,13 +274,13 @@ export default function LandingPage() {
             { label: "高校・大学野球OB会", desc: "定期試合の記録をメンバーと共有したい" },
             { label: "企業内野球チーム", desc: "スコアラー不在でも打席結果を記録したい" },
           ].map(({ label, desc }) => (
-            <div key={label} className="rounded-xl bg-slate-800/50 p-4 flex items-start gap-3">
-              <div className="mt-0.5 inline-flex rounded-lg bg-blue-500/20 p-1.5">
-                <Shield className="h-4 w-4 text-blue-400" />
+            <div key={label} className="border border-border p-4 flex items-start gap-3">
+              <div className="mt-0.5 inline-flex bg-muted p-1.5">
+                <Shield className="h-4 w-4 text-foreground" />
               </div>
               <div>
-                <p className="font-bold text-white">{label}</p>
-                <p className="text-sm text-slate-400">{desc}</p>
+                <p className="font-bold text-foreground">{label}</p>
+                <p className="text-sm text-muted-foreground">{desc}</p>
               </div>
             </div>
           ))}
@@ -287,7 +291,7 @@ export default function LandingPage() {
       <div className="text-center pb-8">
         <Link
           href="/demo"
-          className="rounded-xl border border-slate-600 px-8 py-4 text-lg font-bold text-white transition-all hover:bg-slate-700"
+          className="border border-border px-8 py-4 text-lg font-bold text-foreground transition-all hover:bg-muted"
         >
           デモチームを見てみる
         </Link>
@@ -295,7 +299,7 @@ export default function LandingPage() {
 
       {/* FAQ */}
       <section className="mx-auto max-w-3xl px-4 py-16">
-        <h2 className="mb-12 text-center text-3xl font-bold text-white">よくある質問</h2>
+        <h2 className="mb-12 text-center text-3xl font-bold text-foreground">よくある質問</h2>
         <div className="space-y-4">
           {[
             {
@@ -319,9 +323,9 @@ export default function LandingPage() {
               a: "はい、登録した試合データはすべて保存されます。シーズン通算の成績も自動で集計されます。",
             },
           ].map(({ q, a }) => (
-            <div key={q} className="rounded-2xl bg-slate-800/50 p-6">
-              <p className="mb-2 font-bold text-white">Q. {q}</p>
-              <p className="text-slate-400">A. {a}</p>
+            <div key={q} className="border border-border p-6">
+              <p className="mb-2 font-bold text-foreground">Q. {q}</p>
+              <p className="text-muted-foreground">A. {a}</p>
             </div>
           ))}
         </div>
@@ -329,16 +333,16 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 py-16 text-center">
-        <div className="rounded-3xl bg-gradient-to-r from-blue-600 to-blue-700 p-8 md:p-12">
-          <h2 className="text-2xl font-bold text-white md:text-3xl">
+        <div className="diagonal-cut-lg bg-turf p-8 md:p-12">
+          <h2 className="text-2xl font-bold text-turf-foreground md:text-3xl">
             今すぐチームを作成して始めましょう
           </h2>
-          <p className="mt-4 text-blue-100">
+          <p className="mt-4 text-turf-foreground/80">
             無料で使えます。クレジットカード不要。登録1分。
           </p>
           <Link
             href="/register"
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-blue-600 shadow-lg transition-all hover:bg-slate-100"
+            className="mt-8 inline-flex items-center gap-2 bg-background px-8 py-4 text-lg font-bold text-turf transition-all hover:bg-background/90"
           >
             無料でチーム登録
             <ChevronRight className="h-5 w-5" />
@@ -347,8 +351,8 @@ export default function LandingPage() {
       </section>
 
       {/* フッター */}
-      <footer className="border-t border-slate-700 py-8">
-        <div className="mx-auto max-w-6xl px-4 text-center text-sm text-slate-500">
+      <footer className="border-t border-border py-8">
+        <div className="mx-auto max-w-6xl px-4 text-center text-sm text-muted-foreground">
           <p>{APP_NAME} - 野球チームの試合スコア・打撃成績・投手成績を無料で管理</p>
           <p className="mt-2">草野球・少年野球・社会人野球チームのスコア管理アプリ</p>
           <p className="mt-2">
@@ -356,7 +360,7 @@ export default function LandingPage() {
               href="https://forms.gle/wPRQDXBgRxCD5JqPA"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-slate-300 transition-colors"
+              className="hover:text-foreground transition-colors"
             >
               問い合わせ
             </a>

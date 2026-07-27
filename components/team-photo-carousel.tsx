@@ -42,8 +42,8 @@ function CarouselDots({ count, selectedIndex, onSelect, variant = "light" }: Dot
             index === selectedIndex ? "w-5" : "w-2",
             variant === "light"
               ? index === selectedIndex
-                ? "bg-blue-600"
-                : "bg-slate-300 hover:bg-slate-400"
+                ? "bg-turf"
+                : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
               : index === selectedIndex
                 ? "bg-white"
                 : "bg-white/40 hover:bg-white/70"
@@ -93,8 +93,8 @@ export function TeamPhotoCarousel({ photos, teamName }: TeamPhotoCarouselProps) 
   if (photos.length === 0) {
     return (
       <div className="mx-auto w-full max-w-xl">
-        <div className="flex aspect-[16/9] w-full items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200">
-          <ImageIcon className="h-10 w-10 text-slate-400" />
+        <div className="flex aspect-[16/9] w-full items-center justify-center bg-muted">
+          <ImageIcon className="h-10 w-10 text-muted-foreground" />
         </div>
       </div>
     )
@@ -110,7 +110,7 @@ export function TeamPhotoCarousel({ photos, teamName }: TeamPhotoCarouselProps) 
                 type="button"
                 onClick={() => setLightboxStartIndex(index)}
                 aria-label={`${index + 1}枚目の写真を拡大表示`}
-                className="relative flex h-[min(60vh,420px)] w-full cursor-zoom-in items-center justify-center overflow-hidden rounded-xl bg-slate-100 md:h-[min(65vh,560px)]"
+                className="relative flex h-[min(60vh,420px)] w-full cursor-zoom-in items-center justify-center overflow-hidden bg-muted md:h-[min(65vh,560px)]"
               >
                 {/* 余白がグレーの帯にならないよう、同じ写真をぼかして背景に敷く */}
                 <Image

@@ -26,7 +26,7 @@ export function DeleteButton({ gameId, teamId }: DeleteButtonProps) {
       <button
         onClick={() => setOpen(true)}
         disabled={isPending}
-        className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-red-700 disabled:opacity-50"
+        className="flex items-center gap-2 border border-stitch px-4 py-2 text-sm font-bold text-stitch transition-colors hover:bg-stitch hover:text-stitch-foreground disabled:opacity-50"
       >
         {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
         削除

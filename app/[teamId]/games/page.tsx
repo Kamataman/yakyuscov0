@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Calendar, MapPin, PlusCircle } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
+import { cn } from "@/lib/utils"
 
 interface GameWithScores {
   id: string
@@ -44,12 +45,12 @@ export default async function GamesListPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl p-4 md:p-6">
         {isAdmin && (
           <Link
             href={`/${teamId}/games/new`}
-            className="mb-6 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-white shadow-md transition-all hover:bg-blue-700 active:scale-[0.98]"
+            className="diagonal-cut mb-6 flex items-center justify-center gap-2 bg-turf px-4 py-3 text-turf-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
           >
             <PlusCircle className="h-5 w-5" />
             <span className="font-bold">新しい試合を記録</span>
@@ -57,12 +58,12 @@ export default async function GamesListPage({ params }: Props) {
         )}
 
         {games.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center shadow-md">
-            <Calendar className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-            <p className="text-slate-500">まだ試合が記録されていません</p>
+          <div className="border border-border p-8 text-center">
+            <Calendar className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
+            <p className="text-muted-foreground">まだ試合が記録されていません</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="divide-y divide-border border-y border-border">
             {games.map((game) => {
               const total = getTotalScore(game.inning_scores || [])
               const result = getResult(game.inning_scores || [])
@@ -70,11 +71,11 @@ export default async function GamesListPage({ params }: Props) {
                 <Link
                   key={game.id}
                   href={`/${teamId}/games/${game.id}`}
-                  className="block rounded-xl bg-white p-4 shadow-md transition-all hover:shadow-lg active:scale-[0.98] active:opacity-80"
+                  className="block py-4 transition-colors hover:bg-muted/50 active:bg-muted/50"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>{game.date}</span>
                         {game.location && (
@@ -84,26 +85,25 @@ export default async function GamesListPage({ params }: Props) {
                           </>
                         )}
                       </div>
-                      <p className="mt-1 text-lg font-bold text-slate-800">
+                      <p className="mt-1 text-lg font-bold text-foreground">
                         vs {game.opponent}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="flex items-center gap-3">
                       <div
-                        className={`inline-block rounded-lg px-3 py-1 text-sm font-bold ${
+                        className={cn(
+                          "inline-block px-3 py-1 text-sm font-bold",
                           result === "win"
-                            ? "bg-emerald-100 text-emerald-700"
+                            ? "bg-turf text-turf-foreground"
                             : result === "lose"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-slate-100 text-slate-700"
-                        }`}
+                              ? "bg-stitch text-stitch-foreground"
+                              : "border border-foreground text-foreground"
+                        )}
                       >
                         {result === "win" ? "勝" : result === "lose" ? "敗" : "分"}
                       </div>
-                      <p className="mt-1 text-2xl font-bold">
-                        <span className="text-blue-600">{total.our}</span>
-                        <span className="mx-2 text-slate-400">-</span>
-                        <span className="text-red-600">{total.opponent}</span>
+                      <p className="font-display text-2xl font-bold text-foreground whitespace-nowrap">
+                        {total.our}-{total.opponent}
                       </p>
                     </div>
                   </div>

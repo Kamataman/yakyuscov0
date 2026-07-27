@@ -1,11 +1,19 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Zen_Kaku_Gothic_New, Oswald } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { APP_NAME, SITE_URL } from '@/lib/constants'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const zenKakuGothicNew = Zen_Kaku_Gothic_New({
+  subsets: ['latin'],
+  weight: ['400', '500', '700', '900'],
+  variable: '--font-zen-kaku-gothic-new',
+})
+const oswald = Oswald({
+  subsets: ['latin'],
+  weight: ['500', '700'],
+  variable: '--font-oswald',
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -63,7 +71,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ja" className="bg-background">
+    <html lang="ja" className={`bg-background ${zenKakuGothicNew.variable} ${oswald.variable}`}>
       <body className="font-sans antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}

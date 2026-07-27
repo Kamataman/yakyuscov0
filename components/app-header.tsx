@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useParams, useRouter } from "next/navigation"
-import { Home, List, BarChart3, Users, Menu, X, LogIn, LogOut, Shield, ExternalLink, Settings, KeyRound } from "lucide-react"
+import { Home, List, BarChart3, Users, MoreHorizontal, LogIn, LogOut, Shield, ExternalLink, Settings, KeyRound } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { APP_NAME } from "@/lib/constants"
@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 
 interface AppHeaderProps {
@@ -25,7 +26,7 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
   const params = useParams()
   const router = useRouter()
   const teamId = params.teamId as string | undefined
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [moreSheetOpen, setMoreSheetOpen] = useState(false)
   const [teamName, setTeamName] = useState<string | null>(initialTeamName ?? null)
   const [isTeamAdmin, setIsTeamAdmin] = useState(false)
 
@@ -74,184 +75,183 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
     { href: `/${teamId}/players`, label: "選手一覧", icon: Users },
   ]
 
-  const visibleNavItems = navItems
+  const isItemActive = (href: string) =>
+    pathname === href || (href !== `/${teamId}` && pathname.startsWith(href))
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        {/* チーム名/ロゴ */}
-        <Link
-          href={`/${teamId}`}
-          className="flex items-center gap-2 text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          <Image src="/apple-icon.png" alt="やきゅすこ" width={36} height={36} className="rounded-lg" />
-          <span className="flex flex-col">
-            <span className="max-w-[150px] truncate sm:max-w-none leading-tight">
-              {teamName || teamId}
+    <>
+      <header className="sticky top-0 z-40 border-b-4 border-turf bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          {/* チーム名/ロゴ */}
+          <Link href={`/${teamId}`} className="flex items-center gap-2.5">
+            <Image src="/apple-icon.png" alt={APP_NAME} width={32} height={32} className="shrink-0" priority />
+            <span className="flex flex-col leading-none">
+              <span className="max-w-[160px] truncate text-lg font-black text-foreground sm:max-w-none sm:text-xl">
+                {teamName || teamId}
+              </span>
+              <span className="mt-1 text-[10px] font-bold text-turf">{APP_NAME}</span>
             </span>
-            <span className="text-xs font-normal text-slate-400 leading-tight">{APP_NAME}</span>
-          </span>
-        </Link>
+          </Link>
 
-        {/* デスクトップナビ */}
-        <nav className="hidden md:flex items-center gap-1">
-          {visibleNavItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href || 
-              (item.href !== `/${teamId}` && pathname.startsWith(item.href))
-            
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            )
-          })}
+          {/* デスクトップナビ */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              const active = isItemActive(item.href)
 
-          {/* ログイン/ログアウトボタン */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className={cn(
-                  "ml-2 gap-2",
-                  isTeamAdmin ? "text-emerald-600 hover:text-emerald-700" : "text-slate-500"
-                )}
-              >
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "relative flex items-center gap-2 px-3 py-2 text-sm font-bold transition-colors",
+                    active ? "text-turf" : "text-foreground/60 hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                  {active && (
+                    <span className="absolute inset-x-3 -bottom-[13px] h-[3px] bg-turf" />
+                  )}
+                </Link>
+              )
+            })}
+
+            {/* ログイン/ログアウトボタン */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "ml-3 gap-2",
+                    isTeamAdmin ? "border-turf text-turf hover:text-turf" : "text-foreground/60"
+                  )}
+                >
+                  {isTeamAdmin ? (
+                    <>
+                      <Shield className="h-4 w-4" />
+                      <span className="hidden lg:inline">管理者</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="h-4 w-4" />
+                      <span className="hidden lg:inline">ログイン</span>
+                    </>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
                 {isTeamAdmin ? (
                   <>
-                    <Shield className="h-4 w-4" />
-                    <span className="hidden lg:inline">管理者</span>
+                    <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+                      {teamName || teamId} の管理者
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href={`/${teamId}/settings`} className="flex items-center">
+                        <Settings className="h-4 w-4 mr-2" />
+                        チーム設定
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/${teamId}/account`} className="flex items-center">
+                        <KeyRound className="h-4 w-4 mr-2" />
+                        パスワードを変更
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-stitch">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      ログアウト
+                    </DropdownMenuItem>
                   </>
                 ) : (
                   <>
-                    <LogIn className="h-4 w-4" />
-                    <span className="hidden lg:inline">ログイン</span>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/${teamId}/login`} className="flex items-center">
+                        <LogIn className="h-4 w-4 mr-2" />
+                        管理者ログイン
+                      </Link>
+                    </DropdownMenuItem>
                   </>
                 )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {isTeamAdmin ? (
-                <>
-                  <DropdownMenuItem disabled className="text-xs text-slate-500">
-                    {teamName || teamId} の管理者
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href={`/${teamId}/settings`} className="flex items-center">
-                      <Settings className="h-4 w-4 mr-2" />
-                      チーム設定
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/${teamId}/account`} className="flex items-center">
-                      <KeyRound className="h-4 w-4 mr-2" />
-                      パスワードを変更
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    ログアウト
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/${teamId}/login`} className="flex items-center">
-                      <LogIn className="h-4 w-4 mr-2" />
-                      管理者ログイン
-                    </Link>
-                  </DropdownMenuItem>
-                </>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/" className="flex items-center">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  やきゅスコについて
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </nav>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/" className="flex items-center">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    やきゅスコについて
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </nav>
+        </div>
+      </header>
 
-        {/* モバイルメニューボタン */}
+      {/* モバイル下部タブバー */}
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t-4 border-turf bg-white md:hidden">
+        {navItems.map((item) => {
+          const Icon = item.icon
+          const active = isItemActive(item.href)
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-bold"
+            >
+              <Icon className={cn("h-5 w-5", active ? "text-turf" : "text-foreground/40")} />
+              <span className={active ? "text-turf" : "text-foreground/40"}>{item.label}</span>
+            </Link>
+          )
+        })}
         <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+          type="button"
+          onClick={() => setMoreSheetOpen(true)}
+          className="flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-bold"
         >
-          {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <MoreHorizontal className={cn("h-5 w-5", isTeamAdmin ? "text-turf" : "text-foreground/40")} />
+          <span className={isTeamAdmin ? "text-turf" : "text-foreground/40"}>その他</span>
         </button>
-      </div>
+      </nav>
 
-      {/* モバイルナビ */}
-      {isMenuOpen && (
-        <nav className="md:hidden border-t bg-white px-4 py-2">
-          {visibleNavItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href || 
-              (item.href !== `/${teamId}` && pathname.startsWith(item.href))
-            
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsMenuOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-100"
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                {item.label}
-              </Link>
-            )
-          })}
-          
-          {/* モバイル用ログイン/ログアウト */}
-          <div className="border-t mt-2 pt-2">
+      {/* モバイル「その他」シート */}
+      <Drawer open={moreSheetOpen} onOpenChange={setMoreSheetOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>その他</DrawerTitle>
+          </DrawerHeader>
+          <div className="flex flex-col gap-1 px-4 pb-6">
             {isTeamAdmin ? (
               <>
-                <div className="flex items-center gap-2 px-3 py-2 text-sm text-emerald-600">
+                <div className="flex items-center gap-2 px-2 py-2 text-sm font-bold text-turf">
                   <Shield className="h-4 w-4" />
-                  管理者としてログイン中
+                  {teamName || teamId} の管理者
                 </div>
                 <Link
                   href={`/${teamId}/settings`}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                  onClick={() => setMoreSheetOpen(false)}
+                  className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground"
                 >
                   <Settings className="h-5 w-5" />
                   チーム設定
                 </Link>
                 <Link
                   href={`/${teamId}/account`}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                  onClick={() => setMoreSheetOpen(false)}
+                  className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground"
                 >
                   <KeyRound className="h-5 w-5" />
                   パスワードを変更
                 </Link>
                 <button
+                  type="button"
                   onClick={() => {
                     handleLogout()
-                    setIsMenuOpen(false)
+                    setMoreSheetOpen(false)
                   }}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
+                  className="flex items-center gap-3 px-2 py-3 text-left text-sm font-medium text-stitch"
                 >
                   <LogOut className="h-5 w-5" />
                   ログアウト
@@ -260,24 +260,26 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
             ) : (
               <Link
                 href={`/${teamId}/login`}
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                onClick={() => setMoreSheetOpen(false)}
+                className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground"
               >
                 <LogIn className="h-5 w-5" />
                 管理者ログイン
               </Link>
             )}
-            <Link
-              href="/"
-              onClick={() => setIsMenuOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
-            >
-              <ExternalLink className="h-5 w-5" />
-              やきゅスコについて
-            </Link>
+            <div className="mt-1 border-t pt-1">
+              <Link
+                href="/"
+                onClick={() => setMoreSheetOpen(false)}
+                className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground/60"
+              >
+                <ExternalLink className="h-5 w-5" />
+                やきゅスコについて
+              </Link>
+            </div>
           </div>
-        </nav>
-      )}
-    </header>
+        </DrawerContent>
+      </Drawer>
+    </>
   )
 }

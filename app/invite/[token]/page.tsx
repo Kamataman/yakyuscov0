@@ -21,8 +21,8 @@ export default async function InvitePage({ params }: Props) {
   const isValid = !!invite && !isExpired && !isAccepted
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+    <main className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="border border-border p-8 max-w-md w-full">
         {isValid && invite && team ? (
           <InviteAcceptForm
             token={token}
@@ -32,8 +32,8 @@ export default async function InvitePage({ params }: Props) {
           />
         ) : (
           <div className="text-center">
-            <h1 className="text-xl font-bold text-slate-800 mb-3">招待リンクが無効です</h1>
-            <p className="text-slate-500 text-sm">
+            <h1 className="text-xl font-bold text-foreground mb-3">招待リンクが無効です</h1>
+            <p className="text-muted-foreground text-sm">
               {isAccepted
                 ? "このリンクは既に使用されています。"
                 : isExpired

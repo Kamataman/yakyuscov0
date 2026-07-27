@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
 import type { PitcherResult, PitcherInningStats, Player } from "@/lib/batting-types"
 import { Plus, Trash2, Trophy, ThumbsDown, Shield, Star, Minus, HelpCircle } from "lucide-react"
@@ -348,18 +349,18 @@ export function PitcherInput({
     max?: number
   }) => (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-sm font-medium text-slate-600 min-w-[60px]">{label}</span>
+      <span className="text-sm font-medium text-muted-foreground min-w-[60px]">{label}</span>
       <div className="flex items-center gap-1">
         <button
           onClick={() => onChange(Math.max(min, value - 1))}
-          className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
+          className="w-9 h-9 bg-muted hover:bg-muted-foreground/20 text-foreground font-bold transition-colors flex items-center justify-center"
         >
           <Minus className="w-4 h-4" />
         </button>
-        <span className="w-10 text-center font-bold text-lg text-slate-800">{value}</span>
+        <span className="font-display w-10 text-center font-bold text-lg text-foreground">{value}</span>
         <button
           onClick={() => onChange(Math.min(max, value + 1))}
-          className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
+          className="w-9 h-9 bg-muted hover:bg-muted-foreground/20 text-foreground font-bold transition-colors flex items-center justify-center"
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -383,10 +384,10 @@ export function PitcherInput({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all",
+        "flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all",
         active
-          ? `${color} text-white shadow-lg scale-105`
-          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          ? `${color} text-white`
+          : "bg-muted text-muted-foreground hover:bg-muted-foreground/20"
       )}
     >
       <Icon className="w-4 h-4" />
@@ -402,7 +403,7 @@ export function PitcherInput({
     setForm: (f: PitcherResult) => void
   }) => (
     <div>
-      <label className="text-sm font-semibold text-slate-700 mb-2 block">選手名</label>
+      <label className="text-sm font-semibold text-foreground mb-2 block">選手名</label>
       {!form.isHelper && (
         <PlayerCombobox
           players={registeredPlayers}
@@ -429,10 +430,10 @@ export function PitcherInput({
           }
         }}
         className={cn(
-          "mt-2 text-xs px-3 py-1.5 rounded-lg transition-all",
+          "mt-2 text-xs px-3 py-1.5 transition-all",
           form.isHelper
-            ? "bg-purple-50 text-purple-600 border border-purple-300 font-medium"
-            : "text-slate-400 border border-dashed border-slate-300 hover:border-slate-400 hover:text-slate-500"
+            ? "bg-amber-50 text-amber-700 border border-amber-300 font-medium"
+            : "text-muted-foreground border border-dashed border-border hover:border-foreground/40 hover:text-foreground"
         )}
       >
         {form.isHelper ? "✓ 助っ人" : "助っ人として登録"}
@@ -449,18 +450,18 @@ export function PitcherInput({
   }) => (
     <div className="flex justify-center py-2">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium text-slate-600 min-w-[60px]">投球回</span>
+        <span className="text-sm font-medium text-muted-foreground min-w-[60px]">投球回</span>
         <div className="flex items-center gap-1">
           <button
             onClick={() => {
               const [o, m] = prevInnings(form.outsPitched, form.isMidInningExit)
               setForm({ ...form, outsPitched: o, isMidInningExit: m })
             }}
-            className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
+            className="w-9 h-9 bg-muted hover:bg-muted-foreground/20 text-foreground font-bold transition-colors flex items-center justify-center"
           >
             <Minus className="w-4 h-4" />
           </button>
-          <span className="w-14 text-center font-bold text-lg text-slate-800">
+          <span className="font-display w-14 text-center font-bold text-lg text-foreground">
             {formatInnings(form.outsPitched, form.isMidInningExit)}
           </span>
           <button
@@ -468,7 +469,7 @@ export function PitcherInput({
               const [o, m] = nextInnings(form.outsPitched, form.isMidInningExit)
               setForm({ ...form, outsPitched: o, isMidInningExit: m })
             }}
-            className="w-9 h-9 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold transition-colors flex items-center justify-center"
+            className="w-9 h-9 bg-muted hover:bg-muted-foreground/20 text-foreground font-bold transition-colors flex items-center justify-center"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -485,12 +486,12 @@ export function PitcherInput({
     setForm: (f: PitcherResult) => void
   }) => (
     <div>
-      <label className="text-sm font-semibold text-slate-700 mb-3 block">勝敗・セーブ</label>
+      <label className="text-sm font-semibold text-foreground mb-3 block">勝敗・セーブ</label>
       <div className="grid grid-cols-2 gap-3">
-        <DecisionButton label="勝利" icon={Trophy} active={form.award === "win"} onClick={() => setForm({ ...form, award: form.award === "win" ? null : "win" })} color="bg-amber-500" />
-        <DecisionButton label="敗戦" icon={ThumbsDown} active={form.award === "lose"} onClick={() => setForm({ ...form, award: form.award === "lose" ? null : "lose" })} color="bg-slate-500" />
-        <DecisionButton label="セーブ" icon={Shield} active={form.award === "save"} onClick={() => setForm({ ...form, award: form.award === "save" ? null : "save" })} color="bg-blue-500" />
-        <DecisionButton label="ホールド" icon={Star} active={form.award === "hold"} onClick={() => setForm({ ...form, award: form.award === "hold" ? null : "hold" })} color="bg-emerald-500" />
+        <DecisionButton label="勝利" icon={Trophy} active={form.award === "win"} onClick={() => setForm({ ...form, award: form.award === "win" ? null : "win" })} color="bg-turf" />
+        <DecisionButton label="敗戦" icon={ThumbsDown} active={form.award === "lose"} onClick={() => setForm({ ...form, award: form.award === "lose" ? null : "lose" })} color="bg-stitch" />
+        <DecisionButton label="セーブ" icon={Shield} active={form.award === "save"} onClick={() => setForm({ ...form, award: form.award === "save" ? null : "save" })} color="bg-foreground" />
+        <DecisionButton label="ホールド" icon={Star} active={form.award === "hold"} onClick={() => setForm({ ...form, award: form.award === "hold" ? null : "hold" })} color="bg-muted-foreground" />
       </div>
     </div>
   )
@@ -510,7 +511,7 @@ export function PitcherInput({
   const renderInningTable = () => (
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
-        <thead className="bg-slate-50 text-slate-600">
+        <thead className="bg-muted text-muted-foreground">
           <tr>
             <th className="px-2 py-2 text-center font-medium w-8">#</th>
             <th className="px-2 py-2 text-left font-medium min-w-[4rem] max-w-[5rem]">投手</th>
@@ -524,44 +525,44 @@ export function PitcherInput({
         <tbody>
           {pitchers.map((pitcher, pIdx) => (
             STAT_ROWS.map((stat, sIdx) => (
-              <tr key={`${pIdx}-${stat}`} className={cn("border-t border-slate-100", sIdx === 0 && pIdx > 0 && "border-t-2 border-slate-200")}>
+              <tr key={`${pIdx}-${stat}`} className={cn("border-t border-border", sIdx === 0 && pIdx > 0 && "border-t-2")}>
                 {sIdx === 0 && (
                   <>
-                    <td rowSpan={3} className="px-2 py-1 text-center text-slate-500 align-middle">
+                    <td rowSpan={3} className="px-2 py-1 text-center text-muted-foreground align-middle">
                       {pIdx + 1}
                     </td>
                     <td
                       rowSpan={3}
-                      className="px-2 py-1 align-middle min-w-[4rem] max-w-[5rem] cursor-pointer hover:bg-blue-50 transition-colors"
+                      className="px-2 py-1 align-middle min-w-[4rem] max-w-[5rem] cursor-pointer hover:bg-turf/10 transition-colors"
                       onClick={() => handleInningEditPlayer(pIdx)}
                     >
                       <div className="flex items-center gap-1 flex-wrap">
-                        {pitcher.award === "win"  && <span className="text-xs text-amber-500 font-bold">勝</span>}
-                        {pitcher.award === "lose" && <span className="text-xs text-slate-500 font-bold">敗</span>}
-                        {pitcher.award === "save" && <span className="text-xs text-blue-500 font-bold">S</span>}
-                        {pitcher.award === "hold" && <span className="text-xs text-emerald-500 font-bold">H</span>}
-                        <span className="font-medium text-slate-800">{pitcher.playerName || <span className="text-slate-400">名前を設定</span>}</span>
-                        {pitcher.isHelper && <span className="text-xs px-1 rounded bg-purple-100 text-purple-600">助っ人</span>}
+                        {pitcher.award === "win"  && <span className="text-xs text-turf font-bold">勝</span>}
+                        {pitcher.award === "lose" && <span className="text-xs text-stitch font-bold">敗</span>}
+                        {pitcher.award === "save" && <span className="text-xs text-foreground font-bold">S</span>}
+                        {pitcher.award === "hold" && <span className="text-xs text-foreground font-bold">H</span>}
+                        <span className="font-medium text-foreground">{pitcher.playerName || <span className="text-muted-foreground">名前を設定</span>}</span>
+                        {pitcher.isHelper && <span className="text-xs px-1 bg-amber-100 text-amber-700">助っ人</span>}
                       </div>
                     </td>
                   </>
                 )}
-                <td className="px-2 py-1 text-center text-xs text-slate-500 whitespace-nowrap">{stat}</td>
+                <td className="px-2 py-1 text-center text-xs text-muted-foreground whitespace-nowrap">{stat}</td>
                 {inningColumns.map(inning => {
                   const val = getInningValue(pitcher, inning, stat)
                   return (
                     <td
                       key={inning}
                       className={cn(
-                        "px-1 py-1 text-center cursor-pointer hover:bg-blue-50 transition-colors rounded",
+                        "px-1 py-1 text-center cursor-pointer hover:bg-turf/10 transition-colors",
                         inning === activeInning && "bg-amber-50"
                       )}
                       onClick={() => handleInningCellClick(pIdx, inning)}
                     >
                       {val !== null ? (
-                        <span className={cn("font-medium", val > 0 && stat === "失点" && "text-red-600")}>{val}</span>
+                        <span className={cn("font-medium", val > 0 && stat === "失点" && "text-stitch")}>{val}</span>
                       ) : (
-                        <span className="text-slate-200">-</span>
+                        <span className="text-muted-foreground/30">-</span>
                       )}
                     </td>
                   )
@@ -570,7 +571,7 @@ export function PitcherInput({
                   <td rowSpan={3} className="px-1 py-1 text-center align-middle">
                     <button
                       onClick={() => handleInningDeletePitcher(pIdx)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-1.5 text-muted-foreground hover:text-stitch hover:bg-stitch/10 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -584,7 +585,7 @@ export function PitcherInput({
       <div className="px-4 py-2">
         <button
           onClick={handleInningAddPitcher}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 py-1"
+          className="text-sm text-turf hover:text-turf/80 font-medium flex items-center gap-1 py-1"
         >
           <Plus className="w-4 h-4" />
           投手を追加
@@ -597,7 +598,7 @@ export function PitcherInput({
   const renderAggregateTable = () => (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[560px] text-sm">
-        <thead className="bg-slate-50 text-slate-600">
+        <thead className="bg-muted text-muted-foreground">
           <tr>
             <th className="px-2 py-2 text-center font-medium"></th>
             <th className="px-3 py-2 text-left font-medium">投手</th>
@@ -613,23 +614,23 @@ export function PitcherInput({
             <th className="px-2 py-2 text-center font-medium"></th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-border">
           {pitchers.map((pitcher, index) => (
             <tr
               key={index}
-              className="hover:bg-slate-50 cursor-pointer transition-colors"
+              className="hover:bg-muted/50 cursor-pointer transition-colors"
               onClick={() => handleAggEdit(index)}
             >
               <td className="px-2 py-2 text-center">
-                {pitcher.award === "win"  && <span className="text-amber-500 font-bold">勝</span>}
-                {pitcher.award === "lose" && <span className="text-slate-500 font-bold">敗</span>}
-                {pitcher.award === "save" && <span className="text-blue-500 font-bold">S</span>}
-                {pitcher.award === "hold" && <span className="text-emerald-500 font-bold">H</span>}
+                {pitcher.award === "win"  && <span className="text-turf font-bold">勝</span>}
+                {pitcher.award === "lose" && <span className="text-stitch font-bold">敗</span>}
+                {pitcher.award === "save" && <span className="text-foreground font-bold">S</span>}
+                {pitcher.award === "hold" && <span className="text-foreground font-bold">H</span>}
               </td>
-              <td className="px-2 py-2 font-medium text-slate-800 min-w-[4rem] max-w-[5rem]">
+              <td className="px-2 py-2 font-medium text-foreground min-w-[4rem] max-w-[5rem]">
                 <div className="flex items-center gap-1 flex-wrap">
                   <span>{pitcher.playerName}</span>
-                  {pitcher.isHelper && <span className="text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-600 font-medium">助っ人</span>}
+                  {pitcher.isHelper && <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 font-medium">助っ人</span>}
                 </div>
               </td>
               <td className="px-2 py-2 text-center">{formatInnings(pitcher.outsPitched, pitcher.isMidInningExit)}</td>
@@ -644,7 +645,7 @@ export function PitcherInput({
               <td className="px-2 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => handleAggDelete(index)}
-                  className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-1.5 text-muted-foreground hover:text-stitch hover:bg-stitch/10 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -657,28 +658,28 @@ export function PitcherInput({
   )
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="border border-border overflow-hidden">
       {/* ヘッダ */}
-      <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2">
-        <h2 className="font-bold text-slate-700">投手成績</h2>
+      <div className="px-4 py-3 bg-muted border-b border-border flex items-center justify-between gap-2">
+        <h2 className="font-bold text-foreground">投手成績</h2>
         <div className="flex items-center gap-2">
           {/* ヘルプアイコン */}
           <button
             onClick={() => setIsHelpDialogOpen(true)}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
             aria-label="入力モードの説明"
           >
             <HelpCircle className="w-4 h-4" />
           </button>
           {/* モードトグル */}
-          <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+          <div className="flex border border-border overflow-hidden text-xs font-medium">
             <button
               onClick={() => handleModeToggle("inning")}
               className={cn(
                 "px-3 py-1.5 transition-colors",
                 inputMode === "inning"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-slate-600 hover:bg-slate-50"
+                  ? "bg-turf text-turf-foreground"
+                  : "bg-background text-muted-foreground hover:bg-muted"
               )}
             >
               イニングごと
@@ -688,8 +689,8 @@ export function PitcherInput({
               className={cn(
                 "px-3 py-1.5 transition-colors",
                 inputMode === "aggregate"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-slate-600 hover:bg-slate-50"
+                  ? "bg-turf text-turf-foreground"
+                  : "bg-background text-muted-foreground hover:bg-muted"
               )}
             >
               試合集約
@@ -706,7 +707,7 @@ export function PitcherInput({
 
       {/* テーブル */}
       {pitchers.length === 0 && inputMode === "aggregate" ? (
-        <div className="p-8 text-center text-slate-400">投手を追加してください</div>
+        <div className="p-8 text-center text-muted-foreground">投手を追加してください</div>
       ) : inputMode === "inning" ? (
         renderInningTable()
       ) : (
@@ -717,19 +718,19 @@ export function PitcherInput({
       <Dialog open={isHelpDialogOpen} onOpenChange={setIsHelpDialogOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-slate-800">入力モードについて</DialogTitle>
+            <DialogTitle className="text-base font-bold text-foreground">入力モードについて</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2 text-sm text-slate-600">
+          <div className="space-y-4 py-2 text-sm text-muted-foreground">
             <div>
-              <p className="font-semibold text-slate-700 mb-1">イニングごと</p>
+              <p className="font-semibold text-foreground mb-1">イニングごと</p>
               <p>各イニングの投球内容（被安打・奪三振・与四球など）をイニング単位で記録します。登板・交代のタイミングも管理できます。</p>
             </div>
             <div>
-              <p className="font-semibold text-slate-700 mb-1">試合集約</p>
+              <p className="font-semibold text-foreground mb-1">試合集約</p>
               <p>試合全体の投手成績（投球回・被安打・奪三振・与四球・失点など）をまとめて入力します。イニング詳細は記録しません。</p>
             </div>
           </div>
-          <Button className="w-full" onClick={() => setIsHelpDialogOpen(false)}>
+          <Button className="w-full bg-turf hover:bg-turf/90 text-turf-foreground" onClick={() => setIsHelpDialogOpen(false)}>
             閉じる
           </Button>
         </DialogContent>
@@ -739,9 +740,9 @@ export function PitcherInput({
       <Dialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog(prev => ({ ...prev, open: false }))}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-slate-800">入力モードの切り替え</DialogTitle>
+            <DialogTitle className="text-base font-bold text-foreground">入力モードの切り替え</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-slate-600 py-2">
+          <p className="text-sm text-muted-foreground py-2">
             {confirmDialog.targetMode === "aggregate"
               ? "イニングごとのデータは集約されますがよろしいですか？"
               : "入力されたデータは1回の記録とします"}
@@ -750,7 +751,7 @@ export function PitcherInput({
             <Button variant="outline" className="flex-1" onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))}>
               キャンセル
             </Button>
-            <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white" onClick={handleConfirmModeSwitch}>
+            <Button className="flex-1 bg-turf hover:bg-turf/90 text-turf-foreground" onClick={handleConfirmModeSwitch}>
               OK
             </Button>
           </div>
@@ -758,17 +759,17 @@ export function PitcherInput({
       </Dialog>
 
       {/* ── 集約モード: 投手編集ダイアログ ── */}
-      <Dialog open={isAggDialogOpen} onOpenChange={setIsAggDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90svh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-800">
+      <Drawer open={isAggDialogOpen} onOpenChange={setIsAggDialogOpen}>
+        <DrawerContent className="max-h-[92vh]">
+          <DrawerHeader>
+            <DrawerTitle className="text-lg font-bold text-foreground">
               {aggEditingIndex !== null ? "投手成績を編集" : "投手を追加"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="space-y-6 py-4 px-4 overflow-y-auto">
             <PlayerNameSection form={aggForm} setForm={setAggForm} />
             <InningsSection form={aggForm} setForm={setAggForm} />
-            <div className="bg-slate-50 rounded-xl p-4">
+            <div className="bg-muted p-4">
               <div className="grid grid-cols-1 gap-y-3 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-4">
                 <StatButton label="打者" value={aggForm.battersFaced ?? 0} onChange={(v) => setAggForm({ ...aggForm, battersFaced: v })} />
                 <StatButton label="失点" value={aggForm.runs} onChange={(v) => setAggForm({ ...aggForm, runs: v })} />
@@ -781,55 +782,55 @@ export function PitcherInput({
               </div>
             </div>
             <AwardSection form={aggForm} setForm={setAggForm} />
-            <div className="flex gap-3 pt-2">
-              <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setIsAggDialogOpen(false)}>キャンセル</Button>
-              <Button className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold" onClick={handleAggSave} disabled={!aggForm.playerName.trim()}>保存</Button>
+            <div className="flex gap-3 pt-2 pb-2">
+              <Button variant="outline" className="flex-1 h-12" onClick={() => setIsAggDialogOpen(false)}>キャンセル</Button>
+              <Button className="flex-1 h-12 bg-turf hover:bg-turf/90 text-turf-foreground font-semibold" onClick={handleAggSave} disabled={!aggForm.playerName.trim()}>保存</Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </DrawerContent>
+      </Drawer>
 
       {/* ── イニングモード: 選手編集ダイアログ ── */}
-      <Dialog open={isPlayerDialogOpen} onOpenChange={setIsPlayerDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90svh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-800">
+      <Drawer open={isPlayerDialogOpen} onOpenChange={setIsPlayerDialogOpen}>
+        <DrawerContent className="max-h-[92vh]">
+          <DrawerHeader>
+            <DrawerTitle className="text-lg font-bold text-foreground">
               {playerEditingIndex !== null ? "投手を編集" : "投手を追加"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="space-y-6 py-4 px-4 overflow-y-auto">
             <PlayerNameSection form={playerForm} setForm={setPlayerForm} />
             <AwardSection form={playerForm} setForm={setPlayerForm} />
-            <div className="flex gap-3 pt-2">
-              <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setIsPlayerDialogOpen(false)}>キャンセル</Button>
-              <Button className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold" onClick={handlePlayerSave} disabled={!playerForm.playerName.trim() && !playerForm.isHelper}>保存</Button>
+            <div className="flex gap-3 pt-2 pb-2">
+              <Button variant="outline" className="flex-1 h-12" onClick={() => setIsPlayerDialogOpen(false)}>キャンセル</Button>
+              <Button className="flex-1 h-12 bg-turf hover:bg-turf/90 text-turf-foreground font-semibold" onClick={handlePlayerSave} disabled={!playerForm.playerName.trim() && !playerForm.isHelper}>保存</Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </DrawerContent>
+      </Drawer>
 
       {/* ── イニングモード: イニング統計ダイアログ ── */}
-      <Dialog open={isInningDialogOpen} onOpenChange={setIsInningDialogOpen}>
-        <DialogContent className="max-w-sm max-h-[90svh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-800">
+      <Drawer open={isInningDialogOpen} onOpenChange={setIsInningDialogOpen}>
+        <DrawerContent className="max-h-[92vh]">
+          <DrawerHeader>
+            <DrawerTitle className="text-lg font-bold text-foreground">
               {pitchers[inningDialogPitcherIndex]?.playerName} — {inningDialogInning}回
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="space-y-4 py-4 px-4 overflow-y-auto">
             {/* 投球回 */}
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-2 block">投球回</label>
+              <label className="text-sm font-semibold text-foreground mb-2 block">投球回</label>
               <div className="flex gap-2">
                 {OUTS_OPTIONS.map(opt => (
                   <button
                     key={opt.outs}
                     onClick={() => setInningForm({ ...inningForm, outs: opt.outs })}
                     className={cn(
-                      "flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all border",
+                      "flex-1 py-2.5 text-sm font-semibold transition-all border",
                       inningForm.outs === opt.outs
-                        ? "bg-blue-600 text-white border-blue-600 shadow"
-                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                        ? "bg-turf text-turf-foreground border-turf"
+                        : "bg-background text-muted-foreground border-border hover:border-foreground/30"
                     )}
                   >
                     {opt.label}
@@ -838,7 +839,7 @@ export function PitcherInput({
               </div>
             </div>
             {/* スタッツ */}
-            <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+            <div className="bg-muted p-4 space-y-3">
               <StatButton label="打者数" value={inningForm.battersFaced} onChange={(v) => setInningForm({ ...inningForm, battersFaced: v })} />
               <StatButton label="失点" value={inningForm.runs} onChange={(v) => setInningForm({ ...inningForm, runs: v })} />
               <StatButton label="安打" value={inningForm.hits} onChange={(v) => setInningForm({ ...inningForm, hits: v })} />
@@ -851,19 +852,19 @@ export function PitcherInput({
             {pitchers[inningDialogPitcherIndex]?.inningStats?.some(s => s.inning === inningDialogInning) && (
               <Button
                 variant="outline"
-                className="w-full h-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                className="w-full h-10 border-stitch/40 text-stitch hover:bg-stitch/10 hover:border-stitch"
                 onClick={handleInningStatsDelete}
               >
                 このイニングのデータを削除
               </Button>
             )}
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setIsInningDialogOpen(false)}>キャンセル</Button>
-              <Button className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold" onClick={handleInningStatsSave}>保存</Button>
+            <div className="flex gap-3 pb-2">
+              <Button variant="outline" className="flex-1 h-12" onClick={() => setIsInningDialogOpen(false)}>キャンセル</Button>
+              <Button className="flex-1 h-12 bg-turf hover:bg-turf/90 text-turf-foreground font-semibold" onClick={handleInningStatsSave}>保存</Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </DrawerContent>
+      </Drawer>
 
       <ConfirmDeleteDialog
         open={aggDeleteTarget !== null}

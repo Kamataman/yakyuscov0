@@ -164,24 +164,16 @@ export default async function GameDetailPage({ params }: Props) {
     })
   }
 
-  const formatInnings = (outs: number, isMidInningExit: boolean) => {
-    const whole = Math.floor(outs / 3)
-    const rem = outs % 3
-    if (rem === 0 && isMidInningExit) return `${whole} 0/3`
-    if (rem === 0) return `${whole}`
-    return `${whole} ${rem}/3`
-  }
-
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-      <div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
+    <main className="min-h-screen bg-background">
+      <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-slate-800">試合結果</h1>
+          <h1 className="text-lg font-bold text-foreground md:text-xl">試合結果</h1>
           {isAdmin && (
             <div className="flex items-center gap-2">
               <Link
                 href={`/${teamId}/games/${gameId}/edit`}
-                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-blue-700"
+                className="flex items-center gap-2 bg-turf px-4 py-2 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90"
               >
                 <Edit className="h-4 w-4" />
                 編集
@@ -191,43 +183,48 @@ export default async function GameDetailPage({ params }: Props) {
           )}
         </div>
 
-        <div className="rounded-2xl bg-white p-4 shadow-lg">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-3 border-b border-border pb-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm text-slate-500">{game.date}</p>
-              <p className="text-xl font-bold text-slate-800">vs {game.opponent}</p>
-              {game.location && <p className="text-sm text-slate-500">{game.location}</p>}
+              <p className="text-sm text-muted-foreground">{game.date}</p>
+              <p className="text-xl font-black text-foreground md:text-2xl">vs {game.opponent}</p>
+              {game.location && <p className="text-sm text-muted-foreground">{game.location}</p>}
             </div>
             <div className="text-right">
-              <div className={cn("text-3xl font-bold", isWin ? "text-blue-600" : isLose ? "text-red-600" : "text-slate-600")}>
-                {ourTotal} - {opponentTotal}
+              <div className="font-display whitespace-nowrap text-4xl font-black text-foreground md:text-5xl">
+                {ourTotal}-{opponentTotal}
               </div>
-              <span className={cn("rounded-full px-3 py-1 text-sm font-bold", isWin ? "bg-blue-100 text-blue-700" : isLose ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-700")}>
+              <span
+                className={cn(
+                  "mt-1 inline-block px-3 py-1 text-sm font-bold",
+                  isWin ? "bg-turf text-turf-foreground" : isLose ? "bg-stitch text-stitch-foreground" : "border border-foreground text-foreground"
+                )}
+              >
                 {isWin ? "勝利" : isLose ? "敗戦" : "引分"}
               </span>
             </div>
           </div>
           {game.memo && (
-            <p className="mt-3 whitespace-pre-wrap text-sm text-slate-600 border-t border-slate-100 pt-3">{game.memo}</p>
+            <p className="whitespace-pre-wrap text-sm text-muted-foreground border-t border-border pt-3">{game.memo}</p>
           )}
         </div>
 
-        <div className="rounded-2xl bg-white p-4 shadow-lg">
-          <h2 className="mb-3 text-sm font-bold text-slate-600">スコアボード</h2>
+        <div>
+          <h2 className="mb-3 text-sm font-bold text-foreground border-b-2 border-foreground pb-1">スコアボード</h2>
           <div className="overflow-x-auto">
             <table className="text-center text-sm border-collapse" style={{ minWidth: `${Math.max(300, 80 + maxInning * 32 + 48)}px` }}>
               <thead>
-                <tr className="border-b bg-slate-50">
-                  <th className="sticky left-0 z-10 bg-slate-50 w-20 min-w-[80px] px-2 py-1 text-left"></th>
+                <tr className="border-b border-border">
+                  <th className="sticky left-0 z-10 bg-background w-20 min-w-[80px] px-2 py-1 text-left"></th>
                   {Array.from({ length: maxInning }, (_, i) => (
-                    <th key={i} className="w-8 min-w-[32px] px-1 py-1">{i + 1}</th>
+                    <th key={i} className="w-8 min-w-[32px] px-1 py-1 text-muted-foreground">{i + 1}</th>
                   ))}
-                  <th className="sticky right-0 z-10 bg-slate-100 w-12 min-w-[48px] px-2 py-1 font-bold">計</th>
+                  <th className="sticky right-0 z-10 bg-background w-12 min-w-[48px] px-2 py-1 font-bold">計</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b">
-                  <td className={cn("sticky left-0 z-10 w-20 min-w-[80px] px-2 py-2 text-left font-bold whitespace-nowrap", isFirstBatting ? "bg-blue-50 text-blue-700" : "bg-red-50 text-red-700")}>
+                <tr className="border-b border-border">
+                  <td className={cn("sticky left-0 z-10 bg-background w-20 min-w-[80px] px-2 py-2 text-left font-bold whitespace-nowrap", isFirstBatting ? "text-turf" : "text-stitch")}>
                     {isFirstBatting ? "自チーム" : game.opponent}
                   </td>
                   {Array.from({ length: maxInning }, (_, i) => {
@@ -235,17 +232,17 @@ export default async function GameDetailPage({ params }: Props) {
                     const score = inningScores.find((s: { inning: number }) => s.inning === inning)
                     const val = isFirstBatting ? (score?.our_score ?? 0) : (score?.opponent_score ?? 0)
                     return (
-                      <td key={i} className={cn("w-8 min-w-[32px] px-1 py-2", val > 0 && (isFirstBatting ? "text-blue-700 font-bold" : "text-red-700 font-bold"))}>
+                      <td key={i} className={cn("w-8 min-w-[32px] px-1 py-2", val > 0 && "font-bold text-foreground")}>
                         {val}
                       </td>
                     )
                   })}
-                  <td className={cn("sticky right-0 z-10 w-12 min-w-[48px] px-2 py-2 font-bold", isFirstBatting ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700")}>
+                  <td className={cn("sticky right-0 z-10 w-12 min-w-[48px] px-2 py-2 font-bold", isFirstBatting ? "bg-turf-tint" : "bg-stitch-tint")}>
                     {isFirstBatting ? ourTotal : opponentTotal}
                   </td>
                 </tr>
                 <tr>
-                  <td className={cn("sticky left-0 z-10 w-20 min-w-[80px] px-2 py-2 text-left font-bold whitespace-nowrap truncate max-w-[80px]", isFirstBatting ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700")}>
+                  <td className={cn("sticky left-0 z-10 bg-background w-20 min-w-[80px] px-2 py-2 text-left font-bold whitespace-nowrap truncate max-w-[80px]", isFirstBatting ? "text-stitch" : "text-turf")}>
                     {isFirstBatting ? game.opponent : "自チーム"}
                   </td>
                   {Array.from({ length: maxInning }, (_, i) => {
@@ -254,19 +251,19 @@ export default async function GameDetailPage({ params }: Props) {
                     const isXCell = hasX && inning === maxInning
                     if (isXCell) {
                       return (
-                        <td key={i} className="w-8 min-w-[32px] px-1 py-2 font-bold text-amber-700">
+                        <td key={i} className="w-8 min-w-[32px] px-1 py-2 font-bold text-foreground">
                           {xScore === null ? "✕" : `${xScore}✕`}
                         </td>
                       )
                     }
                     const val = isFirstBatting ? (score?.opponent_score ?? 0) : (score?.our_score ?? 0)
                     return (
-                      <td key={i} className={cn("w-8 min-w-[32px] px-1 py-2", val > 0 && (isFirstBatting ? "text-red-700 font-bold" : "text-blue-700 font-bold"))}>
+                      <td key={i} className={cn("w-8 min-w-[32px] px-1 py-2", val > 0 && "font-bold text-foreground")}>
                         {val}
                       </td>
                     )
                   })}
-                  <td className={cn("sticky right-0 z-10 w-12 min-w-[48px] px-2 py-2 font-bold", isFirstBatting ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700")}>
+                  <td className={cn("sticky right-0 z-10 w-12 min-w-[48px] px-2 py-2 font-bold", isFirstBatting ? "bg-stitch-tint" : "bg-turf-tint")}>
                     {isFirstBatting ? opponentTotal : ourTotal}
                   </td>
                 </tr>
@@ -275,20 +272,20 @@ export default async function GameDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
-          <h2 className="px-4 py-3 text-sm font-bold text-slate-600 border-b border-slate-200 bg-slate-50">打撃成績</h2>
-          <div className="relative overflow-x-auto">
+        <div>
+          <h2 className="mb-3 text-sm font-bold text-foreground border-b-2 border-foreground pb-1">打撃成績</h2>
+          <div className="relative overflow-x-auto border border-border">
             <table className="text-center text-sm border-collapse" style={{ minWidth: `${Math.max(400, 176 + columns.length * 56)}px` }}>
               <thead>
-                <tr className="border-b bg-slate-100">
-                  <th className="sticky left-0 z-20 bg-slate-100 w-10 min-w-[40px] px-2 py-2 text-center border-r border-slate-200">打順</th>
-                  <th className="sticky left-10 z-20 bg-slate-100 w-10 min-w-[40px] px-1 py-2 text-center border-r border-slate-200">守</th>
-                  <th className="sticky left-20 z-20 bg-slate-100 w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-200">選手</th>
+                <tr className="border-b border-border bg-muted">
+                  <th className="sticky left-0 z-20 bg-muted w-10 min-w-[40px] px-2 py-2 text-center border-r border-border">打順</th>
+                  <th className="sticky left-10 z-20 bg-muted w-10 min-w-[40px] px-1 py-2 text-center border-r border-border">守</th>
+                  <th className="sticky left-20 z-20 bg-muted w-24 min-w-[96px] px-2 py-2 text-left border-r border-border">選手</th>
                   {columns.map((col, idx) => {
                     const isLastOfInning = lastColIndexByInning.get(col.inning) === idx
                     return (
-                      <th key={`${col.inning}-${col.sequence}`} className={cn("px-1 py-2", col.sequence === 1 ? "w-14 min-w-[56px]" : "w-10 min-w-[40px]", isLastOfInning && "border-r border-slate-200")}>
-                        {col.sequence === 1 ? col.inning : <span className="text-slate-400 text-[10px]">{["②", "③", "④", "⑤"][col.sequence - 2] ?? col.sequence}</span>}
+                      <th key={`${col.inning}-${col.sequence}`} className={cn("px-1 py-2", col.sequence === 1 ? "w-14 min-w-[56px]" : "w-10 min-w-[40px]", isLastOfInning && "border-r border-border")}>
+                        {col.sequence === 1 ? col.inning : <span className="text-muted-foreground text-[10px]">{["②", "③", "④", "⑤"][col.sequence - 2] ?? col.sequence}</span>}
                       </th>
                     )
                   })}
@@ -296,27 +293,27 @@ export default async function GameDetailPage({ params }: Props) {
               </thead>
               <tbody>
                 {displayRows.map((row) => (
-                  <tr key={`${row.battingOrder}-${row.activeFrom}`} className="border-b hover:bg-slate-50/50">
-                    <td className="sticky left-0 z-10 bg-white w-10 min-w-[40px] px-2 py-2 text-center font-bold border-r border-slate-100">
+                  <tr key={`${row.battingOrder}-${row.activeFrom}`} className="border-b border-border">
+                    <td className="sticky left-0 z-10 bg-background w-10 min-w-[40px] px-2 py-2 text-center font-bold border-r border-border">
                       {row.isStarter ? `(${row.battingOrder})` : row.battingOrder}
                     </td>
-                    <td className="sticky left-10 z-10 bg-white w-10 min-w-[40px] px-1 py-2 text-center border-r border-slate-100">
+                    <td className="sticky left-10 z-10 bg-background w-10 min-w-[40px] px-1 py-2 text-center border-r border-border">
                       {row.positions.length > 0 ? (
                         <div className="flex gap-0.5 justify-center flex-nowrap overflow-hidden">
-                          {row.positions.map((p, i) => <span key={i} className="text-xs font-medium text-slate-600 shrink-0">{p}</span>)}
+                          {row.positions.map((p, i) => <span key={i} className="text-xs font-medium text-muted-foreground shrink-0">{p}</span>)}
                         </div>
-                      ) : <span className="text-slate-300 text-xs">-</span>}
+                      ) : <span className="text-muted-foreground/40 text-xs">-</span>}
                     </td>
-                    <td className="sticky left-20 z-10 bg-white w-24 min-w-[96px] px-2 py-2 text-left border-r border-slate-100">
-                      <div className="truncate">{row.playerName}</div>
+                    <td className="sticky left-20 z-10 bg-background w-24 min-w-[96px] px-2 py-2 text-left border-r border-border">
+                      <div className="truncate font-medium">{row.playerName}</div>
                     </td>
                     {columns.map((col, idx) => {
                       const isActive = col.inning >= row.activeFrom && col.inning <= row.activeTo
                       const isLastOfInning = lastColIndexByInning.get(col.inning) === idx
-                      const cellClass = cn(col.sequence === 1 ? "w-14 min-w-[56px]" : "w-10 min-w-[40px]", "px-1 py-2", isLastOfInning && "border-r border-slate-100")
-                      if (!isActive) return <td key={`${col.inning}-${col.sequence}`} className={cn(cellClass, "text-slate-300")}>-</td>
+                      const cellClass = cn(col.sequence === 1 ? "w-14 min-w-[56px]" : "w-10 min-w-[40px]", "px-1 py-2", isLastOfInning && "border-r border-border")
+                      if (!isActive) return <td key={`${col.inning}-${col.sequence}`} className={cn(cellClass, "text-muted-foreground/40")}>-</td>
                       const result = resultsMap.get(`${row.battingOrder}-${col.inning}-${col.sequence}`)
-                      if (!result) return <td key={`${col.inning}-${col.sequence}`} className={cn(cellClass, "text-slate-300")}>-</td>
+                      if (!result) return <td key={`${col.inning}-${col.sequence}`} className={cn(cellClass, "text-muted-foreground/40")}>-</td>
                       const resultObj: BattingResult = {
                         hitResult: result.hit_result as BattingResult["hitResult"],
                         direction: result.direction as BattingResult["direction"],
@@ -327,7 +324,7 @@ export default async function GameDetailPage({ params }: Props) {
                       const hit = isHit(result.hit_result as BattingResult["hitResult"])
                       const onBase = isOnBase(result.hit_result as BattingResult["hitResult"])
                       return (
-                        <td key={`${col.inning}-${col.sequence}`} className={cn(cellClass, "text-xs font-medium whitespace-nowrap", hit && "text-green-700 bg-green-50", !hit && onBase && "text-blue-700 bg-blue-50", !hit && !onBase && "text-slate-600")}>
+                        <td key={`${col.inning}-${col.sequence}`} className={cn(cellClass, "text-xs font-medium whitespace-nowrap", hit ? "font-bold text-turf" : onBase ? "text-foreground" : "text-muted-foreground")}>
                           {summary}
                         </td>
                       )

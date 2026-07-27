@@ -91,13 +91,13 @@ export function PlayerCombobox({
           setSearchOpen(true)
         }}
         className={cn(
-          "w-full h-12 px-4 flex items-center justify-between rounded-xl",
-          "bg-white border border-slate-200 text-base",
-          "focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400",
+          "w-full h-12 px-4 flex items-center justify-between",
+          "bg-background border border-input text-base",
+          "focus:outline-none focus:ring-2 focus:ring-turf/40 focus:border-turf",
           className
         )}
       >
-        <span className={selectedPlayer ? "text-slate-800" : "text-slate-400"}>
+        <span className={selectedPlayer ? "text-foreground" : "text-muted-foreground"}>
           {selectedPlayer ? formatPlayerLabel(selectedPlayer) : placeholder}
         </span>
         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -125,13 +125,13 @@ export function PlayerCombobox({
                       setNewName(searchValue)
                       setRegisterOpen(true)
                     }}
-                    className="w-full py-4 px-4 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+                    className="w-full py-4 px-4 text-sm text-turf hover:bg-turf/10 flex items-center gap-2"
                   >
                     <UserPlus className="h-4 w-4 shrink-0" />
                     {searchValue ? `「${searchValue}」を登録` : "選手を登録"}
                   </button>
                 ) : (
-                  <p className="py-4 text-sm text-slate-400">一致する選手がいません</p>
+                  <p className="py-4 text-sm text-muted-foreground">一致する選手がいません</p>
                 )}
               </CommandEmpty>
               <CommandGroup>
@@ -166,8 +166,8 @@ export function PlayerCombobox({
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">
-                選手名 <span className="text-red-500">*</span>
+              <label className="text-sm font-semibold text-foreground mb-1 block">
+                選手名 <span className="text-stitch">*</span>
               </label>
               <Input
                 value={newName}
@@ -178,7 +178,7 @@ export function PlayerCombobox({
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">背番号</label>
+              <label className="text-sm font-semibold text-foreground mb-1 block">背番号</label>
               <Input
                 value={newNumber}
                 onChange={(e) => setNewNumber(e.target.value)}
@@ -187,7 +187,7 @@ export function PlayerCombobox({
                 onKeyDown={(e) => e.key === "Enter" && handleRegister()}
               />
             </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-stitch">{error}</p>}
           </div>
           <div className="flex gap-3">
             <button
@@ -196,7 +196,7 @@ export function PlayerCombobox({
                 setRegisterOpen(false)
                 setError(null)
               }}
-              className="flex-1 h-12 rounded-xl font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all"
+              className="flex-1 h-12 font-semibold bg-muted text-foreground/70 hover:bg-muted-foreground/20 transition-all"
             >
               キャンセル
             </button>
@@ -204,7 +204,7 @@ export function PlayerCombobox({
               type="button"
               onClick={handleRegister}
               disabled={!newName.trim() || isSubmitting}
-              className="flex-1 h-12 rounded-xl font-semibold bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50 disabled:pointer-events-none"
+              className="flex-1 h-12 font-semibold bg-turf text-turf-foreground hover:bg-turf/90 transition-all disabled:opacity-50 disabled:pointer-events-none"
             >
               {isSubmitting ? "登録中..." : "登録"}
             </button>

@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
 import type { LineupEntry, FieldPosition, Player } from "@/lib/batting-types"
 import { FIELD_POSITIONS, SUBSTITUTE_ROLES } from "@/lib/batting-types"
@@ -133,31 +133,31 @@ export function PlayerSelectDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[92vh]">
+        <DrawerHeader>
+          <DrawerTitle className="text-xl font-bold text-foreground">
             {order}番打者
-          </DialogTitle>
-        </DialogHeader>
+          </DrawerTitle>
+        </DrawerHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 px-4 overflow-y-auto">
           {entries.map((entry, index) => (
             <div
               key={index}
               className={cn(
-                "rounded-xl p-4 space-y-4",
-                entry.isSubstitute ? "bg-amber-50 border border-amber-200" : "bg-slate-50"
+                "p-4 space-y-4",
+                entry.isSubstitute ? "bg-amber-50 border border-amber-200" : "bg-muted"
               )}
             >
               {entry.isSubstitute && (
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-amber-700 bg-amber-200 px-2 py-1 rounded">
+                  <span className="text-xs font-semibold text-amber-700 bg-amber-200 px-2 py-1">
                     打・走・途中出場
                   </span>
                   <button
                     onClick={() => handleRemoveEntry(index)}
-                    className="text-xs text-slate-500 hover:text-red-600"
+                    className="text-xs text-muted-foreground hover:text-stitch"
                   >
                     削除
                   </button>
@@ -166,7 +166,7 @@ export function PlayerSelectDialog({
 
               {/* 選手名 */}
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground mb-2">
                   選手名
                 </label>
                 {!entry.isHelper && (
@@ -183,10 +183,10 @@ export function PlayerSelectDialog({
                 <button
                   onClick={() => entry.isHelper ? handlePlayerSelect(index, null) : handleHelperSelect(index)}
                   className={cn(
-                    "mt-2 text-xs px-3 py-1.5 rounded-lg transition-all",
+                    "mt-2 text-xs px-3 py-1.5 transition-all",
                     entry.isHelper
-                      ? "bg-purple-50 text-purple-600 border border-purple-300 font-medium"
-                      : "text-slate-400 border border-dashed border-slate-300 hover:border-slate-400 hover:text-slate-500"
+                      ? "bg-amber-50 text-amber-700 border border-amber-300 font-medium"
+                      : "text-muted-foreground border border-dashed border-border hover:border-foreground/40 hover:text-foreground"
                   )}
                 >
                   {entry.isHelper ? "✓ 助っ人" : "助っ人として登録"}
@@ -195,7 +195,7 @@ export function PlayerSelectDialog({
 
               {/* 守備位置 */}
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground mb-2">
                   守備位置
                 </label>
 
@@ -206,7 +206,7 @@ export function PlayerSelectDialog({
                       <button
                         key={role.value}
                         onClick={() => handlePositionAdd(index, role.value)}
-                        className="h-10 rounded-lg font-bold text-sm transition-all bg-white border border-slate-200 text-slate-600 hover:border-amber-300 hover:bg-amber-50"
+                        className="h-10 font-bold text-sm transition-all bg-background border border-border text-muted-foreground hover:border-amber-300 hover:bg-amber-50"
                       >
                         {role.label}
                       </button>
@@ -220,7 +220,7 @@ export function PlayerSelectDialog({
                     <button
                       key={pos.value}
                       onClick={() => handlePositionAdd(index, pos.value)}
-                      className="h-10 rounded-lg font-bold text-sm transition-all bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50"
+                      className="h-10 font-bold text-sm transition-all bg-background border border-border text-muted-foreground hover:border-turf/50 hover:bg-turf/10"
                     >
                       {pos.label}
                     </button>
@@ -233,12 +233,12 @@ export function PlayerSelectDialog({
                     {(entry.positions ?? []).map((pos, posIdx) => (
                       <span
                         key={posIdx}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 text-xs font-bold"
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-turf/15 text-turf text-xs font-bold"
                       >
                         {pos}
                         <button
                           onClick={() => handlePositionRemove(index, pos)}
-                          className="text-emerald-500 hover:text-emerald-800 leading-none"
+                          className="text-turf/70 hover:text-turf leading-none"
                           aria-label={`${pos}を削除`}
                         >
                           ✕
@@ -252,7 +252,7 @@ export function PlayerSelectDialog({
               {/* 途中出場イニング */}
               {entry.isSubstitute && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">
+                  <label className="block text-xs font-semibold text-muted-foreground mb-2">
                     出場イニング
                   </label>
                   <div className="flex gap-1">
@@ -268,10 +268,10 @@ export function PlayerSelectDialog({
                           })
                         }}
                         className={cn(
-                          "w-8 h-8 rounded text-sm font-bold transition-all",
+                          "font-display w-8 h-8 text-sm font-bold transition-all",
                           entry.enteredInning === inning
                             ? "bg-amber-500 text-white"
-                            : "bg-white border border-slate-200 text-slate-500 hover:border-amber-300"
+                            : "bg-background border border-border text-muted-foreground hover:border-amber-300"
                         )}
                       >
                         {inning}
@@ -287,8 +287,8 @@ export function PlayerSelectDialog({
           <button
             onClick={handleAddSubstitute}
             className={cn(
-              "w-full h-12 rounded-xl border-2 border-dashed border-slate-300",
-              "text-slate-500 font-semibold transition-all",
+              "w-full h-12 border-2 border-dashed border-border",
+              "text-muted-foreground font-semibold transition-all",
               "hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50"
             )}
           >
@@ -298,18 +298,18 @@ export function PlayerSelectDialog({
 
         {/* バリデーションエラー */}
         {error && (
-          <p className="text-sm text-red-600 font-medium text-center">
+          <p className="text-sm text-stitch font-medium text-center px-4">
             {error}
           </p>
         )}
 
         {/* 保存ボタン */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 p-4 pt-2">
           <button
             onClick={() => onOpenChange(false)}
             className={cn(
-              "flex-1 h-12 rounded-xl font-semibold transition-all",
-              "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              "flex-1 h-12 font-semibold transition-all",
+              "bg-muted text-foreground/70 hover:bg-muted-foreground/20"
             )}
           >
             キャンセル
@@ -317,14 +317,14 @@ export function PlayerSelectDialog({
           <button
             onClick={handleSave}
             className={cn(
-              "flex-1 h-12 rounded-xl font-semibold transition-all",
-              "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25"
+              "flex-1 h-12 font-semibold transition-all",
+              "bg-turf text-turf-foreground hover:bg-turf/90"
             )}
           >
             保存
           </button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   )
 }
