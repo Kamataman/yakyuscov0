@@ -16,8 +16,9 @@ import {
   formatMegabytes,
   isAllowedTeamImageMime,
 } from "@/lib/team-images"
-import { deleteTeamImage, updateHeaderImagePosition, uploadTeamImage } from "./actions"
+import { deleteTeamImage, updateHeaderImagePosition, uploadTeamImage, type TeamProfileDetailFields } from "./actions"
 import { TeamProfileSection } from "./team-profile-section"
+import { TeamDetailSection } from "./team-detail-section"
 import { AdminsSection, type TeamMember, type PendingInvite } from "./admins-section"
 import { QualificationSection } from "./qualification-section"
 
@@ -25,6 +26,7 @@ interface SettingsClientProps {
   teamId: string
   teamName: string
   teamDescription: string
+  initialProfileDetailFields: TeamProfileDetailFields
   initialPaCoefficient: number
   initialIpCoefficient: number
   initialHeaderImage: TeamImage | null
@@ -52,6 +54,7 @@ export function SettingsClient({
   teamId,
   teamName,
   teamDescription,
+  initialProfileDetailFields,
   initialPaCoefficient,
   initialIpCoefficient,
   initialHeaderImage,
@@ -202,6 +205,8 @@ export function SettingsClient({
           initialName={teamName}
           initialDescription={teamDescription}
         />
+
+        <TeamDetailSection teamId={teamId} initialFields={initialProfileDetailFields} />
 
         <AdminsSection
           teamId={teamId}

@@ -41,6 +41,77 @@ export async function updateTeamProfile(
   revalidatePath(`/${teamId}/settings`)
 }
 
+/** チームプロフィール詳細項目（活動地域・活動曜日など） */
+export interface TeamProfileDetailFields {
+  activityArea: string
+  activityDays: string
+  teamLevel: string
+  league: string
+  foundedPeriod: string
+  averageAge: string
+  notes: string
+}
+
+const SHORT_FIELD_MAX_LENGTH = 100
+const NOTES_MAX_LENGTH = 300
+
+const SHORT_FIELD_LABELS: Record<
+  Exclude<keyof TeamProfileDetailFields, "notes">,
+  string
+> = {
+  activityArea: "活動地域",
+  activityDays: "活動曜日",
+  teamLevel: "チームレベル",
+  league: "所属リーグ・大会",
+  foundedPeriod: "結成時期",
+  averageAge: "平均年齢",
+}
+
+/** チームプロフィール詳細項目（活動地域・活動曜日など）を更新する */
+export async function updateTeamProfileDetails(
+  teamId: string,
+  fields: TeamProfileDetailFields
+): Promise<void> {
+  const session = await requireTeamAdmin(teamId)
+  if (!session) throw new Error("管理者権限が必要です")
+
+  const trimmedShortFields: Record<string, string | null> = {}
+
+  for (const key of Object.keys(SHORT_FIELD_LABELS) as (keyof typeof SHORT_FIELD_LABELS)[]) {
+    const value = fields[key].trim()
+    if (value.length > SHORT_FIELD_MAX_LENGTH) {
+      throw new Error(`${SHORT_FIELD_LABELS[key]}は${SHORT_FIELD_MAX_LENGTH}文字以内で入力してください`)
+    }
+    trimmedShortFields[key] = value || null
+  }
+
+  const notes = fields.notes.trim()
+  if (notes.length > NOTES_MAX_LENGTH) {
+    throw new Error(`その他は${NOTES_MAX_LENGTH}文字以内で入力してください`)
+  }
+
+  const supabase = createServiceClient()
+  const { error } = await supabase
+    .from("teams")
+    .update({
+      activity_area: trimmedShortFields.activityArea,
+      activity_days: trimmedShortFields.activityDays,
+      team_level: trimmedShortFields.teamLevel,
+      league: trimmedShortFields.league,
+      founded_period: trimmedShortFields.foundedPeriod,
+      average_age: trimmedShortFields.averageAge,
+      notes: notes || null,
+    })
+    .eq("id", teamId)
+
+  if (error) {
+    throw new Error(`チームプロフィールの保存に失敗しました: ${error.message}`)
+  }
+
+  revalidatePath(`/${teamId}`)
+  revalidatePath(`/${teamId}/settings`)
+}
+
 /** 規定打席・規定投球回の係数を更新する */
 export async function updateQualificationCoefficients(
   teamId: string,
