@@ -18,7 +18,7 @@ import {
 } from "@/lib/team-images"
 import { deleteTeamImage, updateHeaderImagePosition, uploadTeamImage } from "./actions"
 import { TeamProfileSection } from "./team-profile-section"
-import { AdminsSection, type TeamMember } from "./admins-section"
+import { AdminsSection, type TeamMember, type PendingInvite } from "./admins-section"
 
 interface SettingsClientProps {
   teamId: string
@@ -29,6 +29,7 @@ interface SettingsClientProps {
   currentUserId: string
   currentRole: "owner" | "admin"
   initialMembers: TeamMember[]
+  initialPendingInvites: PendingInvite[]
 }
 
 const ACCEPT = TEAM_IMAGE_ALLOWED_MIME_TYPES.join(",")
@@ -53,6 +54,7 @@ export function SettingsClient({
   currentUserId,
   currentRole,
   initialMembers,
+  initialPendingInvites,
 }: SettingsClientProps) {
   const router = useRouter()
   const headerInputRef = useRef<HTMLInputElement>(null)
@@ -201,6 +203,7 @@ export function SettingsClient({
           currentUserId={currentUserId}
           currentRole={currentRole}
           initialMembers={initialMembers}
+          initialPendingInvites={initialPendingInvites}
         />
 
         {/* ヘッダー画像 */}

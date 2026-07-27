@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { PlusCircle, UserCog, Loader2, X, Trash2, Shield, ShieldCheck } from "lucide-react"
+import { PlusCircle, UserCog, Loader2, X, Trash2, Shield, ShieldCheck, Mail } from "lucide-react"
 import { inviteMember, removeMember } from "./admins-actions"
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
 
@@ -15,20 +15,37 @@ export interface TeamMember {
   createdAt: string
 }
 
+export interface PendingInvite {
+  id: string
+  email: string
+  role: "owner" | "admin"
+  createdAt: string
+  expiresAt: string
+}
+
 interface AdminsSectionProps {
   teamId: string
   currentUserId: string
   currentRole: "owner" | "admin"
   initialMembers: TeamMember[]
+  initialPendingInvites: PendingInvite[]
 }
 
-export function AdminsSection({ teamId, currentUserId, currentRole, initialMembers }: AdminsSectionProps) {
+export function AdminsSection({
+  teamId,
+  currentUserId,
+  currentRole,
+  initialMembers,
+  initialPendingInvites,
+}: AdminsSectionProps) {
   const router = useRouter()
   const [members, setMembers] = useState<TeamMember[]>(initialMembers)
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>(initialPendingInvites)
   const [isInviting, setIsInviting] = useState(false)
   const [newEmail, setNewEmail] = useState("")
   const [newRole, setNewRole] = useState<"owner" | "admin">("admin")
   const [isSaving, setIsSaving] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
   const [deleteTarget, setDeleteTarget] = useState<TeamMember | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -38,8 +55,16 @@ export function AdminsSection({ teamId, currentUserId, currentRole, initialMembe
       return
     }
     setIsSaving(true)
+    setSuccessMessage("")
     try {
-      await inviteMember(teamId, newEmail.trim(), newRole)
+      const result = await inviteMember(teamId, newEmail.trim(), newRole)
+      if (result.status === "added") {
+        setMembers((prev) => [...prev, { ...result.member, role: newRole }])
+        setSuccessMessage(`${result.member.email ?? newEmail.trim()} を管理者に追加しました`)
+      } else {
+        setPendingInvites((prev) => [...prev, { ...result.invite, role: newRole }])
+        setSuccessMessage(`${result.invite.email} に招待メールを送信しました`)
+      }
       setNewEmail("")
       setIsInviting(false)
       router.refresh()
@@ -75,9 +100,16 @@ export function AdminsSection({ teamId, currentUserId, currentRole, initialMembe
     <section className="mb-6 border border-border p-6">
       <h2 className="text-base font-bold text-foreground">管理者</h2>
 
+      {successMessage && (
+        <div className="mt-4 border border-turf/40 bg-turf/10 p-3 text-sm text-turf">{successMessage}</div>
+      )}
+
       {!isInviting && (
         <button
-          onClick={() => setIsInviting(true)}
+          onClick={() => {
+            setIsInviting(true)
+            setSuccessMessage("")
+          }}
           className="diagonal-cut mt-4 flex w-full items-center justify-center gap-2 bg-turf px-4 py-3 text-turf-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
         >
           <PlusCircle className="h-5 w-5" />
@@ -165,6 +197,27 @@ export function AdminsSection({ teamId, currentUserId, currentRole, initialMembe
                     <Trash2 className="h-4 w-4" />
                   </button>
                 )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {pendingInvites.length > 0 && (
+        <div className="mt-4 border border-border">
+          <div className="divide-y divide-border">
+            {pendingInvites.map((invite) => (
+              <div key={invite.id} className="flex items-center gap-4 px-4 py-3 opacity-70">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-foreground">{invite.email}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {invite.role === "owner" ? "オーナー" : "管理者"} ・ 招待中(
+                    {new Date(invite.expiresAt).toLocaleDateString("ja-JP")}まで有効)
+                  </div>
+                </div>
               </div>
             ))}
           </div>
