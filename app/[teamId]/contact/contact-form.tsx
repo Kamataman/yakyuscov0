@@ -6,10 +6,19 @@ import { Loader2, CheckCircle2 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { submitContactForm } from "./actions"
 
+interface TurnstileRenderOptions {
+  sitekey: string
+  callback: (token: string) => void
+  "expired-callback": () => void
+}
+
 declare global {
   interface Window {
-    onContactTurnstileVerify?: (token: string) => void
-    onContactTurnstileExpire?: () => void
+    turnstile?: {
+      render: (container: HTMLElement, options: TurnstileRenderOptions) => string
+      reset: (widgetId: string) => void
+      remove: (widgetId: string) => void
+    }
   }
 }
 
@@ -25,6 +34,7 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
   const [submitted, setSubmitted] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState("")
   const widgetRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
 
   const [form, setForm] = useState({
     name: "",
@@ -34,14 +44,43 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
     honeypot: "",
   })
 
+  // Turnstileの暗黙的レンダリング（class="cf-turnstile"の自動スキャン）は
+  // スクリプト読み込み時にしか走らないため、クライアントサイド遷移で
+  // このコンポーネントが再マウントされてもウィジェットが再描画されない。
+  // 明示的にrender()を呼ぶことで、毎回のマウント時に確実に描画する。
   useEffect(() => {
-    window.onContactTurnstileVerify = (token: string) => setTurnstileToken(token)
-    window.onContactTurnstileExpire = () => setTurnstileToken("")
-    return () => {
-      window.onContactTurnstileVerify = undefined
-      window.onContactTurnstileExpire = undefined
+    let cancelled = false
+    let pollId: ReturnType<typeof setInterval> | undefined
+
+    const renderWidget = () => {
+      if (cancelled || !window.turnstile || !widgetRef.current || widgetIdRef.current) return
+      widgetIdRef.current = window.turnstile.render(widgetRef.current, {
+        sitekey: siteKey,
+        callback: (token: string) => setTurnstileToken(token),
+        "expired-callback": () => setTurnstileToken(""),
+      })
     }
-  }, [])
+
+    if (window.turnstile) {
+      renderWidget()
+    } else {
+      pollId = setInterval(() => {
+        if (window.turnstile) {
+          if (pollId) clearInterval(pollId)
+          renderWidget()
+        }
+      }, 100)
+    }
+
+    return () => {
+      cancelled = true
+      if (pollId) clearInterval(pollId)
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current)
+        widgetIdRef.current = null
+      }
+    }
+  }, [siteKey])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,6 +120,11 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
       setSubmitted(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "送信に失敗しました")
+      // Turnstileのトークンは1回しか使えないため、失敗時は次回に備えてリセットする
+      setTurnstileToken("")
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.reset(widgetIdRef.current)
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -100,7 +144,7 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
 
   return (
     <>
-      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer />
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* お名前 */}
@@ -187,13 +231,7 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
         </div>
 
         {/* Turnstile */}
-        <div
-          ref={widgetRef}
-          className="cf-turnstile"
-          data-sitekey={siteKey}
-          data-callback="onContactTurnstileVerify"
-          data-expired-callback="onContactTurnstileExpire"
-        />
+        <div ref={widgetRef} />
 
         {/* エラーメッセージ */}
         {error && (
