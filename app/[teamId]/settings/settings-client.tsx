@@ -19,11 +19,14 @@ import {
 import { deleteTeamImage, updateHeaderImagePosition, uploadTeamImage } from "./actions"
 import { TeamProfileSection } from "./team-profile-section"
 import { AdminsSection, type TeamMember, type PendingInvite } from "./admins-section"
+import { QualificationSection } from "./qualification-section"
 
 interface SettingsClientProps {
   teamId: string
   teamName: string
   teamDescription: string
+  initialPaCoefficient: number
+  initialIpCoefficient: number
   initialHeaderImage: TeamImage | null
   initialPhotos: TeamImage[]
   currentUserId: string
@@ -49,6 +52,8 @@ export function SettingsClient({
   teamId,
   teamName,
   teamDescription,
+  initialPaCoefficient,
+  initialIpCoefficient,
   initialHeaderImage,
   initialPhotos,
   currentUserId,
@@ -293,7 +298,7 @@ export function SettingsClient({
         </section>
 
         {/* チーム写真 */}
-        <section className="border border-border p-6">
+        <section className="mb-6 border border-border p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-foreground">チーム写真</h2>
             <span className="text-xs text-muted-foreground">
@@ -372,6 +377,12 @@ export function SettingsClient({
             アップロード時に自動で縮小されます。
           </p>
         </section>
+
+        <QualificationSection
+          teamId={teamId}
+          initialPaCoefficient={initialPaCoefficient}
+          initialIpCoefficient={initialIpCoefficient}
+        />
       </div>
 
       <ConfirmDeleteDialog
