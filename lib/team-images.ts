@@ -4,7 +4,7 @@
  * サーバー専用モジュール（service client 等）は読み込まないこと。
  */
 
-/** 画像の種別。追加時は scripts/ 側の CHECK 制約も合わせて変更する */
+/** 画像の種別。追加時は supabase/migrations/ 側の CHECK 制約も合わせて変更する */
 export type TeamImageKind = "header" | "photo"
 
 export const TEAM_IMAGE_BUCKET = "team-images"
