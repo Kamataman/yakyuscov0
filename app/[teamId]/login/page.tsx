@@ -70,27 +70,27 @@ export default function TeamLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="border border-border p-8 max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Shield className="w-8 h-8 text-blue-600" />
+          <div className="diamond-mark w-16 h-16 bg-turf flex items-center justify-center mx-auto mb-4">
+            <Shield className="w-8 h-8 text-turf-foreground -rotate-45" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">管理者ログイン</h1>
-          <p className="text-slate-500 mt-2">
+          <h1 className="text-2xl font-bold text-foreground">管理者ログイン</h1>
+          <p className="text-muted-foreground mt-2">
             試合の追加や選手の編集を行うにはログインが必要です
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-stitch/10 border border-stitch/40 text-stitch px-4 py-3 text-sm">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               メールアドレス
             </label>
             <Input
@@ -104,7 +104,7 @@ export default function TeamLoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               パスワード
             </label>
             <Input
@@ -120,7 +120,7 @@ export default function TeamLoginPage() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+            className="w-full h-12 bg-turf hover:bg-turf/90 text-turf-foreground font-semibold"
           >
             {isLoading ? (
               <>
@@ -134,7 +134,7 @@ export default function TeamLoginPage() {
         </form>
 
         <div className="mt-4 text-center">
-          <Link href="/password-reset" className="text-sm text-slate-500 hover:text-slate-700">
+          <Link href="/password-reset" className="text-sm text-muted-foreground hover:text-foreground">
             パスワードをお忘れですか？
           </Link>
         </div>
@@ -143,10 +143,10 @@ export default function TeamLoginPage() {
           <div className="mt-4">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-slate-400">プレビュー</span>
+                <span className="bg-background px-2 text-muted-foreground">プレビュー</span>
               </div>
             </div>
             <Link href="/auth/preview-login" className="block mt-4">
@@ -165,7 +165,7 @@ export default function TeamLoginPage() {
         <div className="mt-6 text-center">
           <Link
             href={`/${teamId}`}
-            className="text-sm text-slate-500 hover:text-slate-700 inline-flex items-center gap-1"
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
           >
             <ArrowLeft className="w-4 h-4" />
             チームページに戻る

@@ -133,9 +133,9 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
   if (submitted) {
     return (
       <div className="flex flex-col items-center py-8 text-center">
-        <CheckCircle2 className="mb-3 h-12 w-12 text-emerald-500" />
-        <p className="font-bold text-slate-800">送信しました</p>
-        <p className="mt-2 text-sm text-slate-500">
+        <CheckCircle2 className="mb-3 h-12 w-12 text-turf" />
+        <p className="font-bold text-foreground">送信しました</p>
+        <p className="mt-2 text-sm text-muted-foreground">
           お問い合わせいただきありがとうございます。チームの担当者からの返信をお待ちください。
         </p>
       </div>
@@ -149,7 +149,7 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* お名前 */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label className="mb-1.5 block text-sm font-medium text-foreground">
             お名前（任意）
           </label>
           <input
@@ -158,13 +158,13 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             maxLength={50}
             placeholder="山田 太郎"
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full border border-input px-4 py-3 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
           />
         </div>
 
         {/* メールアドレス */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label className="mb-1.5 block text-sm font-medium text-foreground">
             連絡先メールアドレス
           </label>
           <input
@@ -173,14 +173,14 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             maxLength={254}
             placeholder="you@example.com"
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full border border-input px-4 py-3 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
           />
-          <p className="mt-1 text-xs text-slate-500">返信が届く可能性のあるアドレスを入力してください</p>
+          <p className="mt-1 text-xs text-muted-foreground">返信が届く可能性のあるアドレスを入力してください</p>
         </div>
 
         {/* 問い合わせ内容 */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label className="mb-1.5 block text-sm font-medium text-foreground">
             問い合わせ内容
           </label>
           <textarea
@@ -189,9 +189,9 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
             maxLength={2000}
             rows={6}
             placeholder="試合のお誘いやチーム参加のご連絡など"
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full border border-input px-4 py-3 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
           />
-          <p className="mt-1 text-right text-xs text-slate-400">{form.message.length} / 2000文字</p>
+          <p className="mt-1 text-right text-xs text-muted-foreground">{form.message.length} / 2000文字</p>
         </div>
 
         {/* ハニーポット（人間には見えない） */}
@@ -209,14 +209,14 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
 
         {/* プライバシーポリシー */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label className="mb-1.5 block text-sm font-medium text-foreground">
             プライバシーポリシー
           </label>
           <textarea
             readOnly
             value={privacyText}
             rows={6}
-            className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-600 resize-none overflow-y-auto"
+            className="w-full border border-input bg-muted px-3 py-2 text-xs text-muted-foreground resize-none overflow-y-auto"
           />
           <div className="mt-2 flex items-center gap-2">
             <Checkbox
@@ -224,7 +224,7 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
               checked={form.agreedToPrivacy}
               onCheckedChange={(c) => setForm({ ...form, agreedToPrivacy: c === true })}
             />
-            <label htmlFor="agreedToPrivacy" className="cursor-pointer text-sm text-slate-700">
+            <label htmlFor="agreedToPrivacy" className="cursor-pointer text-sm text-foreground">
               プライバシーポリシーに同意します
             </label>
           </div>
@@ -235,14 +235,14 @@ export default function ContactForm({ teamId, privacyText, siteKey }: Props) {
 
         {/* エラーメッセージ */}
         {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>
+          <div className="bg-stitch/10 border border-stitch/40 p-3 text-sm text-stitch">{error}</div>
         )}
 
         {/* 送信ボタン */}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 bg-turf px-4 py-3 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {isSubmitting ? (
             <>

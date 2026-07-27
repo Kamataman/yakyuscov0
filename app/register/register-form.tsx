@@ -103,24 +103,24 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-lg px-4 py-8">
         {/* 戻るリンク */}
         <Link
           href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800"
+          className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           トップページに戻る
         </Link>
 
-        <div className="rounded-2xl bg-white p-6 shadow-lg md:p-8">
-          <h1 className="mb-6 text-2xl font-bold text-slate-800">チーム登録</h1>
+        <div className="border border-border p-6 md:p-8">
+          <h1 className="mb-6 text-2xl font-bold text-foreground">チーム登録</h1>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* チームID */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              <label className="mb-1.5 block text-sm font-medium text-foreground">
                 チームID
               </label>
               <input
@@ -130,16 +130,16 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
                   setForm({ ...form, teamId: e.target.value.toLowerCase() })
                 }
                 placeholder="my-team"
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full border border-input px-4 py-3 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
               />
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 URLに使用されます（例: /my-team）。英小文字、数字、ハイフンのみ使用可能
               </p>
             </div>
 
             {/* チーム名 */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              <label className="mb-1.5 block text-sm font-medium text-foreground">
                 チーム名
               </label>
               <input
@@ -149,16 +149,16 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
                   setForm({ ...form, teamName: e.target.value })
                 }
                 placeholder="○○ベースボールクラブ"
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full border border-input px-4 py-3 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
               />
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 ヘッダーに表示されるチーム名です
               </p>
             </div>
 
             {/* 管理者メールアドレス */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              <label className="mb-1.5 block text-sm font-medium text-foreground">
                 管理者メールアドレス
               </label>
               <input
@@ -168,13 +168,13 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
                   setForm({ ...form, adminEmail: e.target.value })
                 }
                 placeholder="admin@example.com"
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full border border-input px-4 py-3 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
               />
             </div>
 
             {/* 管理者パスワード */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              <label className="mb-1.5 block text-sm font-medium text-foreground">
                 管理者パスワード
               </label>
               <div className="relative">
@@ -185,12 +185,12 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
                     setForm({ ...form, adminPassword: e.target.value })
                   }
                   placeholder="8文字以上"
-                  className="w-full rounded-lg border border-slate-300 px-4 py-3 pr-12 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full border border-input px-4 py-3 pr-12 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -203,14 +203,14 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
 
             {/* 利用規約 */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              <label className="mb-1.5 block text-sm font-medium text-foreground">
                 利用規約
               </label>
               <textarea
                 readOnly
                 value={termsText}
                 rows={6}
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-600 resize-none overflow-y-auto"
+                className="w-full border border-input bg-muted px-3 py-2 text-xs text-muted-foreground resize-none overflow-y-auto"
               />
               <div className="mt-2 flex items-center gap-2">
                 <Checkbox
@@ -222,7 +222,7 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
                 />
                 <label
                   htmlFor="agreedToTerms"
-                  className="cursor-pointer text-sm text-slate-700"
+                  className="cursor-pointer text-sm text-foreground"
                 >
                   利用規約に同意します
                 </label>
@@ -231,14 +231,14 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
 
             {/* プライバシーポリシー */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              <label className="mb-1.5 block text-sm font-medium text-foreground">
                 プライバシーポリシー
               </label>
               <textarea
                 readOnly
                 value={privacyText}
                 rows={6}
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-600 resize-none overflow-y-auto"
+                className="w-full border border-input bg-muted px-3 py-2 text-xs text-muted-foreground resize-none overflow-y-auto"
               />
               <div className="mt-2 flex items-center gap-2">
                 <Checkbox
@@ -250,7 +250,7 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
                 />
                 <label
                   htmlFor="agreedToPrivacy"
-                  className="cursor-pointer text-sm text-slate-700"
+                  className="cursor-pointer text-sm text-foreground"
                 >
                   プライバシーポリシーに同意します
                 </label>
@@ -259,7 +259,7 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
 
             {/* エラーメッセージ */}
             {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+              <div className="bg-stitch/10 border border-stitch/40 p-3 text-sm text-stitch">
                 {error}
               </div>
             )}
@@ -268,7 +268,7 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 bg-turf px-4 py-3 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

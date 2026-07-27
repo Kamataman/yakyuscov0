@@ -5,6 +5,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { fetchTeamHeaderImage, fetchTeamImages } from "@/lib/team-images-server"
 import { TeamPhotoCarousel } from "@/components/team-photo-carousel"
+import { cn } from "@/lib/utils"
 
 interface GameSummary {
   id: string
@@ -73,12 +74,12 @@ export default async function TeamDashboardPage({ params }: Props) {
   const recentGames = games.slice(0, 3)
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl p-4 md:p-6">
         {/* チームプロフィール */}
-        <div className="mb-8 overflow-hidden rounded-2xl bg-white shadow-md">
+        <div className="mb-8">
           {/* ヘッダー画像 */}
-          <div className="flex h-40 w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-100 to-slate-200 md:h-56">
+          <div className="diagonal-cut flex h-40 w-full items-center justify-center overflow-hidden bg-[repeating-linear-gradient(45deg,var(--muted),var(--muted)_10px,var(--background)_10px,var(--background)_20px)] md:h-56">
             {headerImage ? (
               <Image
                 src={headerImage.url}
@@ -90,18 +91,21 @@ export default async function TeamDashboardPage({ params }: Props) {
                 priority
               />
             ) : (
-              <Shield className="h-16 w-16 text-blue-300 md:h-20 md:w-20" />
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <Shield className="h-12 w-12" />
+                <span className="text-xs font-bold tracking-widest">TEAM PHOTO</span>
+              </div>
             )}
           </div>
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-slate-800">{teamName}</h1>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">
+          <div className="py-6">
+            <h1 className="text-2xl font-black text-foreground">{teamName}</h1>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
               {profile?.description || "チーム紹介文は準備中です"}
             </p>
 
             {/* チーム写真カルーセル */}
             <div className="mt-6">
-              <h2 className="mb-3 text-sm font-bold text-slate-700">チーム写真</h2>
+              <h2 className="mb-3 text-sm font-bold text-foreground">チーム写真</h2>
               <TeamPhotoCarousel photos={photos} teamName={teamName} />
             </div>
 
@@ -110,7 +114,7 @@ export default async function TeamDashboardPage({ params }: Props) {
               <div className="mt-6">
                 <Link
                   href={`/${teamId}/contact`}
-                  className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                  className="flex items-center justify-center gap-2 border border-border px-4 py-2.5 text-sm font-medium text-foreground/70 transition-colors hover:bg-muted"
                 >
                   <MessageCircle className="h-4 w-4" />
                   このチームに問い合わせる
@@ -125,7 +129,7 @@ export default async function TeamDashboardPage({ params }: Props) {
           <div className="mb-8">
             <Link
               href={`/${teamId}/games/new`}
-              className="flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white shadow-lg transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow-xl active:scale-[0.98]"
+              className="diagonal-cut flex items-center justify-center gap-3 bg-turf px-6 py-5 text-turf-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
             >
               <PlusCircle className="h-6 w-6" />
               <span className="text-lg font-bold">新しい試合を記録</span>
@@ -135,23 +139,23 @@ export default async function TeamDashboardPage({ params }: Props) {
 
         {/* 直近の試合 */}
         <div className="mt-8">
-          <h2 className="mb-4 text-lg font-bold text-slate-800">直近の試合</h2>
-          <div className="rounded-2xl bg-white p-6 shadow-md">
+          <h2 className="pb-2 text-lg font-bold text-foreground border-b-4 border-foreground">直近の試合</h2>
+          <div className="py-2">
             {recentGames.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Calendar className="mb-3 h-12 w-12 text-slate-300" />
-                <p className="text-slate-500">まだ試合が記録されていません</p>
+                <Calendar className="mb-3 h-12 w-12 text-muted-foreground/50" />
+                <p className="text-muted-foreground">まだ試合が記録されていません</p>
                 {isAdmin && (
                   <Link
                     href={`/${teamId}/games/new`}
-                    className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700"
+                    className="mt-4 text-sm font-medium text-turf hover:underline"
                   >
                     最初の試合を記録する
                   </Link>
                 )}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="divide-y divide-border">
                 {recentGames.map((game) => {
                   const total = getTotalScore(game.inning_scores || [])
                   const result = getResult(game.inning_scores || [])
@@ -159,28 +163,27 @@ export default async function TeamDashboardPage({ params }: Props) {
                     <Link
                       key={game.id}
                       href={`/${teamId}/games/${game.id}`}
-                      className="flex items-center justify-between rounded-lg border border-slate-100 p-3 transition-all hover:bg-slate-50 active:opacity-80 active:bg-slate-50"
+                      className="flex items-center justify-between py-3 transition-colors hover:bg-muted/50"
                     >
                       <div>
-                        <p className="text-sm text-slate-500">{game.date}</p>
-                        <p className="font-bold text-slate-800">vs {game.opponent}</p>
+                        <p className="text-sm text-muted-foreground">{game.date}</p>
+                        <p className="font-bold text-foreground">vs {game.opponent}</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <div
-                          className={`rounded px-2 py-0.5 text-xs font-bold ${
+                          className={cn(
+                            "px-2 py-0.5 text-xs font-bold",
                             result === "win"
-                              ? "bg-emerald-100 text-emerald-700"
+                              ? "bg-turf text-turf-foreground"
                               : result === "lose"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-slate-100 text-slate-700"
-                          }`}
+                                ? "bg-stitch text-stitch-foreground"
+                                : "border border-foreground text-foreground"
+                          )}
                         >
                           {result === "win" ? "勝" : result === "lose" ? "敗" : "分"}
                         </div>
-                        <span className="text-lg font-bold">
-                          <span className="text-blue-600">{total.our}</span>
-                          <span className="mx-1 text-slate-400">-</span>
-                          <span className="text-red-600">{total.opponent}</span>
+                        <span className="font-display text-lg font-bold text-foreground whitespace-nowrap">
+                          {total.our}-{total.opponent}
                         </span>
                       </div>
                     </Link>
@@ -189,7 +192,7 @@ export default async function TeamDashboardPage({ params }: Props) {
                 {games.length > 3 && (
                   <Link
                     href={`/${teamId}/games`}
-                    className="block text-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                    className="block py-3 text-center text-sm font-medium text-turf hover:underline"
                   >
                     すべての試合を見る
                   </Link>

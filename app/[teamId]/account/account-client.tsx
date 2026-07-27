@@ -77,41 +77,41 @@ export function AccountClient({ teamId }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-md p-4 md:p-6">
         <Link
           href={`/${teamId}/settings`}
-          className="mb-4 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800"
+          className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           チーム設定に戻る
         </Link>
 
-        <div className="rounded-2xl bg-white p-6 shadow-md md:p-8">
+        <div className="border border-border p-6 md:p-8">
           <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-              <KeyRound className="h-6 w-6 text-blue-600" />
+            <div className="diamond-mark flex h-12 w-12 items-center justify-center bg-turf">
+              <KeyRound className="h-6 w-6 text-turf-foreground -rotate-45" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-800">パスワードを変更</h1>
-              {email && <p className="text-sm text-slate-500">{email}</p>}
+              <h1 className="text-xl font-bold text-foreground">パスワードを変更</h1>
+              {email && <p className="text-sm text-muted-foreground">{email}</p>}
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="border border-stitch/40 bg-stitch/10 px-4 py-3 text-sm text-stitch">
                 {error}
               </div>
             )}
             {success && (
-              <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+              <div className="border border-turf/40 bg-turf/10 px-4 py-3 text-sm text-turf">
                 パスワードを変更しました
               </div>
             )}
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">現在のパスワード</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">現在のパスワード</label>
               <Input
                 type="password"
                 value={currentPassword}
@@ -121,7 +121,7 @@ export function AccountClient({ teamId }: Props) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">新しいパスワード</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">新しいパスワード</label>
               <Input
                 type="password"
                 value={newPassword}
@@ -132,7 +132,7 @@ export function AccountClient({ teamId }: Props) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">新しいパスワード（確認）</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">新しいパスワード（確認）</label>
               <Input
                 type="password"
                 value={newPasswordConfirm}
@@ -146,7 +146,7 @@ export function AccountClient({ teamId }: Props) {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+              className="w-full h-12 bg-turf hover:bg-turf/90 text-turf-foreground font-semibold"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "パスワードを変更する"}
             </Button>

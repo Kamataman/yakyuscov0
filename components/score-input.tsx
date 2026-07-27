@@ -119,21 +119,21 @@ export function ScoreInput({
   const innings = Array.from({ length: totalInnings }, (_, i) => i + 1)
 
   return (
-    <div className="rounded-xl bg-white shadow-sm border border-slate-200 overflow-hidden">
+    <div className="border border-border overflow-hidden">
       {/* 先攻後攻・イニング数設定 */}
       {(onFirstBattingChange || onTotalInningsChange) && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-slate-50 border-b border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-muted border-b border-border">
           {onFirstBattingChange && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600">打順:</span>
-              <div className="flex rounded-lg bg-slate-200 p-1">
+              <span className="text-sm text-muted-foreground">打順:</span>
+              <div className="flex border border-border p-1">
                 <button
                   onClick={() => onFirstBattingChange(true)}
                   className={cn(
-                    "rounded-md px-3 py-1 text-sm font-medium transition-all",
-                    isFirstBatting 
-                      ? "bg-blue-600 text-white shadow-sm" 
-                      : "text-slate-600 hover:text-slate-800"
+                    "px-3 py-1 text-sm font-medium transition-all",
+                    isFirstBatting
+                      ? "bg-turf text-turf-foreground"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   先攻
@@ -141,10 +141,10 @@ export function ScoreInput({
                 <button
                   onClick={() => onFirstBattingChange(false)}
                   className={cn(
-                    "rounded-md px-3 py-1 text-sm font-medium transition-all",
-                    !isFirstBatting 
-                      ? "bg-red-600 text-white shadow-sm" 
-                      : "text-slate-600 hover:text-slate-800"
+                    "px-3 py-1 text-sm font-medium transition-all",
+                    !isFirstBatting
+                      ? "bg-stitch text-stitch-foreground"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   後攻
@@ -154,20 +154,20 @@ export function ScoreInput({
           )}
           {onTotalInningsChange && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600">イニング数:</span>
+              <span className="text-sm text-muted-foreground">イニング数:</span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={handleRemoveInning}
                   disabled={totalInnings <= 1}
-                  className="rounded-lg p-1 text-slate-500 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1 text-muted-foreground hover:bg-muted-foreground/10 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="w-8 text-center font-bold text-slate-800">{totalInnings}</span>
+                <span className="font-display w-8 text-center font-bold text-foreground">{totalInnings}</span>
                 <button
                   onClick={handleAddInning}
                   disabled={totalInnings >= 15}
-                  className="rounded-lg p-1 text-slate-500 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1 text-muted-foreground hover:bg-muted-foreground/10 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -179,8 +179,8 @@ export function ScoreInput({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse" style={{ minWidth: `${Math.max(400, 80 + totalInnings * 40 + 56)}px` }}>
           <thead>
-            <tr className="bg-slate-50 text-slate-600">
-              <th className="sticky left-0 z-10 bg-slate-50 w-20 min-w-[80px] px-3 py-2 text-left text-xs font-semibold"></th>
+            <tr className="bg-muted text-muted-foreground">
+              <th className="sticky left-0 z-10 bg-muted w-20 min-w-[80px] px-3 py-2 text-left text-xs font-semibold"></th>
               {innings.map((inning) => (
                 <th
                   key={inning}
@@ -192,17 +192,17 @@ export function ScoreInput({
                   {inning}
                 </th>
               ))}
-              <th className="sticky right-0 z-10 bg-slate-100 w-14 min-w-[56px] px-3 py-2 text-center text-xs font-semibold">
+              <th className="sticky right-0 z-10 bg-muted w-14 min-w-[56px] px-3 py-2 text-center text-xs font-semibold">
                 計
               </th>
             </tr>
           </thead>
           <tbody>
             {/* 先攻チーム */}
-            <tr className="border-b border-slate-200">
+            <tr className="border-b border-border">
               <td className={cn(
-                "sticky left-0 z-10 w-20 min-w-[80px] px-3 py-2 font-semibold text-sm whitespace-nowrap",
-                isFirstBatting ? "bg-blue-50 text-blue-800" : "bg-red-50 text-red-800"
+                "sticky left-0 z-10 bg-background w-20 min-w-[80px] px-3 py-2 font-semibold text-sm whitespace-nowrap",
+                isFirstBatting ? "text-turf" : "text-stitch"
               )}>
                 {isFirstBatting ? "自チーム" : "相手"}
               </td>
@@ -217,12 +217,12 @@ export function ScoreInput({
                     onTouchEnd={handleTouchEnd}
                     onTouchCancel={handleTouchEnd}
                     className={cn(
-                      "w-full h-10 flex items-center justify-center",
-                      "text-lg font-bold rounded-lg transition-all select-none",
-                      isFirstBatting ? "hover:bg-blue-100 active:bg-blue-200" : "hover:bg-red-100 active:bg-red-200",
+                      "font-display w-full h-10 flex items-center justify-center",
+                      "text-lg font-bold transition-all select-none",
+                      "hover:bg-muted active:bg-muted",
                       (inningScores[inning - 1]?.[isFirstBatting ? "our" : "opponent"] || 0) > 0
-                        ? isFirstBatting ? "text-blue-700 bg-blue-50" : "text-red-700 bg-red-50"
-                        : "text-slate-300"
+                        ? "text-foreground"
+                        : "text-muted-foreground/40"
                     )}
                   >
                     {inningScores[inning - 1]?.[isFirstBatting ? "our" : "opponent"] ?? 0}
@@ -231,12 +231,9 @@ export function ScoreInput({
               ))}
               <td className={cn(
                 "sticky right-0 z-10 w-14 min-w-[56px] px-3 py-2 text-center",
-                isFirstBatting ? "bg-blue-100" : "bg-red-100"
+                isFirstBatting ? "bg-turf-tint" : "bg-stitch-tint"
               )}>
-                <span className={cn(
-                  "text-xl font-bold",
-                  isFirstBatting ? "text-blue-800" : "text-red-800"
-                )}>
+                <span className="font-display text-xl font-bold text-foreground">
                   {getTotalScore(isFirstBatting ? "our" : "opponent")}
                 </span>
               </td>
@@ -244,8 +241,8 @@ export function ScoreInput({
             {/* 後攻チーム */}
             <tr>
               <td className={cn(
-                "sticky left-0 z-10 w-20 min-w-[80px] px-3 py-2 font-semibold text-sm whitespace-nowrap",
-                !isFirstBatting ? "bg-blue-50 text-blue-800" : "bg-red-50 text-red-800"
+                "sticky left-0 z-10 bg-background w-20 min-w-[80px] px-3 py-2 font-semibold text-sm whitespace-nowrap",
+                !isFirstBatting ? "text-turf" : "text-stitch"
               )}>
                 {!isFirstBatting ? "自チーム" : "相手"}
               </td>
@@ -254,7 +251,7 @@ export function ScoreInput({
                 return (
                   <td key={inning} className={cn("p-1 transition-colors", inning === activeInning && "bg-amber-50")}>
                     {isLastInningX ? (
-                      <div className="w-full h-10 flex items-center justify-center text-lg font-bold rounded-lg bg-amber-50 text-amber-700 select-none">
+                      <div className="font-display w-full h-10 flex items-center justify-center text-lg font-bold bg-amber-50 text-amber-700 select-none">
                         {xScore === null ? "✕" : `${xScore}✕`}
                       </div>
                     ) : (
@@ -267,12 +264,12 @@ export function ScoreInput({
                         onTouchEnd={handleTouchEnd}
                         onTouchCancel={handleTouchEnd}
                         className={cn(
-                          "w-full h-10 flex items-center justify-center",
-                          "text-lg font-bold rounded-lg transition-all select-none",
-                          !isFirstBatting ? "hover:bg-blue-100 active:bg-blue-200" : "hover:bg-red-100 active:bg-red-200",
+                          "font-display w-full h-10 flex items-center justify-center",
+                          "text-lg font-bold transition-all select-none",
+                          "hover:bg-muted active:bg-muted",
                           (inningScores[inning - 1]?.[bottomTeam] || 0) > 0
-                            ? !isFirstBatting ? "text-blue-700 bg-blue-50" : "text-red-700 bg-red-50"
-                            : "text-slate-300"
+                            ? "text-foreground"
+                            : "text-muted-foreground/40"
                         )}
                       >
                         {inningScores[inning - 1]?.[bottomTeam] ?? 0}
@@ -283,12 +280,9 @@ export function ScoreInput({
               })}
               <td className={cn(
                 "sticky right-0 z-10 w-14 min-w-[56px] px-3 py-2 text-center",
-                !isFirstBatting ? "bg-blue-100" : "bg-red-100"
+                !isFirstBatting ? "bg-turf-tint" : "bg-stitch-tint"
               )}>
-                <span className={cn(
-                  "text-xl font-bold",
-                  !isFirstBatting ? "text-blue-800" : "text-red-800"
-                )}>
+                <span className="font-display text-xl font-bold text-foreground">
                   {getTotalScore(!isFirstBatting ? "our" : "opponent")}
                 </span>
               </td>
@@ -296,33 +290,33 @@ export function ScoreInput({
           </tbody>
         </table>
       </div>
-      <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-xs text-slate-500 text-center">
+      <div className="px-4 py-2 bg-muted border-t border-border text-xs text-muted-foreground text-center">
         タップで+1 / 長押しで-1
       </div>
 
       {/* ✕ゲームコントロール */}
       {onXChange && (
-        <div className="border-t border-slate-100">
+        <div className="border-t border-border">
           <button
             onClick={() => setXAccordionOpen(!xAccordionOpen)}
-            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-500 hover:bg-slate-50"
+            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:bg-muted"
           >
             <span>最終回</span>
-            <span className={cn("font-bold", hasX ? "text-amber-600" : "text-slate-400")}>
+            <span className={cn("font-bold", hasX ? "text-amber-600" : "text-muted-foreground/50")}>
               {hasX ? (xScore === null ? "✕" : `${xScore}✕`) : "−"}
             </span>
             <ChevronDown className={cn("ml-auto h-4 w-4 transition-transform", xAccordionOpen && "rotate-180")} />
           </button>
 
           {xAccordionOpen && (
-            <div className="bg-slate-50 px-4 pb-3 space-y-2">
+            <div className="bg-muted px-4 pb-3 space-y-2">
               <label className="flex items-center gap-2 text-sm cursor-pointer py-1">
                 <input
                   type="radio"
                   name="x-type"
                   checked={!hasX}
                   onChange={() => onXChange(false, null)}
-                  className="accent-slate-600"
+                  className="accent-foreground"
                 />
                 ✕なし
               </label>
@@ -354,7 +348,7 @@ export function ScoreInput({
                     max={20}
                     value={xScore}
                     onChange={(e) => onXChange(true, Math.max(0, Math.min(20, Number(e.target.value))))}
-                    className="w-16 rounded border border-slate-300 px-2 py-1 text-sm focus:border-amber-400 focus:outline-none"
+                    className="w-16 border border-input px-2 py-1 text-sm focus:border-amber-400 focus:outline-none"
                   />
                   <span className="text-sm font-bold text-amber-700">✕</span>
                 </div>

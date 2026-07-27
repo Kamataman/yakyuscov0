@@ -46,22 +46,22 @@ function MiniScoreTable({
   const oppTotal = scores.reduce((s, r) => s + r.opponent, 0)
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden border border-border bg-background">
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="bg-slate-50 text-slate-500">
+          <tr className="bg-muted text-muted-foreground">
             <th className="w-14 px-2 py-1.5 text-left text-xs font-semibold"></th>
             {innings.map((n) => (
               <th key={n} className="w-8 px-0.5 py-1.5 text-center text-xs font-semibold">
                 {n}
               </th>
             ))}
-            <th className="w-10 px-1 py-1.5 text-center text-xs font-semibold bg-slate-100">計</th>
+            <th className="w-10 px-1 py-1.5 text-center text-xs font-semibold bg-muted">計</th>
           </tr>
         </thead>
         <tbody>
-          <tr className="border-b border-slate-200">
-            <td className="sticky left-0 bg-blue-50 px-2 py-1.5 text-xs font-semibold text-blue-800 whitespace-nowrap">
+          <tr className="border-b border-border">
+            <td className="sticky left-0 bg-background px-2 py-1.5 text-xs font-semibold text-turf whitespace-nowrap">
               自チーム
             </td>
             {innings.map((_, i) => {
@@ -71,8 +71,8 @@ function MiniScoreTable({
                 <td key={i} className="px-0.5 py-1">
                   <div
                     className={cn(
-                      "flex h-8 w-full items-center justify-center rounded-lg text-sm font-bold transition-colors",
-                      val > 0 ? "bg-blue-50 text-blue-700" : "text-slate-300",
+                      "font-display flex h-8 w-full items-center justify-center text-sm font-bold transition-colors",
+                      val > 0 ? "text-foreground" : "text-muted-foreground/40",
                       isAnimating && "animate-score-pop",
                     )}
                   >
@@ -81,12 +81,12 @@ function MiniScoreTable({
                 </td>
               )
             })}
-            <td className="bg-blue-100 px-1 py-1.5 text-center">
-              <span className="text-base font-bold text-blue-800">{ourTotal}</span>
+            <td className="bg-turf-tint px-1 py-1.5 text-center">
+              <span className="font-display text-base font-bold text-foreground">{ourTotal}</span>
             </td>
           </tr>
           <tr>
-            <td className="sticky left-0 bg-red-50 px-2 py-1.5 text-xs font-semibold text-red-800 whitespace-nowrap">
+            <td className="sticky left-0 bg-background px-2 py-1.5 text-xs font-semibold text-stitch whitespace-nowrap">
               相手
             </td>
             {innings.map((_, i) => {
@@ -96,8 +96,8 @@ function MiniScoreTable({
                 <td key={i} className="px-0.5 py-1">
                   <div
                     className={cn(
-                      "flex h-8 w-full items-center justify-center rounded-lg text-sm font-bold transition-colors",
-                      val > 0 ? "bg-red-50 text-red-700" : "text-slate-300",
+                      "font-display flex h-8 w-full items-center justify-center text-sm font-bold transition-colors",
+                      val > 0 ? "text-foreground" : "text-muted-foreground/40",
                       isAnimating && "animate-score-pop",
                     )}
                   >
@@ -106,13 +106,13 @@ function MiniScoreTable({
                 </td>
               )
             })}
-            <td className="bg-red-100 px-1 py-1.5 text-center">
-              <span className="text-base font-bold text-red-800">{oppTotal}</span>
+            <td className="bg-stitch-tint px-1 py-1.5 text-center">
+              <span className="font-display text-base font-bold text-foreground">{oppTotal}</span>
             </td>
           </tr>
         </tbody>
       </table>
-      <div className="border-t border-slate-100 bg-slate-50 py-1 text-center text-xs text-slate-400">
+      <div className="border-t border-border bg-muted py-1 text-center text-xs text-muted-foreground">
         タップで+1 / 長押しで-1
       </div>
     </div>
@@ -194,11 +194,11 @@ export function ScoreSharingDemo() {
       aria-label="スコア共有機能のデモ"
     >
       <div className="text-center mb-10">
-        <div className="mb-3 inline-flex rounded-xl bg-emerald-500/20 p-3">
-          <Share2 className="h-8 w-8 text-emerald-400" />
+        <div className="mb-3 inline-flex bg-turf/10 p-3">
+          <Share2 className="h-8 w-8 text-turf" />
         </div>
-        <h3 className="text-2xl font-bold text-white">URLを送るだけ、みんなで入力</h3>
-        <p className="mt-3 text-slate-400 max-w-xl mx-auto">
+        <h3 className="text-2xl font-bold text-foreground">URLを送るだけ、みんなで入力</h3>
+        <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
           試合中にURLを共有するだけ。チームメンバーはアカウント登録なしで、
           スコアを一緒にリアルタイム入力できます。
         </p>
@@ -216,12 +216,12 @@ export function ScoreSharingDemo() {
           </div>
 
           {/* スクリーン */}
-          <div className="rounded-[28px] bg-slate-100 overflow-hidden">
+          <div className="rounded-[28px] bg-background overflow-hidden">
             {/* アプリヘッダー */}
-            <div className="bg-white px-4 py-3 border-b border-slate-200 flex items-center gap-2">
-              <div className="h-4 w-4 rounded-full bg-blue-500" />
-              <span className="text-sm font-bold text-slate-800">やきゅスコ</span>
-              <span className="ml-auto text-xs text-slate-400">
+            <div className="bg-background px-4 py-3 border-b-2 border-turf flex items-center gap-2">
+              <div className="diamond-mark h-4 w-4 bg-turf" />
+              <span className="text-sm font-bold text-foreground">やきゅスコ</span>
+              <span className="ml-auto text-xs text-muted-foreground">
                 {step === 0 ? "管理者" : "共有リンクで参加"}
               </span>
             </div>
@@ -233,11 +233,11 @@ export function ScoreSharingDemo() {
                 {/* アバターバブル */}
                 {step === 2 && animatingCell && (
                   <div className="absolute -top-2 -right-2 flex items-center gap-1">
-                    <div className="relative flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+                    <div className="relative flex h-6 w-6 items-center justify-center rounded-full bg-turf text-xs font-bold text-turf-foreground">
                       山
-                      <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-50" />
+                      <span className="absolute inset-0 animate-ping rounded-full bg-turf opacity-50" />
                     </div>
-                    <div className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-xs text-white whitespace-nowrap">
+                    <div className="rounded-full bg-turf px-1.5 py-0.5 text-xs text-turf-foreground whitespace-nowrap">
                       入力中…
                     </div>
                   </div>
@@ -251,22 +251,22 @@ export function ScoreSharingDemo() {
                   step === 2 ? "opacity-0 pointer-events-none h-0 overflow-hidden" : "opacity-100",
                 )}
               >
-                <div className="text-xs text-slate-500 font-medium">共有URL</div>
+                <div className="text-xs text-muted-foreground font-medium">共有URL</div>
                 <div className="flex gap-1.5">
                   <div
                     className={cn(
-                      "flex-1 rounded-lg border px-2 py-1.5 font-mono text-xs text-slate-600 bg-white truncate transition-all duration-300",
-                      urlCopied ? "border-emerald-300 ring-1 ring-emerald-200" : "border-slate-300",
+                      "flex-1 border px-2 py-1.5 font-mono text-xs text-muted-foreground bg-background truncate transition-all duration-300",
+                      urlCopied ? "border-turf ring-1 ring-turf/30" : "border-border",
                     )}
                   >
                     yakyu-sco.app/share/a8f2…
                   </div>
                   <button
                     className={cn(
-                      "shrink-0 flex h-8 w-8 items-center justify-center rounded-lg border transition-all duration-300",
+                      "shrink-0 flex h-8 w-8 items-center justify-center border transition-all duration-300",
                       urlCopied
-                        ? "border-emerald-300 bg-emerald-50 text-emerald-600"
-                        : "border-slate-300 bg-white text-slate-500",
+                        ? "border-turf bg-turf/10 text-turf"
+                        : "border-border bg-background text-muted-foreground",
                     )}
                     aria-label="URLをコピー"
                     tabIndex={-1}
@@ -286,7 +286,7 @@ export function ScoreSharingDemo() {
                     step === 1 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none",
                   )}
                 >
-                  <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#06C755] py-2 text-xs font-bold text-[#06C755] bg-[#06C755]/5">
+                  <div className="flex w-full items-center justify-center gap-2 border border-[#06C755] py-2 text-xs font-bold text-[#06C755] bg-[#06C755]/5">
                     <span className="text-base leading-none">⬤</span>
                     LINEで共有
                   </div>
@@ -300,15 +300,15 @@ export function ScoreSharingDemo() {
                   step === 2 ? "opacity-100" : "opacity-0 h-0 overflow-hidden",
                 )}
               >
-                <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+                <div className="flex items-center gap-2 bg-turf/10 border border-turf/30 px-3 py-2">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-turf text-xs font-bold text-turf-foreground">
                     山
                   </div>
-                  <span className="text-xs text-emerald-700">山田さんが参加中</span>
+                  <span className="text-xs text-turf">山田さんが参加中</span>
                   <div className="ml-auto flex gap-1">
-                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-400" style={{ animationDelay: "0ms" }} />
-                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-400" style={{ animationDelay: "150ms" }} />
-                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-400" style={{ animationDelay: "300ms" }} />
+                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-turf" style={{ animationDelay: "0ms" }} />
+                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-turf" style={{ animationDelay: "150ms" }} />
+                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-turf" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </div>
@@ -327,16 +327,16 @@ export function ScoreSharingDemo() {
             <div
               key={i}
               className={cn(
-                "flex items-start gap-3 rounded-xl p-3 transition-all duration-500",
+                "flex items-start gap-3 p-3 transition-all duration-500",
                 step === i
-                  ? "bg-slate-700/60 text-white"
-                  : "text-slate-500",
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground",
               )}
             >
               <div
                 className={cn(
                   "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors",
-                  step === i ? "bg-blue-500 text-white" : "bg-slate-700 text-slate-400",
+                  step === i ? "bg-turf text-turf-foreground" : "bg-muted text-muted-foreground",
                 )}
               >
                 {i + 1}
@@ -349,7 +349,7 @@ export function ScoreSharingDemo() {
 
       {/* ステップキャプション（モバイル） */}
       <div className="mt-6 text-center md:hidden">
-        <p className="text-sm text-slate-300 font-medium">{STEP_CAPTIONS[step]}</p>
+        <p className="text-sm text-muted-foreground font-medium">{STEP_CAPTIONS[step]}</p>
       </div>
 
       {/* プログレスドット */}
@@ -359,7 +359,7 @@ export function ScoreSharingDemo() {
             key={i}
             className={cn(
               "h-1.5 rounded-full transition-all duration-300",
-              step === i ? "w-5 bg-blue-400" : "w-2 bg-slate-600",
+              step === i ? "w-5 bg-turf" : "w-2 bg-muted-foreground/30",
             )}
           />
         ))}

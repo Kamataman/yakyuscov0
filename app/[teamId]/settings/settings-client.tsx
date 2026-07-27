@@ -144,17 +144,17 @@ export function SettingsClient({
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl p-4 md:p-6">
-        <h1 className="mb-6 text-xl font-bold text-slate-800">チーム設定</h1>
+        <h1 className="mb-6 text-xl font-bold text-foreground border-b-4 border-foreground pb-2">チーム設定</h1>
 
         {error && (
-          <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p className="mb-4 bg-stitch/10 border border-stitch/40 px-4 py-3 text-sm text-stitch">
             {error}
           </p>
         )}
         {message && (
-          <p className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <p className="mb-4 bg-turf/10 border border-turf/40 px-4 py-3 text-sm text-turf">
             {message}
           </p>
         )}
@@ -173,13 +173,13 @@ export function SettingsClient({
         />
 
         {/* ヘッダー画像 */}
-        <section className="mb-6 rounded-2xl bg-white p-6 shadow-md">
-          <h2 className="text-base font-bold text-slate-800">ヘッダー画像</h2>
-          <p className="mt-1 text-xs text-slate-500">
+        <section className="mb-6 border border-border p-6">
+          <h2 className="text-base font-bold text-foreground">ヘッダー画像</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             チームトップの上部に表示されます。新しい画像をアップロードすると、これまでの画像は削除されます。
           </p>
 
-          <div className="mt-4 flex h-40 w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-100 to-slate-200 md:h-56">
+          <div className="mt-4 flex h-40 w-full items-center justify-center overflow-hidden bg-muted md:h-56">
             {headerImage ? (
               <Image
                 src={headerImage.url}
@@ -190,17 +190,17 @@ export function SettingsClient({
                 style={{ objectPosition: `50% ${positionY}%` }}
               />
             ) : (
-              <span className="text-sm text-slate-500">未設定</span>
+              <span className="text-sm text-muted-foreground">未設定</span>
             )}
           </div>
 
           {headerImage && (
             <div className="mt-4">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-slate-600">
+                <label className="text-xs font-medium text-muted-foreground">
                   表示位置（上下）
                 </label>
-                <span className="text-xs text-slate-500">{positionY}%</span>
+                <span className="text-xs text-muted-foreground">{positionY}%</span>
               </div>
               <Slider
                 className="mt-2"
@@ -215,7 +215,7 @@ export function SettingsClient({
                 type="button"
                 onClick={handleSavePosition}
                 disabled={!isPositionDirty || isBusy}
-                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
+                className="mt-3 inline-flex items-center gap-2 bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSavingPosition && <Loader2 className="h-4 w-4 animate-spin" />}
                 表示位置を保存
@@ -234,7 +234,7 @@ export function SettingsClient({
             type="button"
             onClick={() => headerInputRef.current?.click()}
             disabled={isBusy}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="mt-4 inline-flex items-center gap-2 bg-turf px-4 py-2 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {uploadingKind === "header" ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -246,29 +246,29 @@ export function SettingsClient({
         </section>
 
         {/* チーム写真 */}
-        <section className="rounded-2xl bg-white p-6 shadow-md">
+        <section className="border border-border p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-800">チーム写真</h2>
-            <span className="text-xs text-slate-500">
+            <h2 className="text-base font-bold text-foreground">チーム写真</h2>
+            <span className="text-xs text-muted-foreground">
               {photos.length}/{TEAM_IMAGE_LIMITS.photo}枚
             </span>
           </div>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             チームトップにカルーセルで新しい順に表示されます。
             {TEAM_IMAGE_LIMITS.photo}枚を超えると、古い写真から自動的に削除されます。
           </p>
 
           {photos.length === 0 ? (
-            <div className="mt-4 flex flex-col items-center justify-center rounded-xl bg-slate-50 py-10 text-center">
-              <ImageIcon className="mb-2 h-8 w-8 text-slate-300" />
-              <p className="text-sm text-slate-500">まだ写真がありません</p>
+            <div className="mt-4 flex flex-col items-center justify-center bg-muted py-10 text-center">
+              <ImageIcon className="mb-2 h-8 w-8 text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">まだ写真がありません</p>
             </div>
           ) : (
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {photos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="flex aspect-[16/9] items-center justify-center overflow-hidden rounded-lg bg-slate-100"
+                  className="flex aspect-[16/9] items-center justify-center overflow-hidden bg-muted"
                 >
                   {/* チームトップと同じく切り抜かずに全体を表示する */}
                   <Image
@@ -295,7 +295,7 @@ export function SettingsClient({
             type="button"
             onClick={() => photoInputRef.current?.click()}
             disabled={isBusy}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="mt-4 inline-flex items-center gap-2 bg-turf px-4 py-2 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {uploadingKind === "photo" ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -306,12 +306,12 @@ export function SettingsClient({
           </button>
 
           {progress && progress.total > 1 && (
-            <span className="ml-3 text-xs text-slate-500">
+            <span className="ml-3 text-xs text-muted-foreground">
               {progress.done}/{progress.total}枚 アップロード中
             </span>
           )}
 
-          <p className="mt-3 text-xs text-slate-400">
+          <p className="mt-3 text-xs text-muted-foreground">
             JPEG・PNG・WebP形式、1枚{formatMegabytes(TEAM_IMAGE_MAX_SOURCE_BYTES)}まで。
             アップロード時に自動で縮小されます。
           </p>

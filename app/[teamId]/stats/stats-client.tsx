@@ -137,26 +137,26 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl p-4 md:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex rounded-lg bg-slate-200 p-1">
+          <div className="flex border border-border p-1">
             <button
               onClick={() => setActiveTab("batting")}
-              className={cn("rounded-md px-4 py-2 text-sm font-medium transition-colors", activeTab === "batting" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900")}
+              className={cn("px-4 py-2 text-sm font-medium transition-colors", activeTab === "batting" ? "bg-turf text-turf-foreground" : "text-muted-foreground hover:text-foreground")}
             >
               打撃成績
             </button>
             <button
               onClick={() => setActiveTab("pitching")}
-              className={cn("rounded-md px-4 py-2 text-sm font-medium transition-colors", activeTab === "pitching" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900")}
+              className={cn("px-4 py-2 text-sm font-medium transition-colors", activeTab === "pitching" ? "bg-turf text-turf-foreground" : "text-muted-foreground hover:text-foreground")}
             >
               投手成績
             </button>
           </div>
           <button
             onClick={() => setShowAllColumns(!showAllColumns)}
-            className="rounded-lg bg-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300"
+            className="border border-border px-3 py-2 text-sm font-medium text-foreground/70 hover:bg-muted"
           >
             {showAllColumns ? "主要項目のみ" : "全項目表示"}
           </button>
@@ -164,25 +164,25 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
 
         {activeTab === "batting" ? (
           battingStats.length === 0 ? (
-            <div className="rounded-2xl bg-white p-8 text-center shadow-lg">
-              <p className="text-slate-500">まだ打撃成績データがありません</p>
+            <div className="border border-border p-8 text-center">
+              <p className="text-muted-foreground">まだ打撃成績データがありません</p>
               {isAdmin && (
-                <Link href={`/${teamId}/games/new`} className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700">
+                <Link href={`/${teamId}/games/new`} className="mt-4 inline-block bg-turf px-4 py-2 text-sm font-bold text-turf-foreground hover:bg-turf/90">
                   試合を記録する
                 </Link>
               )}
             </div>
           ) : (
-            <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
+            <div className="border border-border overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b bg-slate-50">
-                      <th className="sticky left-0 z-10 bg-slate-50 px-3 py-3 text-left cursor-pointer hover:bg-slate-100 whitespace-nowrap" onClick={() => handleBattingSort("playerName")}>
+                    <tr className="border-b border-border bg-muted">
+                      <th className="sticky left-0 z-10 bg-muted px-3 py-3 text-left cursor-pointer hover:bg-muted-foreground/10 whitespace-nowrap" onClick={() => handleBattingSort("playerName")}>
                         <span className="flex items-center gap-1">選手名<SortIcon active={battingSortKey === "playerName"} /></span>
                       </th>
                       {visibleBattingColumns.map((col) => (
-                        <th key={col.key} className="px-2 py-3 text-center cursor-pointer hover:bg-slate-100 vertical-text" onClick={() => handleBattingSort(col.key)} title={col.label}>
+                        <th key={col.key} className="px-2 py-3 text-center cursor-pointer hover:bg-muted-foreground/10 vertical-text" onClick={() => handleBattingSort(col.key)} title={col.label}>
                           {col.label}<SortIcon active={battingSortKey === col.key} />
                         </th>
                       ))}
@@ -190,10 +190,10 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
                   </thead>
                   <tbody className="[writing-mode:horizontal-tb]">
                     {sortedBattingStats.map((player, index) => (
-                      <tr key={player.playerId} className={cn("border-b hover:bg-slate-50", index === 0 && battingSortKey === "battingAverage" && "bg-yellow-50")}>
-                        <td className="sticky left-0 z-10 bg-white px-3 py-3 font-medium whitespace-nowrap">{player.playerName}</td>
+                      <tr key={player.playerId} className={cn("border-b border-border hover:bg-muted/50", index === 0 && battingSortKey === "battingAverage" && "bg-turf/10")}>
+                        <td className="sticky left-0 z-10 bg-background px-3 py-3 font-medium whitespace-nowrap">{player.playerName}</td>
                         {visibleBattingColumns.map((col) => (
-                          <td key={col.key} className={cn("px-2 py-3 text-center", ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops"].includes(col.key) && "font-mono")}>
+                          <td key={col.key} className={cn("px-2 py-3 text-center", ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops"].includes(col.key) && "font-display")}>
                             {col.format(player.stats[col.key])}
                           </td>
                         ))}
@@ -202,32 +202,32 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
                   </tbody>
                 </table>
               </div>
-              <div className="border-t bg-slate-50 px-4 py-3 text-xs text-slate-500">
+              <div className="border-t border-border bg-muted px-4 py-3 text-xs text-muted-foreground">
                 <p>表示選手数: {battingStats.length}名 | ソート項目をクリックで並び替え</p>
               </div>
             </div>
           )
         ) : (
           pitchingStats.length === 0 ? (
-            <div className="rounded-2xl bg-white p-8 text-center shadow-lg">
-              <p className="text-slate-500">まだ投手成績データがありません</p>
+            <div className="border border-border p-8 text-center">
+              <p className="text-muted-foreground">まだ投手成績データがありません</p>
               {isAdmin && (
-                <Link href={`/${teamId}/games/new`} className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700">
+                <Link href={`/${teamId}/games/new`} className="mt-4 inline-block bg-turf px-4 py-2 text-sm font-bold text-turf-foreground hover:bg-turf/90">
                   試合を記録する
                 </Link>
               )}
             </div>
           ) : (
-            <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
+            <div className="border border-border overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b bg-slate-50">
-                      <th className="sticky left-0 z-10 bg-slate-50 px-3 py-3 text-left cursor-pointer hover:bg-slate-100 whitespace-nowrap" onClick={() => handlePitchingSort("playerName")}>
+                    <tr className="border-b border-border bg-muted">
+                      <th className="sticky left-0 z-10 bg-muted px-3 py-3 text-left cursor-pointer hover:bg-muted-foreground/10 whitespace-nowrap" onClick={() => handlePitchingSort("playerName")}>
                         <span className="flex items-center gap-1">投手名<SortIcon active={pitchingSortKey === "playerName"} /></span>
                       </th>
                       {visiblePitchingColumns.map((col) => (
-                        <th key={col.key} className="px-2 py-3 text-center cursor-pointer hover:bg-slate-100 vertical-text" onClick={() => handlePitchingSort(col.key)} title={col.label}>
+                        <th key={col.key} className="px-2 py-3 text-center cursor-pointer hover:bg-muted-foreground/10 vertical-text" onClick={() => handlePitchingSort(col.key)} title={col.label}>
                           {col.label}<SortIcon active={pitchingSortKey === col.key} />
                         </th>
                       ))}
@@ -235,10 +235,10 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
                   </thead>
                   <tbody className="[writing-mode:horizontal-tb]">
                     {sortedPitchingStats.map((player, index) => (
-                      <tr key={player.playerId} className={cn("border-b hover:bg-slate-50", index === 0 && pitchingSortKey === "era" && sortDirection === "asc" && "bg-yellow-50")}>
-                        <td className="sticky left-0 z-10 bg-white px-3 py-3 font-medium whitespace-nowrap">{player.playerName}</td>
+                      <tr key={player.playerId} className={cn("border-b border-border hover:bg-muted/50", index === 0 && pitchingSortKey === "era" && sortDirection === "asc" && "bg-turf/10")}>
+                        <td className="sticky left-0 z-10 bg-background px-3 py-3 font-medium whitespace-nowrap">{player.playerName}</td>
                         {visiblePitchingColumns.map((col) => (
-                          <td key={col.key} className={cn("px-2 py-3 text-center", ["era", "whip", "strikeoutRate", "walkRate"].includes(col.key) && "font-mono")}>
+                          <td key={col.key} className={cn("px-2 py-3 text-center", ["era", "whip", "strikeoutRate", "walkRate"].includes(col.key) && "font-display")}>
                             {col.format(player.stats[col.key])}
                           </td>
                         ))}
@@ -247,28 +247,28 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
                   </tbody>
                 </table>
               </div>
-              <div className="border-t bg-slate-50 px-4 py-3 text-xs text-slate-500">
+              <div className="border-t border-border bg-muted px-4 py-3 text-xs text-muted-foreground">
                 <p>表示投手数: {pitchingStats.length}名 | ソート項目をクリックで並び替え</p>
               </div>
             </div>
           )
         )}
 
-        <div className="mt-4 rounded-2xl bg-white p-4 shadow-lg">
-          <h3 className="mb-2 text-sm font-bold text-slate-600">指標の説明</h3>
+        <div className="mt-4 border border-border p-4">
+          <h3 className="mb-2 text-sm font-bold text-foreground">指標の説明</h3>
           {activeTab === "batting" ? (
-            <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 md:grid-cols-3 lg:grid-cols-4">
-              <div><span className="font-medium">打率</span>: 安打 / 打数</div>
-              <div><span className="font-medium">出塁率</span>: (安打+四球+死球) / (打数+四球+死球+犠飛)</div>
-              <div><span className="font-medium">長打率</span>: 塁打 / 打数</div>
-              <div><span className="font-medium">OPS</span>: 出塁率 + 長打率</div>
+            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-3 lg:grid-cols-4">
+              <div><span className="font-medium text-foreground">打率</span>: 安打 / 打数</div>
+              <div><span className="font-medium text-foreground">出塁率</span>: (安打+四球+死球) / (打数+四球+死球+犠飛)</div>
+              <div><span className="font-medium text-foreground">長打率</span>: 塁打 / 打数</div>
+              <div><span className="font-medium text-foreground">OPS</span>: 出塁率 + 長打率</div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 md:grid-cols-3 lg:grid-cols-4">
-              <div><span className="font-medium">防御率</span>: 自責点 x 9 / 投球回</div>
-              <div><span className="font-medium">WHIP</span>: (被安打+四球) / 投球回</div>
-              <div><span className="font-medium">K/9</span>: 奪三振 x 9 / 投球回</div>
-              <div><span className="font-medium">BB/9</span>: 四球 x 9 / 投球回</div>
+            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-3 lg:grid-cols-4">
+              <div><span className="font-medium text-foreground">防御率</span>: 自責点 x 9 / 投球回</div>
+              <div><span className="font-medium text-foreground">WHIP</span>: (被安打+四球) / 投球回</div>
+              <div><span className="font-medium text-foreground">K/9</span>: 奪三振 x 9 / 投球回</div>
+              <div><span className="font-medium text-foreground">BB/9</span>: 四球 x 9 / 投球回</div>
             </div>
           )}
         </div>

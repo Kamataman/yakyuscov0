@@ -43,34 +43,34 @@ export function TeamProfileSection({ teamId, initialName, initialDescription }: 
   }
 
   return (
-    <section className="mb-6 rounded-2xl bg-white p-6 shadow-md">
-      <h2 className="text-base font-bold text-slate-800">チーム基本情報</h2>
+    <section className="mb-6 border border-border p-6">
+      <h2 className="text-base font-bold text-foreground">チーム基本情報</h2>
 
       {error && (
-        <p className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        <p className="mt-3 bg-stitch/10 border border-stitch/40 px-4 py-3 text-sm text-stitch">{error}</p>
       )}
       {message && (
-        <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{message}</p>
+        <p className="mt-3 bg-turf/10 border border-turf/40 px-4 py-3 text-sm text-turf">{message}</p>
       )}
 
       <div className="mt-4">
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">チーム名</label>
+        <label className="mb-1.5 block text-sm font-medium text-foreground">チーム名</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full border border-input px-4 py-3 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
         />
       </div>
 
       <div className="mt-4">
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">チーム紹介文</label>
+        <label className="mb-1.5 block text-sm font-medium text-foreground">チーム紹介文</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
           placeholder="チームの紹介文を入力してください"
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full border border-input px-4 py-3 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
         />
       </div>
 
@@ -78,7 +78,7 @@ export function TeamProfileSection({ teamId, initialName, initialDescription }: 
         type="button"
         onClick={handleSave}
         disabled={!isDirty || isSaving}
-        className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+        className="mt-4 inline-flex items-center gap-2 bg-turf px-4 py-2 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
         保存

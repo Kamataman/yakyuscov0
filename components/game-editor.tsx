@@ -575,14 +575,14 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-100 to-slate-200">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-turf" />
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
         {/* ページタイトルとステータス */}
         <div className="flex items-center justify-between">
@@ -590,16 +590,16 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
             {!shareToken && (
               <button
                 onClick={handleBack}
-                className="rounded-lg bg-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-300"
+                className="border border-border px-3 py-2 text-sm font-medium text-foreground/70 hover:bg-muted"
               >
                 戻る
               </button>
             )}
-            <h1 className="text-lg font-bold text-slate-800">
+            <h1 className="text-lg font-bold text-foreground">
               {shareToken ? "試合結果入力" : "試合結果編集"}
             </h1>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {/* 共有ボタン（管理者のみ） */}
             {isAdmin && (
@@ -607,7 +607,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
                 variant="outline"
                 size="sm"
                 onClick={handleShareButtonClick}
-                className="gap-2 bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                className="gap-2 border-turf text-turf hover:bg-turf/10"
               >
                 <Share2 className="h-4 w-4" />
                 みんなで入力
@@ -618,53 +618,53 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
 
         {/* 共有URLの場合の注意書き */}
         {shareToken && (
-          <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+          <div className="bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
             共有URLからの入力です。入力内容は自動的に保存されます。
           </div>
         )}
 
         {/* 試合情報 */}
-        <div className="rounded-2xl bg-white p-4 shadow-lg">
-          <h2 className="mb-3 text-sm font-bold text-slate-600">試合情報</h2>
+        <div className="border border-border p-4">
+          <h2 className="mb-3 text-sm font-bold text-foreground">試合情報</h2>
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-slate-600">日付</label>
+              <label className="text-sm text-muted-foreground">日付</label>
               <input
                 type="date"
                 value={gameDate}
                 onChange={(e) => handleGameInfoChange("date", e.target.value)}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="border border-input px-3 py-2 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
               />
             </div>
             <div className="flex flex-1 items-center gap-2">
-              <label className="text-sm text-slate-600">対戦相手</label>
+              <label className="text-sm text-muted-foreground">対戦相手</label>
               <input
                 type="text"
                 value={opponent}
                 onChange={(e) => handleGameInfoChange("opponent", e.target.value)}
                 placeholder="チーム名を入力"
-                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="flex-1 border border-input px-3 py-2 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
               />
             </div>
             <div className="flex flex-1 items-center gap-2">
-              <label className="text-sm text-slate-600 whitespace-nowrap">球場</label>
+              <label className="text-sm text-muted-foreground whitespace-nowrap">球場</label>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => handleGameInfoChange("location", e.target.value)}
                 placeholder="球場名を入力"
-                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="flex-1 border border-input px-3 py-2 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf"
               />
             </div>
           </div>
           <div className="mt-4">
-            <label className="mb-1 block text-sm text-slate-600">メモ</label>
+            <label className="mb-1 block text-sm text-muted-foreground">メモ</label>
             <textarea
               value={memo}
               onChange={(e) => handleGameInfoChange("memo", e.target.value)}
               placeholder="試合のメモを入力"
               rows={3}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+              className="w-full border border-input px-3 py-2 text-sm focus:border-turf focus:outline-none focus:ring-1 focus:ring-turf resize-none"
             />
           </div>
         </div>
@@ -761,12 +761,12 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           <div className="space-y-4 py-4">
             {isGeneratingToken ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                <Loader2 className="h-8 w-8 animate-spin text-turf" />
               </div>
             ) : generatedShareToken ? (
               <>
                 <div className="space-y-1.5">
-                  <div className="text-xs text-slate-500">共有URL</div>
+                  <div className="text-xs text-muted-foreground">共有URL</div>
                   <div className="flex gap-2">
                     <Input
                       readOnly
@@ -778,7 +778,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
                       variant="outline"
                       size="icon"
                       onClick={handleCopyShareUrl}
-                      className={urlCopied ? "shrink-0 text-emerald-600 border-emerald-300" : "shrink-0"}
+                      className={urlCopied ? "shrink-0 text-turf border-turf" : "shrink-0"}
                     >
                       {urlCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </Button>
@@ -786,7 +786,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
                 </div>
 
                 {shareTokenExpiry && (
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-muted-foreground">
                     有効期限: {new Date(shareTokenExpiry).toLocaleString("ja-JP")}
                   </div>
                 )}
@@ -805,12 +805,12 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
                   </a>
                 </Button>
 
-                <div className="text-xs text-slate-500 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <div className="text-xs text-muted-foreground bg-amber-50 border border-amber-200 p-3">
                   このURLを知っている人は誰でも試合結果を入力できます。LINE等で共有する際はご注意ください。
                 </div>
               </>
             ) : (
-              <div className="text-center py-4 text-slate-500">
+              <div className="text-center py-4 text-muted-foreground">
                 URLの生成に失敗しました
               </div>
             )}
@@ -822,10 +822,10 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
       {saveStatus !== "idle" && (
         <div className="fixed bottom-4 right-4 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
           <div className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg text-sm font-medium",
-            saveStatus === "saving" && "bg-blue-500 text-white",
-            saveStatus === "saved" && "bg-emerald-500 text-white",
-            saveStatus === "error" && "bg-red-500 text-white",
+            "flex items-center gap-2 px-4 py-2 shadow-lg text-sm font-medium",
+            saveStatus === "saving" && "bg-foreground text-background",
+            saveStatus === "saved" && "bg-turf text-turf-foreground",
+            saveStatus === "error" && "bg-stitch text-stitch-foreground",
           )}>
             {saveStatus === "saving" && <Loader2 className="h-4 w-4 animate-spin" />}
             {saveStatus === "saved" && <CheckCircle2 className="h-4 w-4" />}

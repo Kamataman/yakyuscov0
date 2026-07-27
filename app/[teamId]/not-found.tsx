@@ -3,18 +3,18 @@ import { AlertCircle } from "lucide-react"
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <AlertCircle className="w-8 h-8 text-red-500" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="border border-border p-8 max-w-md w-full text-center">
+        <div className="diamond-mark w-16 h-16 bg-stitch flex items-center justify-center mx-auto mb-4">
+          <AlertCircle className="w-8 h-8 text-stitch-foreground -rotate-45" />
         </div>
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">404</h1>
-        <p className="text-slate-600 mb-6">
+        <h1 className="font-display text-2xl font-bold text-foreground mb-2">404</h1>
+        <p className="text-muted-foreground mb-6">
           チームが見つかりません。
         </p>
         <Link
           href="/"
-          className="inline-block px-6 py-3 bg-slate-800 text-white font-semibold rounded-lg hover:bg-slate-700 transition-colors"
+          className="inline-block px-6 py-3 bg-turf text-turf-foreground font-semibold hover:bg-turf/90 transition-colors"
         >
           トップページへ
         </Link>
