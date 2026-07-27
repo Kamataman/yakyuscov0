@@ -21,7 +21,9 @@ export default async function TeamSettingsPage({ params }: Props) {
   const [teamResult, headerImage, photos, teamMembersResult, pendingInvitesResult] = await Promise.all([
     db
       .from("teams")
-      .select("name, description, qualified_pa_coefficient, qualified_ip_coefficient")
+      .select(
+        "name, description, qualified_pa_coefficient, qualified_ip_coefficient, activity_area, activity_days, team_level, league, founded_period, average_age, notes"
+      )
       .eq("id", teamId)
       .single(),
     fetchTeamHeaderImage(teamId),
@@ -87,6 +89,15 @@ export default async function TeamSettingsPage({ params }: Props) {
       teamId={teamId}
       teamName={teamResult.data?.name ?? teamId}
       teamDescription={teamResult.data?.description ?? ""}
+      initialProfileDetailFields={{
+        activityArea: teamResult.data?.activity_area ?? "",
+        activityDays: teamResult.data?.activity_days ?? "",
+        teamLevel: teamResult.data?.team_level ?? "",
+        league: teamResult.data?.league ?? "",
+        foundedPeriod: teamResult.data?.founded_period ?? "",
+        averageAge: teamResult.data?.average_age ?? "",
+        notes: teamResult.data?.notes ?? "",
+      }}
       initialPaCoefficient={teamResult.data?.qualified_pa_coefficient ?? 3.1}
       initialIpCoefficient={teamResult.data?.qualified_ip_coefficient ?? 1}
       initialHeaderImage={headerImage}

@@ -5,6 +5,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { fetchTeamHeaderImage, fetchTeamImages } from "@/lib/team-images-server"
 import { TeamPhotoCarousel } from "@/components/team-photo-carousel"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { LinkPendingIndicator } from "@/components/link-pending-indicator"
 import { cn } from "@/lib/utils"
 
@@ -17,6 +18,13 @@ interface GameSummary {
 
 interface TeamProfileExtra {
   description: string | null
+  activity_area: string | null
+  activity_days: string | null
+  team_level: string | null
+  league: string | null
+  founded_period: string | null
+  average_age: string | null
+  notes: string | null
 }
 
 interface Props {
@@ -41,7 +49,9 @@ export default async function TeamDashboardPage({ params }: Props) {
         .single(),
       supabase
         .from("teams")
-        .select("description")
+        .select(
+          "description, activity_area, activity_days, team_level, league, founded_period, average_age, notes"
+        )
         .eq("id", teamId)
         .maybeSingle(),
       requireTeamAdmin(teamId),
@@ -59,6 +69,18 @@ export default async function TeamDashboardPage({ params }: Props) {
   const profile = profileResult.data as TeamProfileExtra | null
   const isAdmin = !!adminSession
   const canReceiveContact = (ownerCountResult.count ?? 0) > 0
+
+  const profileDetailRows = (
+    [
+      { label: "活動地域", value: profile?.activity_area },
+      { label: "活動曜日", value: profile?.activity_days },
+      { label: "チームレベル", value: profile?.team_level },
+      { label: "所属リーグ・大会", value: profile?.league },
+      { label: "結成時期", value: profile?.founded_period },
+      { label: "平均年齢", value: profile?.average_age },
+      { label: "その他", value: profile?.notes },
+    ] as { label: string; value: string | null | undefined }[]
+  ).filter((row): row is { label: string; value: string } => !!row.value)
 
   const getTotalScore = (scores: GameSummary["inning_scores"]) => ({
     our: scores?.reduce((sum, s) => sum + (s.our_score || 0), 0) || 0,
@@ -104,6 +126,37 @@ export default async function TeamDashboardPage({ params }: Props) {
               <div className="mt-6">
                 <TeamPhotoCarousel photos={photos} teamName={teamName} />
               </div>
+            )}
+
+            {/* チーム情報アコーディオン */}
+            {profileDetailRows.length > 0 ? (
+              <div className="mt-6 border border-border">
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="team-info">
+                    <AccordionTrigger className="px-4 text-base font-bold text-foreground">
+                      チーム情報
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4">
+                      <dl className="divide-y divide-border">
+                        {profileDetailRows.map((row) => (
+                          <div key={row.label} className="grid grid-cols-3 gap-4 py-2 text-sm">
+                            <dt className="text-muted-foreground">{row.label}</dt>
+                            <dd className="col-span-2 whitespace-pre-wrap text-foreground">{row.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            ) : (
+              isAdmin && (
+                <div className="mt-6 border border-border p-4 text-sm">
+                  <Link href={`/${teamId}/settings`} className="font-medium text-turf hover:underline">
+                    チーム設定でチーム情報を入力する
+                  </Link>
+                </div>
+              )
             )}
 
             {/* チームへの問い合わせ */}
