@@ -3,8 +3,8 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useParams, useRouter } from "next/navigation"
-import { Home, List, BarChart3, Users, MoreHorizontal, LogIn, LogOut, Shield, ExternalLink, Settings, KeyRound } from "lucide-react"
-import { useState, useEffect } from "react"
+import { Home, List, BarChart3, Users, MoreHorizontal, LogIn, LogOut, Loader2, Shield, ExternalLink, Settings, KeyRound } from "lucide-react"
+import { useState, useEffect, useTransition } from "react"
 import { cn } from "@/lib/utils"
 import { APP_NAME } from "@/lib/constants"
 import {
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
+import { NavLinkIcon } from "@/components/nav-link-icon"
 
 interface AppHeaderProps {
   teamName?: string
@@ -29,6 +30,7 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
   const [moreSheetOpen, setMoreSheetOpen] = useState(false)
   const [teamName, setTeamName] = useState<string | null>(initialTeamName ?? null)
   const [isTeamAdmin, setIsTeamAdmin] = useState(false)
+  const [isLoggingOut, startLogout] = useTransition()
 
   // teamName が prop で渡されなかった場合のフォールバック
   useEffect(() => {
@@ -58,14 +60,17 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
       })
   }, [pathname, teamId])
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" })
-    setIsTeamAdmin(false)
-    // 管理者専用ページ(admins/accountなど)にいる場合、そのままrefreshすると
-    // セッションが無くなったページがnotFound()を呼び404になるため、
-    // 常にアクセスできるチームホームへ遷移させる
-    router.push(`/${teamId}`)
-    router.refresh()
+  const handleLogout = () => {
+    // 遷移が完了するまで pending を保つため、通信と遷移をまとめて transition に入れる
+    startLogout(async () => {
+      await fetch("/api/auth/logout", { method: "POST" })
+      setIsTeamAdmin(false)
+      // 管理者専用ページ(admins/accountなど)にいる場合、そのままrefreshすると
+      // セッションが無くなったページがnotFound()を呼び404になるため、
+      // 常にアクセスできるチームホームへ遷移させる
+      router.push(`/${teamId}`)
+      router.refresh()
+    })
   }
 
   const navItems = [
@@ -104,11 +109,11 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "relative flex items-center gap-2 px-3 py-2 text-sm font-bold transition-colors",
+                    "relative flex items-center gap-2 px-3 py-2 text-sm font-bold transition-colors active:bg-turf-tint",
                     active ? "text-turf" : "text-foreground/60 hover:text-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <NavLinkIcon icon={Icon} className="h-4 w-4" />
                   {item.label}
                   {active && (
                     <span className="absolute inset-x-3 -bottom-[13px] h-[3px] bg-turf" />
@@ -161,8 +166,16 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="text-stitch">
-                      <LogOut className="h-4 w-4 mr-2" />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                      className="text-stitch"
+                    >
+                      {isLoggingOut ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <LogOut className="h-4 w-4 mr-2" />
+                      )}
                       ログアウト
                     </DropdownMenuItem>
                   </>
@@ -199,9 +212,12 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-bold"
+              className="flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-bold transition-colors active:bg-turf-tint"
             >
-              <Icon className={cn("h-5 w-5", active ? "text-turf" : "text-foreground/40")} />
+              <NavLinkIcon
+                icon={Icon}
+                className={cn("h-5 w-5", active ? "text-turf" : "text-foreground/40")}
+              />
               <span className={active ? "text-turf" : "text-foreground/40"}>{item.label}</span>
             </Link>
           )
@@ -209,7 +225,7 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
         <button
           type="button"
           onClick={() => setMoreSheetOpen(true)}
-          className="flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-bold"
+          className="flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-bold transition-colors active:bg-turf-tint"
         >
           <MoreHorizontal className={cn("h-5 w-5", isTeamAdmin ? "text-turf" : "text-foreground/40")} />
           <span className={isTeamAdmin ? "text-turf" : "text-foreground/40"}>その他</span>
@@ -232,7 +248,7 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                 <Link
                   href={`/${teamId}/settings`}
                   onClick={() => setMoreSheetOpen(false)}
-                  className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground"
+                  className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground transition-colors active:bg-turf-tint"
                 >
                   <Settings className="h-5 w-5" />
                   チーム設定
@@ -240,7 +256,7 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                 <Link
                   href={`/${teamId}/account`}
                   onClick={() => setMoreSheetOpen(false)}
-                  className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground"
+                  className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground transition-colors active:bg-turf-tint"
                 >
                   <KeyRound className="h-5 w-5" />
                   パスワードを変更
@@ -251,9 +267,14 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
                     handleLogout()
                     setMoreSheetOpen(false)
                   }}
-                  className="flex items-center gap-3 px-2 py-3 text-left text-sm font-medium text-stitch"
+                  disabled={isLoggingOut}
+                  className="flex items-center gap-3 px-2 py-3 text-left text-sm font-medium text-stitch transition-colors active:bg-stitch-tint disabled:opacity-50"
                 >
-                  <LogOut className="h-5 w-5" />
+                  {isLoggingOut ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <LogOut className="h-5 w-5" />
+                  )}
                   ログアウト
                 </button>
               </>
@@ -261,7 +282,7 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
               <Link
                 href={`/${teamId}/login`}
                 onClick={() => setMoreSheetOpen(false)}
-                className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground"
+                className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground transition-colors active:bg-turf-tint"
               >
                 <LogIn className="h-5 w-5" />
                 管理者ログイン
@@ -271,7 +292,7 @@ export function AppHeader({ teamName: initialTeamName }: AppHeaderProps) {
               <Link
                 href="/"
                 onClick={() => setMoreSheetOpen(false)}
-                className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground/60"
+                className="flex items-center gap-3 px-2 py-3 text-sm font-medium text-foreground/60 transition-colors active:bg-turf-tint"
               >
                 <ExternalLink className="h-5 w-5" />
                 やきゅスコについて
