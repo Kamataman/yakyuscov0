@@ -19,11 +19,14 @@ import {
 import { deleteTeamImage, updateHeaderImagePosition, uploadTeamImage } from "./actions"
 import { TeamProfileSection } from "./team-profile-section"
 import { AdminsSection, type TeamMember } from "./admins-section"
+import { QualificationSection } from "./qualification-section"
 
 interface SettingsClientProps {
   teamId: string
   teamName: string
   teamDescription: string
+  initialPaCoefficient: number
+  initialIpCoefficient: number
   initialHeaderImage: TeamImage | null
   initialPhotos: TeamImage[]
   currentUserId: string
@@ -48,6 +51,8 @@ export function SettingsClient({
   teamId,
   teamName,
   teamDescription,
+  initialPaCoefficient,
+  initialIpCoefficient,
   initialHeaderImage,
   initialPhotos,
   currentUserId,
@@ -369,6 +374,12 @@ export function SettingsClient({
             アップロード時に自動で縮小されます。
           </p>
         </section>
+
+        <QualificationSection
+          teamId={teamId}
+          initialPaCoefficient={initialPaCoefficient}
+          initialIpCoefficient={initialIpCoefficient}
+        />
       </div>
 
       <ConfirmDeleteDialog

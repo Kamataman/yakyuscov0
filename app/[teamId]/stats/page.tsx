@@ -8,12 +8,14 @@ interface PlayerBattingStats {
   playerId: string
   playerName: string
   stats: BattingStats
+  isQualified: boolean
 }
 
 interface PlayerPitchingStats {
   playerId: string
   playerName: string
   stats: PitchingStats
+  isQualified: boolean
 }
 
 interface Props {
@@ -24,12 +26,18 @@ export default async function StatsPage({ params }: Props) {
   const { teamId } = await params
   const supabase = createServiceClient()
 
-  const [adminSession, gamesResult] = await Promise.all([
+  const [adminSession, gamesResult, teamResult] = await Promise.all([
     requireTeamAdmin(teamId),
     supabase.from("games").select("id").eq("team_id", teamId),
+    supabase.from("teams").select("qualified_pa_coefficient, qualified_ip_coefficient").eq("id", teamId).single(),
   ])
 
   const gameIds = gamesResult.data?.map((g) => g.id) ?? []
+  const teamGamesCount = gameIds.length
+  const paCoefficient = teamResult.data?.qualified_pa_coefficient ?? 3.1
+  const ipCoefficient = teamResult.data?.qualified_ip_coefficient ?? 1
+  const qualifiedPlateAppearances = teamGamesCount * paCoefficient
+  const qualifiedInningsPitched = teamGamesCount * ipCoefficient
 
   if (gameIds.length === 0) {
     return (
@@ -38,6 +46,8 @@ export default async function StatsPage({ params }: Props) {
         pitchingStats={[]}
         isAdmin={!!adminSession}
         teamId={teamId}
+        qualifiedPlateAppearances={qualifiedPlateAppearances}
+        qualifiedInningsPitched={qualifiedInningsPitched}
       />
     )
   }
@@ -122,10 +132,12 @@ export default async function StatsPage({ params }: Props) {
 
   const battingStats: PlayerBattingStats[] = []
   for (const [playerId, data] of playerResultsMap) {
+    const stats = calculateBattingStats(data.results, data.gameIds.size)
     battingStats.push({
       playerId,
       playerName: data.name,
-      stats: calculateBattingStats(data.results, data.gameIds.size),
+      stats,
+      isQualified: stats.plateAppearances >= qualifiedPlateAppearances,
     })
   }
   battingStats.sort((a, b) => b.stats.plateAppearances - a.stats.plateAppearances)
@@ -164,10 +176,12 @@ export default async function StatsPage({ params }: Props) {
 
   const pitchingStats: PlayerPitchingStats[] = []
   for (const [pitcherId, data] of pitcherResultsMap) {
+    const stats = calculatePitchingStats(data.results)
     pitchingStats.push({
       playerId: pitcherId,
       playerName: data.name,
-      stats: calculatePitchingStats(data.results),
+      stats,
+      isQualified: stats.inningsPitched >= qualifiedInningsPitched,
     })
   }
   pitchingStats.sort((a, b) => b.stats.games - a.stats.games)
@@ -178,6 +192,8 @@ export default async function StatsPage({ params }: Props) {
       pitchingStats={pitchingStats}
       isAdmin={!!adminSession}
       teamId={teamId}
+      qualifiedPlateAppearances={qualifiedPlateAppearances}
+      qualifiedInningsPitched={qualifiedInningsPitched}
     />
   )
 }

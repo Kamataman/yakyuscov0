@@ -41,6 +41,39 @@ export async function updateTeamProfile(
   revalidatePath(`/${teamId}/settings`)
 }
 
+/** 規定打席・規定投球回の係数を更新する */
+export async function updateQualificationCoefficients(
+  teamId: string,
+  paCoefficient: number,
+  ipCoefficient: number
+): Promise<void> {
+  const session = await requireTeamAdmin(teamId)
+  if (!session) throw new Error("管理者権限が必要です")
+
+  if (!Number.isFinite(paCoefficient) || paCoefficient <= 0 || paCoefficient > 99.99) {
+    throw new Error("規定打席の係数の値が不正です")
+  }
+  if (!Number.isFinite(ipCoefficient) || ipCoefficient <= 0 || ipCoefficient > 99.99) {
+    throw new Error("規定投球回の係数の値が不正です")
+  }
+
+  const supabase = createServiceClient()
+  const { error } = await supabase
+    .from("teams")
+    .update({
+      qualified_pa_coefficient: paCoefficient,
+      qualified_ip_coefficient: ipCoefficient,
+    })
+    .eq("id", teamId)
+
+  if (error) {
+    throw new Error(`規定打席・規定投球回の係数の保存に失敗しました: ${error.message}`)
+  }
+
+  revalidatePath(`/${teamId}/settings`)
+  revalidatePath(`/${teamId}/stats`)
+}
+
 const KINDS: TeamImageKind[] = ["header", "photo"]
 
 function parseKind(value: FormDataEntryValue | null): TeamImageKind {
