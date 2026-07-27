@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
@@ -15,8 +15,13 @@ type Props = {
 export default function RegisterForm({ termsText, privacyText }: Props) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNavigating, startNavigation] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+
+  // router.push は遷移完了を待たないため、finally で isSubmitting を戻すと
+  // 遷移中だけボタンが通常表示に戻ってしまう。transition の pending で覆う。
+  const isBusy = isSubmitting || isNavigating;
 
   const [form, setForm] = useState({
     teamId: "",
@@ -79,7 +84,9 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
       });
 
       // 確認メール送信完了ページへ
-      router.push("/auth/confirm");
+      startNavigation(() => {
+        router.push("/auth/confirm");
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "通信エラーが発生しました");
     } finally {
@@ -252,10 +259,10 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
             {/* 登録ボタン */}
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isBusy}
               className="flex w-full items-center justify-center gap-2 bg-turf px-4 py-3 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {isSubmitting ? (
+              {isBusy ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   登録中...

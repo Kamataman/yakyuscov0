@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Calendar, MapPin, PlusCircle } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
+import { LinkPendingIndicator } from "@/components/link-pending-indicator"
 import { cn } from "@/lib/utils"
 
 interface GameWithScores {
@@ -54,6 +55,7 @@ export default async function GamesListPage({ params }: Props) {
           >
             <PlusCircle className="h-5 w-5" />
             <span className="font-bold">新しい試合を記録</span>
+            <LinkPendingIndicator className="h-5 w-5" />
           </Link>
         )}
 

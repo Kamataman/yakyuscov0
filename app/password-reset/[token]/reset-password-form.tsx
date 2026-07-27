@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, KeyRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -17,7 +17,12 @@ export function ResetPasswordForm({ token }: Props) {
   const [password, setPassword] = useState("")
   const [passwordConfirm, setPasswordConfirm] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isNavigating, startNavigation] = useTransition()
   const [error, setError] = useState("")
+
+  // router.push は遷移完了を待たないため、finally で isLoading を戻すと
+  // 遷移中だけボタンが通常表示に戻ってしまう。transition の pending で覆う。
+  const isBusy = isLoading || isNavigating
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,19 +45,23 @@ export function ResetPasswordForm({ token }: Props) {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
       if (signInError) {
-        router.push("/")
+        startNavigation(() => {
+          router.push("/")
+        })
         return
       }
 
       const res = await fetch("/api/auth/my-team")
       const { teamId } = (await res.json()) as { teamId: string | null }
 
-      if (teamId) {
-        router.push(`/${teamId}`)
-        router.refresh()
-      } else {
-        router.push("/")
-      }
+      startNavigation(() => {
+        if (teamId) {
+          router.push(`/${teamId}`)
+          router.refresh()
+        } else {
+          router.push("/")
+        }
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : "パスワードの再設定に失敗しました")
     } finally {
@@ -102,10 +111,10 @@ export function ResetPasswordForm({ token }: Props) {
 
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={isBusy}
           className="w-full h-12 bg-turf hover:bg-turf/90 text-turf-foreground font-semibold"
         >
-          {isLoading ? (
+          {isBusy ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               設定中...
