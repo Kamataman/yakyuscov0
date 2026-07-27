@@ -14,14 +14,20 @@ export default async function PlayersPage({ params }: Props) {
   const [playersResult, adminSession] = await Promise.all([
     supabase
       .from("players")
-      .select("id, name, number")
+      .select("id, name, number, position, throw_bat")
       .eq("team_id", teamId)
       .order("number", { ascending: true, nullsFirst: false })
       .order("name"),
     requireTeamAdmin(teamId),
   ])
 
-  const players = sortPlayersByNumber(playersResult.data ?? []) as { id: string; name: string; number?: string }[]
+  const players = sortPlayersByNumber(playersResult.data ?? []) as {
+    id: string
+    name: string
+    number?: string
+    position?: string | null
+    throw_bat?: string | null
+  }[]
 
   return (
     <PlayersClient
