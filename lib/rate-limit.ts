@@ -4,9 +4,9 @@ const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
 const LIMIT_IP_PER_HOUR = 3;
-const LIMIT_IP_PER_DAY = 10;
-const LIMIT_TEAM_PER_DAY = 20;
-const LIMIT_GLOBAL_PER_DAY = 50;
+const LIMIT_IP_PER_DAY = 5;
+const LIMIT_TEAM_PER_DAY = 10;
+const LIMIT_GLOBAL_PER_DAY = 30;
 
 /**
  * チーム問い合わせフォームのレート制限を判定し、許可された場合は送信記録を書き込む。
