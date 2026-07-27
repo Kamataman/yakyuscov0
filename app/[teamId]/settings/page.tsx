@@ -3,7 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { fetchTeamHeaderImage, fetchTeamImages } from "@/lib/team-images-server"
 import { SettingsClient } from "./settings-client"
-import type { TeamMember } from "./admins-section"
+import type { TeamMember, PendingInvite } from "./admins-section"
 
 interface Props {
   params: Promise<{ teamId: string }>
@@ -18,7 +18,7 @@ export default async function TeamSettingsPage({ params }: Props) {
   }
 
   const db = createServiceClient()
-  const [teamResult, headerImage, photos, teamMembersResult] = await Promise.all([
+  const [teamResult, headerImage, photos, teamMembersResult, pendingInvitesResult] = await Promise.all([
     db
       .from("teams")
       .select("name, description, qualified_pa_coefficient, qualified_ip_coefficient")
@@ -27,11 +27,31 @@ export default async function TeamSettingsPage({ params }: Props) {
     fetchTeamHeaderImage(teamId),
     fetchTeamImages(teamId, "photo"),
     db.from("team_members").select("id, user_id, role, created_at").eq("team_id", teamId),
+    db
+      .from("team_invites")
+      .select("id, email, role, created_at, expires_at")
+      .eq("team_id", teamId)
+      .is("accepted_at", null)
+      .gt("expires_at", new Date().toISOString()),
   ])
 
   if (teamMembersResult.error) {
     throw new Error(teamMembersResult.error.message)
   }
+
+  if (pendingInvitesResult.error) {
+    throw new Error(pendingInvitesResult.error.message)
+  }
+
+  const pendingInvites: PendingInvite[] = (pendingInvitesResult.data ?? [])
+    .map((invite) => ({
+      id: invite.id,
+      email: invite.email,
+      role: invite.role as "owner" | "admin",
+      createdAt: invite.created_at,
+      expiresAt: invite.expires_at,
+    }))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
 
   const userIds = (teamMembersResult.data ?? []).map((m) => m.user_id)
   const { data: profiles, error: profilesError } = await db
@@ -74,6 +94,7 @@ export default async function TeamSettingsPage({ params }: Props) {
       currentUserId={session.userId}
       currentRole={session.role}
       initialMembers={members}
+      initialPendingInvites={pendingInvites}
     />
   )
 }

@@ -31,12 +31,89 @@ export async function sendTeamRegistrationEmail(
   }
 
   const { to, teamName, teamUrl } = params;
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: process.env.EMAIL_FROM ?? "noreply@example.com",
     to,
     subject: `【${APP_NAME}】${teamName} の登録が完了しました`,
     html: buildHtml({ teamName, teamUrl }),
   });
+
+  if (error) {
+    throw new Error(`チーム登録メールの送信に失敗しました: ${error.message}`);
+  }
+}
+
+export interface RegistrationConfirmEmailParams {
+  to: string;
+  teamName: string;
+  confirmUrl: string;
+}
+
+export async function sendRegistrationConfirmEmail(
+  params: RegistrationConfirmEmailParams
+): Promise<void> {
+  if (!resend) {
+    console.warn("RESEND_API_KEY が未設定のため、本人確認メールの送信をスキップしました。");
+    return;
+  }
+
+  const { to, teamName, confirmUrl } = params;
+  const { error } = await resend.emails.send({
+    from: process.env.EMAIL_FROM ?? "noreply@example.com",
+    to,
+    subject: `【${APP_NAME}】メールアドレスの確認をお願いします`,
+    html: buildRegistrationConfirmHtml({ teamName, confirmUrl }),
+  });
+
+  if (error) {
+    throw new Error(`本人確認メールの送信に失敗しました: ${error.message}`);
+  }
+}
+
+function buildRegistrationConfirmHtml({
+  teamName,
+  confirmUrl,
+}: {
+  teamName: string;
+  confirmUrl: string;
+}): string {
+  const safeTeamName = escapeHtml(teamName);
+  const safeConfirmUrl = escapeHtml(confirmUrl);
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${APP_NAME} 本人確認</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 24px; }
+    .container { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .header { text-align: center; margin-bottom: 32px; }
+    .header h1 { font-size: 22px; color: #1e293b; margin: 0 0 8px; }
+    .header p { font-size: 14px; color: #64748b; margin: 0; }
+    .cta-box { display: block; background: #2563eb; border-radius: 8px; padding: 14px 20px; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; text-align: center; margin: 24px 0; }
+    .note { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 8px; }
+    .footer { margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>メールアドレスの確認をお願いします</h1>
+      <p><strong>${safeTeamName}</strong> の登録を完了するには、メールアドレスの確認が必要です</p>
+    </div>
+
+    <p style="font-size:14px;color:#475569;margin:0 0 8px;">以下のボタンからチーム登録を完了してください：</p>
+    <a href="${safeConfirmUrl}" class="cta-box">メールアドレスを確認する</a>
+    <p class="note">このリンクの有効期限は1時間です</p>
+
+    <div class="footer">
+      <p>${APP_NAME} — チームの記録を管理するアプリ</p>
+      <p>心当たりがない場合は、このメールを破棄してください。</p>
+    </div>
+  </div>
+</body>
+</html>`;
 }
 
 export interface AdminInviteEmailParams {
@@ -55,12 +132,16 @@ export async function sendAdminInviteEmail(
   }
 
   const { to, teamName, role, inviteUrl } = params;
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: process.env.EMAIL_FROM ?? "noreply@example.com",
     to,
     subject: `【${APP_NAME}】${teamName} の管理者に招待されました`,
     html: buildInviteHtml({ teamName, role, inviteUrl }),
   });
+
+  if (error) {
+    throw new Error(`管理者招待メールの送信に失敗しました: ${error.message}`);
+  }
 }
 
 interface InviteHtmlParams {
@@ -124,12 +205,16 @@ export async function sendPasswordResetEmail(
   }
 
   const { to, resetUrl } = params;
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: process.env.EMAIL_FROM ?? "noreply@example.com",
     to,
     subject: `【${APP_NAME}】パスワード再設定のご案内`,
     html: buildPasswordResetHtml({ resetUrl }),
   });
+
+  if (error) {
+    throw new Error(`パスワード再設定メールの送信に失敗しました: ${error.message}`);
+  }
 }
 
 function buildPasswordResetHtml({ resetUrl }: { resetUrl: string }): string {

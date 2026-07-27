@@ -2,21 +2,26 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendTeamRegistrationEmail } from "@/lib/email";
 import { NextResponse } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
+  const tokenHash = searchParams.get("token_hash");
+  const type = searchParams.get("type") as EmailOtpType | null;
 
-  if (!code) {
+  if (!tokenHash || !type) {
     return NextResponse.redirect(`${origin}/register?error=missing_code`);
   }
 
   const supabase = await createClient();
   const db = createServiceClient();
-  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+  const { error: verifyError } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type,
+  });
 
-  if (exchangeError) {
-    console.error("Code exchange error:", exchangeError);
+  if (verifyError) {
+    console.error("OTP verification error:", verifyError);
     return NextResponse.redirect(`${origin}/register?error=confirmation_failed`);
   }
 

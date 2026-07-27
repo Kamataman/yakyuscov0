@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { Checkbox } from "@/components/ui/checkbox";
+import { registerTeam } from "./actions";
 
 type Props = {
   termsText: string;
@@ -70,33 +70,18 @@ export default function RegisterForm({ termsText, privacyText }: Props) {
         return;
       }
 
-      // Supabase Auth でユーザー登録
-      const supabase = createClient();
-      const { error: signUpError } = await supabase.auth.signUp({
+      // ユーザー登録 + 本人確認メール送信
+      await registerTeam({
+        teamId: form.teamId,
+        teamName: form.teamName,
         email: form.adminEmail,
         password: form.adminPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            teamId: form.teamId,
-            teamName: form.teamName,
-          },
-        },
       });
-
-      if (signUpError) {
-        if (signUpError.message.includes("already registered")) {
-          setError("このメールアドレスはすでに登録されています");
-        } else {
-          setError(signUpError.message || "登録に失敗しました");
-        }
-        return;
-      }
 
       // 確認メール送信完了ページへ
       router.push("/auth/confirm");
-    } catch {
-      setError("通信エラーが発生しました");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "通信エラーが発生しました");
     } finally {
       setIsSubmitting(false);
     }
