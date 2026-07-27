@@ -19,7 +19,11 @@ export default async function TeamSettingsPage({ params }: Props) {
 
   const db = createServiceClient()
   const [teamResult, headerImage, photos, teamMembersResult] = await Promise.all([
-    db.from("teams").select("name, description").eq("id", teamId).single(),
+    db
+      .from("teams")
+      .select("name, description, qualified_pa_coefficient, qualified_ip_coefficient")
+      .eq("id", teamId)
+      .single(),
     fetchTeamHeaderImage(teamId),
     fetchTeamImages(teamId, "photo"),
     db.from("team_members").select("id, user_id, role, created_at").eq("team_id", teamId),
@@ -63,6 +67,8 @@ export default async function TeamSettingsPage({ params }: Props) {
       teamId={teamId}
       teamName={teamResult.data?.name ?? teamId}
       teamDescription={teamResult.data?.description ?? ""}
+      initialPaCoefficient={teamResult.data?.qualified_pa_coefficient ?? 3.1}
+      initialIpCoefficient={teamResult.data?.qualified_ip_coefficient ?? 1}
       initialHeaderImage={headerImage}
       initialPhotos={photos}
       currentUserId={session.userId}

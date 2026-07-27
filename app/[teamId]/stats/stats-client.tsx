@@ -10,18 +10,24 @@ interface PlayerBattingStats {
   playerId: string
   playerName: string
   stats: BattingStats
+  isQualified: boolean
 }
 
 interface PlayerPitchingStats {
   playerId: string
   playerName: string
   stats: PitchingStats
+  isQualified: boolean
 }
 
 type BattingSortKey = keyof BattingStats | "playerName"
 type PitchingSortKey = keyof PitchingStats | "playerName"
 type SortDirection = "asc" | "desc"
 type StatsTab = "batting" | "pitching"
+
+// 率のカラムは規定打席・規定投球回に達しているかどうかを第一ソートキーにする
+const QUALIFICATION_DEPENDENT_BATTING_KEYS: BattingSortKey[] = ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops"]
+const QUALIFICATION_DEPENDENT_PITCHING_KEYS: PitchingSortKey[] = ["era", "whip", "strikeoutRate", "walkRate"]
 
 const BATTING_COLUMNS: Array<{
   key: keyof BattingStats
@@ -83,9 +89,11 @@ interface StatsClientProps {
   pitchingStats: PlayerPitchingStats[]
   isAdmin: boolean
   teamId: string
+  qualifiedPlateAppearances: number
+  qualifiedInningsPitched: number
 }
 
-export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: StatsClientProps) {
+export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qualifiedPlateAppearances, qualifiedInningsPitched }: StatsClientProps) {
   const [activeTab, setActiveTab] = useState<StatsTab>("batting")
   const [battingSortKey, setBattingSortKey] = useState<BattingSortKey>("battingAverage")
   const [pitchingSortKey, setPitchingSortKey] = useState<PitchingSortKey>("era")
@@ -111,6 +119,9 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
   }
 
   const sortedBattingStats = [...battingStats].sort((a, b) => {
+    if (QUALIFICATION_DEPENDENT_BATTING_KEYS.includes(battingSortKey) && a.isQualified !== b.isQualified) {
+      return a.isQualified ? -1 : 1
+    }
     const aValue: number | string = battingSortKey === "playerName" ? a.playerName : (a.stats[battingSortKey] || 0)
     const bValue: number | string = battingSortKey === "playerName" ? b.playerName : (b.stats[battingSortKey] || 0)
     if (typeof aValue === "string" && typeof bValue === "string") {
@@ -120,6 +131,9 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
   })
 
   const sortedPitchingStats = [...pitchingStats].sort((a, b) => {
+    if (QUALIFICATION_DEPENDENT_PITCHING_KEYS.includes(pitchingSortKey) && a.isQualified !== b.isQualified) {
+      return a.isQualified ? -1 : 1
+    }
     const aValue: number | string = pitchingSortKey === "playerName" ? a.playerName : (a.stats[pitchingSortKey] || 0)
     const bValue: number | string = pitchingSortKey === "playerName" ? b.playerName : (b.stats[pitchingSortKey] || 0)
     if (typeof aValue === "string" && typeof bValue === "string") {
@@ -130,6 +144,12 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
 
   const visibleBattingColumns = showAllColumns ? BATTING_COLUMNS : BATTING_COLUMNS.filter((col) => col.primary)
   const visiblePitchingColumns = showAllColumns ? PITCHING_COLUMNS : PITCHING_COLUMNS.filter((col) => col.primary)
+
+  const qualifiedPlateAppearancesLabel = `${Math.ceil(qualifiedPlateAppearances)}打席`
+  const qualifiedInningsOuts = Math.round(qualifiedInningsPitched * 3)
+  const qualifiedInningsWhole = Math.floor(qualifiedInningsOuts / 3)
+  const qualifiedInningsRem = qualifiedInningsOuts % 3
+  const qualifiedInningsPitchedLabel = qualifiedInningsRem === 0 ? `${qualifiedInningsWhole}回` : `${qualifiedInningsWhole} ${qualifiedInningsRem}/3回`
 
   const SortIcon = ({ active }: { active: boolean }) => {
     if (!active) return null
@@ -162,6 +182,12 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
           </button>
         </div>
 
+        <p className="mb-2 text-xs text-muted-foreground">
+          {activeTab === "batting"
+            ? `規定打席: ${qualifiedPlateAppearancesLabel}以上（未到達選手は網掛け表示）`
+            : `規定投球回: ${qualifiedInningsPitchedLabel}以上（未到達選手は網掛け表示）`}
+        </p>
+
         {activeTab === "batting" ? (
           battingStats.length === 0 ? (
             <div className="border border-border p-8 text-center">
@@ -190,8 +216,15 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
                   </thead>
                   <tbody className="[writing-mode:horizontal-tb]">
                     {sortedBattingStats.map((player, index) => (
-                      <tr key={player.playerId} className={cn("border-b border-border hover:bg-muted/50", index === 0 && battingSortKey === "battingAverage" && "bg-turf/10")}>
-                        <td className="sticky left-0 z-10 bg-background px-3 py-3 font-medium whitespace-nowrap">{player.playerName}</td>
+                      <tr
+                        key={player.playerId}
+                        className={cn(
+                          "border-b border-border",
+                          player.isQualified ? "hover:bg-muted/50" : "bg-muted hover:bg-muted-foreground/10",
+                          index === 0 && battingSortKey === "battingAverage" && "bg-turf/10"
+                        )}
+                      >
+                        <td className={cn("sticky left-0 z-10 px-3 py-3 font-medium whitespace-nowrap", player.isQualified ? "bg-background" : "bg-muted")}>{player.playerName}</td>
                         {visibleBattingColumns.map((col) => (
                           <td key={col.key} className={cn("px-2 py-3 text-center", ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops"].includes(col.key) && "font-display")}>
                             {col.format(player.stats[col.key])}
@@ -235,8 +268,15 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId }: St
                   </thead>
                   <tbody className="[writing-mode:horizontal-tb]">
                     {sortedPitchingStats.map((player, index) => (
-                      <tr key={player.playerId} className={cn("border-b border-border hover:bg-muted/50", index === 0 && pitchingSortKey === "era" && sortDirection === "asc" && "bg-turf/10")}>
-                        <td className="sticky left-0 z-10 bg-background px-3 py-3 font-medium whitespace-nowrap">{player.playerName}</td>
+                      <tr
+                        key={player.playerId}
+                        className={cn(
+                          "border-b border-border",
+                          player.isQualified ? "hover:bg-muted/50" : "bg-muted hover:bg-muted-foreground/10",
+                          index === 0 && pitchingSortKey === "era" && sortDirection === "asc" && "bg-turf/10"
+                        )}
+                      >
+                        <td className={cn("sticky left-0 z-10 px-3 py-3 font-medium whitespace-nowrap", player.isQualified ? "bg-background" : "bg-muted")}>{player.playerName}</td>
                         {visiblePitchingColumns.map((col) => (
                           <td key={col.key} className={cn("px-2 py-3 text-center", ["era", "whip", "strikeoutRate", "walkRate"].includes(col.key) && "font-display")}>
                             {col.format(player.stats[col.key])}
