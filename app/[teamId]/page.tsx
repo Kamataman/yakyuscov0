@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, MessageCircle, PlusCircle, Shield } from "lucide-react"
+import { Calendar, MessageCircle, PlusCircle } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { fetchTeamHeaderImage, fetchTeamImages } from "@/lib/team-images-server"
@@ -78,9 +78,9 @@ export default async function TeamDashboardPage({ params }: Props) {
       <div className="mx-auto max-w-6xl p-4 md:p-6">
         {/* チームプロフィール */}
         <div className="mb-8">
-          {/* ヘッダー画像 */}
-          <div className="diagonal-cut flex h-40 w-full items-center justify-center overflow-hidden bg-[repeating-linear-gradient(45deg,var(--muted),var(--muted)_10px,var(--background)_10px,var(--background)_20px)] md:h-56">
-            {headerImage ? (
+          {/* ヘッダー画像（未設定の場合は表示しない） */}
+          {headerImage && (
+            <div className="diagonal-cut flex h-40 w-full items-center justify-center overflow-hidden md:h-56">
               <Image
                 src={headerImage.url}
                 alt={teamName}
@@ -90,24 +90,20 @@ export default async function TeamDashboardPage({ params }: Props) {
                 style={{ objectPosition: `50% ${headerImage.positionY}%` }}
                 priority
               />
-            ) : (
-              <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                <Shield className="h-12 w-12" />
-                <span className="text-xs font-bold tracking-widest">TEAM PHOTO</span>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
           <div className="py-6">
             <h1 className="text-2xl font-black text-foreground">{teamName}</h1>
             <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
               {profile?.description || "チーム紹介文は準備中です"}
             </p>
 
-            {/* チーム写真カルーセル */}
-            <div className="mt-6">
-              <h2 className="mb-3 text-sm font-bold text-foreground">チーム写真</h2>
-              <TeamPhotoCarousel photos={photos} teamName={teamName} />
-            </div>
+            {/* チーム写真カルーセル（未アップロードの場合は表示しない） */}
+            {photos.length > 0 && (
+              <div className="mt-6">
+                <TeamPhotoCarousel photos={photos} teamName={teamName} />
+              </div>
+            )}
 
             {/* チームへの問い合わせ */}
             {canReceiveContact && (

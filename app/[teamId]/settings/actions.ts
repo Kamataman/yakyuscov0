@@ -167,6 +167,41 @@ export async function uploadTeamImage(
   return fetchTeamImages(teamId, kind)
 }
 
+/** 指定した画像を削除する（DB行→Storageオブジェクトの順） */
+export async function deleteTeamImage(teamId: string, imageId: string): Promise<void> {
+  const session = await requireTeamAdmin(teamId)
+  if (!session) throw new Error("管理者権限が必要です")
+
+  const supabase = createServiceClient()
+  const { data, error } = await supabase
+    .from("team_images")
+    .delete()
+    .eq("id", imageId)
+    .eq("team_id", teamId)
+    .select("storage_path")
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(`画像の削除に失敗しました: ${error.message}`)
+  }
+  if (!data) {
+    throw new Error("対象の画像が見つかりません")
+  }
+
+  const { error: removeObjectError } = await supabase.storage
+    .from(TEAM_IMAGE_BUCKET)
+    .remove([data.storage_path])
+
+  if (removeObjectError) {
+    console.warn(
+      `[team-images] 画像のファイル削除に失敗しました (team=${teamId}, image=${imageId}): ${removeObjectError.message}`
+    )
+  }
+
+  revalidatePath(`/${teamId}`)
+  revalidatePath(`/${teamId}/settings`)
+}
+
 /** ヘッダー画像の縦方向の表示位置（object-position）を更新する */
 export async function updateHeaderImagePosition(
   teamId: string,

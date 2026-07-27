@@ -3,8 +3,9 @@
 import { useRef, useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ImageIcon, Loader2, Upload } from "lucide-react"
+import { ImageIcon, Loader2, Trash2, Upload } from "lucide-react"
 import { Slider } from "@/components/ui/slider"
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
 import { compressTeamImage } from "@/lib/image-compression"
 import {
   TEAM_IMAGE_ALLOWED_MIME_TYPES,
@@ -15,7 +16,7 @@ import {
   formatMegabytes,
   isAllowedTeamImageMime,
 } from "@/lib/team-images"
-import { updateHeaderImagePosition, uploadTeamImage } from "./actions"
+import { deleteTeamImage, updateHeaderImagePosition, uploadTeamImage } from "./actions"
 import { TeamProfileSection } from "./team-profile-section"
 import { AdminsSection, type TeamMember } from "./admins-section"
 
@@ -63,10 +64,14 @@ export function SettingsClient({
   const [uploadingKind, setUploadingKind] = useState<TeamImageKind | null>(null)
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const [isSavingPosition, setIsSavingPosition] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ kind: TeamImageKind; id: string } | null>(
+    null
+  )
+  const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
 
-  const isBusy = uploadingKind !== null || isSavingPosition
+  const isBusy = uploadingKind !== null || isSavingPosition || isDeleting
   const isPositionDirty =
     headerImage !== null && positionY !== headerImage.positionY
 
@@ -140,6 +145,32 @@ export function SettingsClient({
       )
     } finally {
       setIsSavingPosition(false)
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return
+    setError(null)
+    setMessage(null)
+    setIsDeleting(true)
+    try {
+      await deleteTeamImage(teamId, deleteTarget.id)
+      if (deleteTarget.kind === "header") {
+        setHeaderImage(null)
+        setPositionY(50)
+        setMessage("ヘッダー画像を削除しました")
+      } else {
+        setPhotos((prev) => prev.filter((photo) => photo.id !== deleteTarget.id))
+        setMessage("チーム写真を削除しました")
+      }
+      router.refresh()
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error ? deleteError.message : "画像の削除に失敗しました"
+      )
+    } finally {
+      setIsDeleting(false)
+      setDeleteTarget(null)
     }
   }
 
@@ -230,19 +261,32 @@ export function SettingsClient({
             className="hidden"
             onChange={(event) => handleSelect("header", event)}
           />
-          <button
-            type="button"
-            onClick={() => headerInputRef.current?.click()}
-            disabled={isBusy}
-            className="mt-4 inline-flex items-center gap-2 bg-turf px-4 py-2 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {uploadingKind === "header" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4" />
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => headerInputRef.current?.click()}
+              disabled={isBusy}
+              className="inline-flex items-center gap-2 bg-turf px-4 py-2 text-sm font-bold text-turf-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {uploadingKind === "header" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              {headerImage ? "画像を変更" : "画像をアップロード"}
+            </button>
+            {headerImage && (
+              <button
+                type="button"
+                onClick={() => setDeleteTarget({ kind: "header", id: headerImage.id })}
+                disabled={isBusy}
+                className="inline-flex items-center gap-2 border border-stitch px-4 py-2 text-sm font-bold text-stitch transition-colors hover:bg-stitch/10 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Trash2 className="h-4 w-4" />
+                画像を削除
+              </button>
             )}
-            {headerImage ? "画像を変更" : "画像をアップロード"}
-          </button>
+          </div>
         </section>
 
         {/* チーム写真 */}
@@ -268,7 +312,7 @@ export function SettingsClient({
               {photos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="flex aspect-[16/9] items-center justify-center overflow-hidden bg-muted"
+                  className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-muted"
                 >
                   {/* チームトップと同じく切り抜かずに全体を表示する */}
                   <Image
@@ -278,6 +322,15 @@ export function SettingsClient({
                     height={photo.height ?? 360}
                     className="max-h-full w-auto max-w-full object-contain"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget({ kind: "photo", id: photo.id })}
+                    disabled={isBusy}
+                    aria-label="この写真を削除"
+                    className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center bg-black/60 text-white transition-colors hover:bg-stitch disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -317,6 +370,19 @@ export function SettingsClient({
           </p>
         </section>
       </div>
+
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null)
+        }}
+        title={
+          deleteTarget?.kind === "header" ? "ヘッダー画像を削除しますか？" : "この写真を削除しますか？"
+        }
+        description="この操作は取り消せません。"
+        onConfirm={handleDeleteConfirm}
+        isPending={isDeleting}
+      />
     </main>
   )
 }

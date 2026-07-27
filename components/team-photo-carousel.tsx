@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Image from "next/image"
-import { ImageIcon, X } from "lucide-react"
+import { X } from "lucide-react"
 import {
   Carousel,
   CarouselContent,
@@ -91,13 +91,7 @@ export function TeamPhotoCarousel({ photos, teamName }: TeamPhotoCarouselProps) 
   }, [api, lightboxApi])
 
   if (photos.length === 0) {
-    return (
-      <div className="mx-auto w-full max-w-xl">
-        <div className="flex aspect-[16/9] w-full items-center justify-center bg-muted">
-          <ImageIcon className="h-10 w-10 text-muted-foreground" />
-        </div>
-      </div>
-    )
+    return null
   }
 
   return (
