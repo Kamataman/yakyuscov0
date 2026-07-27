@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, PlusCircle, Shield } from "lucide-react"
+import { Calendar, MessageCircle, PlusCircle, Shield } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { fetchTeamHeaderImage, fetchTeamImages } from "@/lib/team-images-server"
@@ -25,31 +25,38 @@ export default async function TeamDashboardPage({ params }: Props) {
   const { teamId } = await params
   const supabase = createServiceClient()
 
-  const [gamesResult, nameResult, profileResult, adminSession, headerImage, photos] = await Promise.all([
-    supabase
-      .from("games")
-      .select("id, date, opponent, inning_scores(our_score, opponent_score)")
-      .eq("team_id", teamId)
-      .order("date", { ascending: false }),
-    supabase
-      .from("teams")
-      .select("name")
-      .eq("id", teamId)
-      .single(),
-    supabase
-      .from("teams")
-      .select("description")
-      .eq("id", teamId)
-      .maybeSingle(),
-    requireTeamAdmin(teamId),
-    fetchTeamHeaderImage(teamId),
-    fetchTeamImages(teamId, "photo"),
-  ])
+  const [gamesResult, nameResult, profileResult, adminSession, headerImage, photos, ownerCountResult] =
+    await Promise.all([
+      supabase
+        .from("games")
+        .select("id, date, opponent, inning_scores(our_score, opponent_score)")
+        .eq("team_id", teamId)
+        .order("date", { ascending: false }),
+      supabase
+        .from("teams")
+        .select("name")
+        .eq("id", teamId)
+        .single(),
+      supabase
+        .from("teams")
+        .select("description")
+        .eq("id", teamId)
+        .maybeSingle(),
+      requireTeamAdmin(teamId),
+      fetchTeamHeaderImage(teamId),
+      fetchTeamImages(teamId, "photo"),
+      supabase
+        .from("team_members")
+        .select("id", { count: "exact", head: true })
+        .eq("team_id", teamId)
+        .eq("role", "owner"),
+    ])
 
   const games = (gamesResult.data ?? []) as unknown as GameSummary[]
   const teamName = nameResult.data?.name ?? teamId
   const profile = profileResult.data as TeamProfileExtra | null
   const isAdmin = !!adminSession
+  const canReceiveContact = (ownerCountResult.count ?? 0) > 0
 
   const getTotalScore = (scores: GameSummary["inning_scores"]) => ({
     our: scores?.reduce((sum, s) => sum + (s.our_score || 0), 0) || 0,
@@ -97,6 +104,19 @@ export default async function TeamDashboardPage({ params }: Props) {
               <h2 className="mb-3 text-sm font-bold text-slate-700">チーム写真</h2>
               <TeamPhotoCarousel photos={photos} teamName={teamName} />
             </div>
+
+            {/* チームへの問い合わせ */}
+            {canReceiveContact && (
+              <div className="mt-6">
+                <Link
+                  href={`/${teamId}/contact`}
+                  className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  このチームに問い合わせる
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
