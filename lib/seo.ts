@@ -11,6 +11,48 @@ export const noindexMetadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+export interface IndexableTeam {
+  id: string
+  lastModified: Date
+}
+
+/**
+ * sitemapに載せるチームを絞り込む。
+ *
+ * 試合も選手も登録されていないチームページは中身が無く、インデックスされないまま
+ * サイト全体の品質評価を下げるため除外する。
+ * lastModified には配下の試合の最終更新時刻を使う(現在時刻ではGoogleへの情報にならない)。
+ */
+export function selectIndexableTeams(
+  teams: { id: string }[],
+  games: { team_id: string | null; updated_at: string }[],
+  players: { team_id: string | null }[],
+): IndexableTeam[] {
+  // チームごとの最終試合更新時刻。キーの存在がそのまま「試合が1件以上ある」の判定になる。
+  const latestGameUpdate = new Map<string, Date>()
+  for (const game of games) {
+    if (!game.team_id) continue
+    const updatedAt = new Date(game.updated_at)
+    if (Number.isNaN(updatedAt.getTime())) continue
+    const current = latestGameUpdate.get(game.team_id)
+    if (!current || updatedAt > current) {
+      latestGameUpdate.set(game.team_id, updatedAt)
+    }
+  }
+
+  const teamsWithPlayers = new Set(
+    players
+      .map((player) => player.team_id)
+      .filter((teamId): teamId is string => Boolean(teamId)),
+  )
+
+  return teams.flatMap((team) => {
+    const lastModified = latestGameUpdate.get(team.id)
+    if (!lastModified || !teamsWithPlayers.has(team.id)) return []
+    return [{ id: team.id, lastModified }]
+  })
+}
+
 export interface TeamSeoProfile {
   name: string
   description: string | null
