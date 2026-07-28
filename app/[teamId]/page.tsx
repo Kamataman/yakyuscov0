@@ -1,6 +1,8 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import Image from "next/image"
 import { Calendar, MessageCircle, PlusCircle } from "lucide-react"
+import { buildTeamDescription, fetchTeamSeoProfile, noindexMetadata } from "@/lib/seo"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { fetchTeamHeaderImage, fetchTeamImages } from "@/lib/team-images-server"
@@ -29,6 +31,18 @@ interface TeamProfileExtra {
 
 interface Props {
   params: Promise<{ teamId: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { teamId } = await params
+  const team = await fetchTeamSeoProfile(teamId)
+  if (!team) return noindexMetadata
+
+  return {
+    title: team.name,
+    description: buildTeamDescription(team, "チームページ"),
+    alternates: { canonical: `/${teamId}` },
+  }
 }
 
 export default async function TeamDashboardPage({ params }: Props) {

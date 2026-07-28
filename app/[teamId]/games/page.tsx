@@ -1,5 +1,7 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { Calendar, MapPin, PlusCircle } from "lucide-react"
+import { buildTeamDescription, fetchTeamSeoProfile, noindexMetadata } from "@/lib/seo"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { LinkPendingIndicator } from "@/components/link-pending-indicator"
@@ -15,6 +17,18 @@ interface GameWithScores {
 
 interface Props {
   params: Promise<{ teamId: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { teamId } = await params
+  const team = await fetchTeamSeoProfile(teamId)
+  if (!team) return noindexMetadata
+
+  return {
+    title: `${team.name}の試合結果`,
+    description: buildTeamDescription(team, "試合結果一覧"),
+    alternates: { canonical: `/${teamId}/games` },
+  }
 }
 
 export default async function GamesListPage({ params }: Props) {

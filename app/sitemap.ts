@@ -9,12 +9,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 1,
     },
-    {
-      url: `${SITE_URL}/register`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
+    // /register は登録フォームのみで検索意図に応える内容が無く、Googleに
+    // 「クロール済み - インデックス未登録」として扱われるためsitemapから除外している。
     {
       url: `${SITE_URL}/demo`,
       lastModified: new Date(),

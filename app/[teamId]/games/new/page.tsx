@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
+import { noindexMetadata } from "@/lib/seo"
+
+// 管理者専用の入力画面。検索結果に出す意味が無いためインデックスさせない。
+export const metadata = noindexMetadata
 
 interface Props {
   params: Promise<{ teamId: string }>

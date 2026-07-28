@@ -1,9 +1,13 @@
 import { notFound } from "next/navigation"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
+import { noindexMetadata } from "@/lib/seo"
 import { fetchTeamHeaderImage, fetchTeamImages } from "@/lib/team-images-server"
 import { SettingsClient } from "./settings-client"
 import type { TeamMember, PendingInvite } from "./admins-section"
+
+// 管理者専用画面。検索結果に出す意味が無いためインデックスさせない。
+export const metadata = noindexMetadata
 
 interface Props {
   params: Promise<{ teamId: string }>

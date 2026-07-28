@@ -27,7 +27,13 @@ export async function updateSession(request: NextRequest) {
 
   // セッショントークンを自動リフレッシュ
   // createServerClient と getUser の間にロジックを挟まないこと
-  await supabase.auth.getUser();
+  try {
+    await supabase.auth.getUser();
+  } catch (error) {
+    // Supabaseの一時的な障害でサイト全体が500になるのを防ぐ。
+    // リフレッシュに失敗しても未ログイン扱いで描画を継続させる。
+    console.error("セッションのリフレッシュに失敗しました:", error);
+  }
 
   return supabaseResponse;
 }

@@ -4,7 +4,11 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
+import { noindexMetadata } from "@/lib/seo"
 import ContactForm from "./contact-form"
+
+// 問い合わせフォームのみのページ。検索意図に応える内容が無いためインデックスさせない。
+export const metadata = noindexMetadata
 
 interface Props {
   params: Promise<{ teamId: string }>

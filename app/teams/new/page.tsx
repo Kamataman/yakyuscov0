@@ -1,6 +1,10 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import { noindexMetadata } from "@/lib/seo"
 import { NewTeamForm } from "./new-team-form"
+
+// ログイン必須のチーム作成画面。検索結果に出す意味が無いためインデックスさせない。
+export const metadata = noindexMetadata
 
 export default async function NewTeamPage() {
   const supabase = await createClient()

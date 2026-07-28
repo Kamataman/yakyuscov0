@@ -1,8 +1,10 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Edit } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
+import { fetchTeamSeoProfile, noindexMetadata } from "@/lib/seo"
 import { cn } from "@/lib/utils"
 import type { BattingResult, PitcherInningStats } from "@/lib/batting-types"
 import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
@@ -13,6 +15,27 @@ export const dynamic = "force-dynamic"
 
 interface Props {
   params: Promise<{ teamId: string; id: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { teamId, id: gameId } = await params
+  const supabase = createServiceClient()
+
+  const [team, gameResult] = await Promise.all([
+    fetchTeamSeoProfile(teamId),
+    supabase.from("games").select("date, opponent, location").eq("id", gameId).maybeSingle(),
+  ])
+
+  const game = gameResult.data
+  if (!team || !game) return noindexMetadata
+
+  const locationText = game.location ? `${game.location}で開催。` : ""
+
+  return {
+    title: `${team.name} vs ${game.opponent}(${game.date})の試合結果`,
+    description: `${game.date}に行われた${team.name}対${game.opponent}の試合結果。${locationText}イニング別スコア・打撃成績・投手成績を掲載しています。`,
+    alternates: { canonical: `/${teamId}/games/${gameId}` },
+  }
 }
 
 export default async function GameDetailPage({ params }: Props) {
