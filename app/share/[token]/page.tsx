@@ -1,8 +1,12 @@
 import { createServiceClient } from "@/lib/supabase/service"
 import { notFound } from "next/navigation"
+import { noindexMetadata } from "@/lib/seo"
 import { ShareGameEditor } from "./share-game-editor"
 
 export const dynamic = "force-dynamic"
+
+// 共有トークンは期限切れで404になるため、インデックスさせない。
+export const metadata = noindexMetadata
 
 interface PageProps {
   params: Promise<{ token: string }>

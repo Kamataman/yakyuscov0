@@ -1,5 +1,7 @@
+import type { Metadata } from "next"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
+import { buildTeamDescription, fetchTeamSeoProfile, noindexMetadata } from "@/lib/seo"
 import { calculateBattingStats, calculatePitchingStats, type BattingStats, type PitchingStats } from "@/lib/stats"
 import type { HitResult } from "@/lib/batting-types"
 import { StatsClient } from "./stats-client"
@@ -20,6 +22,18 @@ interface PlayerPitchingStats {
 
 interface Props {
   params: Promise<{ teamId: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { teamId } = await params
+  const team = await fetchTeamSeoProfile(teamId)
+  if (!team) return noindexMetadata
+
+  return {
+    title: `${team.name}の個人成績`,
+    description: buildTeamDescription(team, "個人成績(打率・出塁率・OPS・防御率)"),
+    alternates: { canonical: `/${teamId}/stats` },
+  }
 }
 
 export default async function StatsPage({ params }: Props) {

@@ -1,5 +1,9 @@
 import { createServiceClient } from "@/lib/supabase/service"
+import { noindexMetadata } from "@/lib/seo"
 import { InviteAcceptForm } from "./invite-accept-form"
+
+// 招待トークンは期限切れ・承諾済みで無効表示に変わるため、インデックスさせない。
+export const metadata = noindexMetadata
 
 interface Props {
   params: Promise<{ token: string }>

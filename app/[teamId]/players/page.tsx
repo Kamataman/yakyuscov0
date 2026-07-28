@@ -1,10 +1,24 @@
+import type { Metadata } from "next"
 import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
+import { buildTeamDescription, fetchTeamSeoProfile, noindexMetadata } from "@/lib/seo"
 import { sortPlayersByNumber } from "@/lib/sort-utils"
 import { PlayersClient } from "./players-client"
 
 interface Props {
   params: Promise<{ teamId: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { teamId } = await params
+  const team = await fetchTeamSeoProfile(teamId)
+  if (!team) return noindexMetadata
+
+  return {
+    title: `${team.name}の選手一覧`,
+    description: buildTeamDescription(team, "選手一覧(背番号・ポジション・投打)"),
+    alternates: { canonical: `/${teamId}/players` },
+  }
 }
 
 export default async function PlayersPage({ params }: Props) {

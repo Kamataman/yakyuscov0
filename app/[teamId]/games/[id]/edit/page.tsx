@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation"
 import { requireTeamAdmin } from "@/lib/auth"
 import { createServiceClient } from "@/lib/supabase/service"
+import { noindexMetadata } from "@/lib/seo"
 import { GameEditor } from "@/components/game-editor"
+
+// 管理者専用の編集画面。検索結果に出す意味が無いためインデックスさせない。
+export const metadata = noindexMetadata
 
 interface Props {
   params: Promise<{ teamId: string; id: string }>
