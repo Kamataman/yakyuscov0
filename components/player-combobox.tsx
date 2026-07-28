@@ -66,7 +66,7 @@ export function PlayerCombobox({
     setIsSubmitting(true)
     setError(null)
     try {
-      const data = await addPlayer(teamId, newName.trim(), newNumber.trim() || null, shareToken)
+      const data = await addPlayer(teamId, newName.trim(), newNumber.trim() || null, { shareToken })
       const player: Player = { id: data.id, name: data.name, number: data.number }
       onPlayerAdded?.(player)
       onChange(player)
