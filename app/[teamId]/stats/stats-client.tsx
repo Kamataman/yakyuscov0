@@ -29,6 +29,12 @@ type StatsTab = "batting" | "pitching"
 const QUALIFICATION_DEPENDENT_BATTING_KEYS: BattingSortKey[] = ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops"]
 const QUALIFICATION_DEPENDENT_PITCHING_KEYS: PitchingSortKey[] = ["era", "whip", "strikeoutRate", "walkRate"]
 
+// 防御率・WHIP・BB/9 は値が小さいほど好成績なので、既定のソート方向を昇順にする
+const LOWER_IS_BETTER_PITCHING_KEYS: PitchingSortKey[] = ["era", "whip", "walkRate"]
+
+const defaultPitchingSortDirection = (key: PitchingSortKey): SortDirection =>
+  key === "playerName" || LOWER_IS_BETTER_PITCHING_KEYS.includes(key) ? "asc" : "desc"
+
 const BATTING_COLUMNS: Array<{
   key: keyof BattingStats
   label: string
@@ -97,24 +103,25 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
   const [activeTab, setActiveTab] = useState<StatsTab>("batting")
   const [battingSortKey, setBattingSortKey] = useState<BattingSortKey>("battingAverage")
   const [pitchingSortKey, setPitchingSortKey] = useState<PitchingSortKey>("era")
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+  const [battingSortDirection, setBattingSortDirection] = useState<SortDirection>("desc")
+  const [pitchingSortDirection, setPitchingSortDirection] = useState<SortDirection>(defaultPitchingSortDirection("era"))
   const [showAllColumns, setShowAllColumns] = useState(false)
 
   const handleBattingSort = (key: BattingSortKey) => {
     if (battingSortKey === key) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))
+      setBattingSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))
     } else {
       setBattingSortKey(key)
-      setSortDirection(key === "playerName" ? "asc" : "desc")
+      setBattingSortDirection(key === "playerName" ? "asc" : "desc")
     }
   }
 
   const handlePitchingSort = (key: PitchingSortKey) => {
     if (pitchingSortKey === key) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))
+      setPitchingSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))
     } else {
       setPitchingSortKey(key)
-      setSortDirection(key === "era" || key === "whip" || key === "walkRate" ? "asc" : "desc")
+      setPitchingSortDirection(defaultPitchingSortDirection(key))
     }
   }
 
@@ -125,21 +132,29 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
     const aValue: number | string = battingSortKey === "playerName" ? a.playerName : (a.stats[battingSortKey] || 0)
     const bValue: number | string = battingSortKey === "playerName" ? b.playerName : (b.stats[battingSortKey] || 0)
     if (typeof aValue === "string" && typeof bValue === "string") {
-      return sortDirection === "asc" ? aValue.localeCompare(bValue, "ja") : bValue.localeCompare(aValue, "ja")
+      return battingSortDirection === "asc" ? aValue.localeCompare(bValue, "ja") : bValue.localeCompare(aValue, "ja")
     }
-    return sortDirection === "asc" ? (aValue as number) - (bValue as number) : (bValue as number) - (aValue as number)
+    return battingSortDirection === "asc" ? (aValue as number) - (bValue as number) : (bValue as number) - (aValue as number)
   })
 
   const sortedPitchingStats = [...pitchingStats].sort((a, b) => {
-    if (QUALIFICATION_DEPENDENT_PITCHING_KEYS.includes(pitchingSortKey) && a.isQualified !== b.isQualified) {
-      return a.isQualified ? -1 : 1
+    if (QUALIFICATION_DEPENDENT_PITCHING_KEYS.includes(pitchingSortKey)) {
+      // 投球回0の投手は率指標が0のままなので、昇順ソートで先頭に来ないよう常に最後尾へ送る
+      const aHasInnings = a.stats.totalOuts > 0
+      const bHasInnings = b.stats.totalOuts > 0
+      if (aHasInnings !== bHasInnings) {
+        return aHasInnings ? -1 : 1
+      }
+      if (a.isQualified !== b.isQualified) {
+        return a.isQualified ? -1 : 1
+      }
     }
     const aValue: number | string = pitchingSortKey === "playerName" ? a.playerName : (a.stats[pitchingSortKey] || 0)
     const bValue: number | string = pitchingSortKey === "playerName" ? b.playerName : (b.stats[pitchingSortKey] || 0)
     if (typeof aValue === "string" && typeof bValue === "string") {
-      return sortDirection === "asc" ? aValue.localeCompare(bValue, "ja") : bValue.localeCompare(aValue, "ja")
+      return pitchingSortDirection === "asc" ? aValue.localeCompare(bValue, "ja") : bValue.localeCompare(aValue, "ja")
     }
-    return sortDirection === "asc" ? (aValue as number) - (bValue as number) : (bValue as number) - (aValue as number)
+    return pitchingSortDirection === "asc" ? (aValue as number) - (bValue as number) : (bValue as number) - (aValue as number)
   })
 
   const visibleBattingColumns = showAllColumns ? BATTING_COLUMNS : BATTING_COLUMNS.filter((col) => col.primary)
@@ -151,9 +166,9 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
   const qualifiedInningsRem = qualifiedInningsOuts % 3
   const qualifiedInningsPitchedLabel = qualifiedInningsRem === 0 ? `${qualifiedInningsWhole}回` : `${qualifiedInningsWhole} ${qualifiedInningsRem}/3回`
 
-  const SortIcon = ({ active }: { active: boolean }) => {
+  const SortIcon = ({ active, direction }: { active: boolean; direction: SortDirection }) => {
     if (!active) return null
-    return sortDirection === "asc" ? <ChevronUp className="inline h-3 w-3" /> : <ChevronDown className="inline h-3 w-3" />
+    return direction === "asc" ? <ChevronUp className="inline h-3 w-3" /> : <ChevronDown className="inline h-3 w-3" />
   }
 
   return (
@@ -205,11 +220,11 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
                   <thead>
                     <tr className="border-b border-border bg-muted">
                       <th className="sticky left-0 z-10 bg-muted px-3 py-3 text-left cursor-pointer hover:bg-muted-foreground/10 whitespace-nowrap" onClick={() => handleBattingSort("playerName")}>
-                        <span className="flex items-center gap-1">選手名<SortIcon active={battingSortKey === "playerName"} /></span>
+                        <span className="flex items-center gap-1">選手名<SortIcon active={battingSortKey === "playerName"} direction={battingSortDirection} /></span>
                       </th>
                       {visibleBattingColumns.map((col) => (
                         <th key={col.key} className="px-2 py-3 text-center cursor-pointer hover:bg-muted-foreground/10 vertical-text" onClick={() => handleBattingSort(col.key)} title={col.label}>
-                          {col.label}<SortIcon active={battingSortKey === col.key} />
+                          {col.label}<SortIcon active={battingSortKey === col.key} direction={battingSortDirection} />
                         </th>
                       ))}
                     </tr>
@@ -257,11 +272,11 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
                   <thead>
                     <tr className="border-b border-border bg-muted">
                       <th className="sticky left-0 z-10 bg-muted px-3 py-3 text-left cursor-pointer hover:bg-muted-foreground/10 whitespace-nowrap" onClick={() => handlePitchingSort("playerName")}>
-                        <span className="flex items-center gap-1">投手名<SortIcon active={pitchingSortKey === "playerName"} /></span>
+                        <span className="flex items-center gap-1">投手名<SortIcon active={pitchingSortKey === "playerName"} direction={pitchingSortDirection} /></span>
                       </th>
                       {visiblePitchingColumns.map((col) => (
                         <th key={col.key} className="px-2 py-3 text-center cursor-pointer hover:bg-muted-foreground/10 vertical-text" onClick={() => handlePitchingSort(col.key)} title={col.label}>
-                          {col.label}<SortIcon active={pitchingSortKey === col.key} />
+                          {col.label}<SortIcon active={pitchingSortKey === col.key} direction={pitchingSortDirection} />
                         </th>
                       ))}
                     </tr>
@@ -273,7 +288,7 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
                         className={cn(
                           "border-b border-border",
                           player.isQualified ? "hover:bg-muted/50" : "bg-muted hover:bg-muted-foreground/10",
-                          index === 0 && pitchingSortKey === "era" && sortDirection === "asc" && "bg-turf/10"
+                          index === 0 && pitchingSortKey === "era" && pitchingSortDirection === "asc" && "bg-turf/10"
                         )}
                       >
                         <td className={cn("sticky left-0 z-10 px-3 py-3 font-medium whitespace-nowrap", player.isQualified ? "bg-background" : "bg-muted")}>{player.playerName}</td>
