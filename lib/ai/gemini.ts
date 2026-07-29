@@ -14,7 +14,9 @@ export class GeminiReviewGenerator implements ReviewGenerator {
     const response = await this.client.models.generateContent({
       model: this.modelId,
       contents: user,
-      config: { systemInstruction: system },
+      // temperatureを下げ、データにない誇張・矛盾した記述（例: 失点があるのに無失点と書く）が
+      // 生成される頻度を抑える。完全には防げないためroute側でも矛盾チェックを行う
+      config: { systemInstruction: system, temperature: 0.3 },
     })
 
     const text = response.text
