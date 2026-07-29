@@ -77,7 +77,7 @@ export function AiReviewSection({
         {aiReview ? (
           <>
             <p className="whitespace-pre-wrap text-sm text-foreground">{aiReview}</p>
-            <p className="mt-3 text-xs text-muted-foreground">この文章はAIが自動生成したものです。</p>
+            <p className="mt-3 text-right text-xs text-muted-foreground">この文章はAIが自動生成したものです。</p>
             {displayError && (
               <p className="mt-3 flex items-start gap-1.5 text-xs text-stitch">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0 translate-y-0.5" />
@@ -86,14 +86,14 @@ export function AiReviewSection({
             )}
             {isAdmin && (
               <div className="mt-4 flex flex-wrap gap-2">
-                {aiFeatureEnabled && remainingCount > 0 && (
+                {aiFeatureEnabled && (
                   <button
                     onClick={handleGenerate}
-                    disabled={isPending}
+                    disabled={isPending || remainingCount <= 0}
                     className="flex items-center gap-2 border border-turf px-4 py-2 text-sm font-bold text-turf transition-colors hover:bg-turf hover:text-turf-foreground disabled:opacity-50"
                   >
                     {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                    再生成（残り{remainingCount}回）
+                    再生成（残り{Math.max(0, remainingCount)}回）
                   </button>
                 )}
                 <button
