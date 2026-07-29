@@ -6,6 +6,7 @@ import { requireTeamAdmin } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 import type { BattingResult, PitcherInningStats } from "@/lib/batting-types"
 import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
+import { calculateGameTotals } from "@/lib/game-score"
 import { DeleteButton } from "./delete-button"
 import { PitcherResultsSection } from "./pitcher-results-section"
 
@@ -89,16 +90,8 @@ export default async function GameDetailPage({ params }: Props) {
   const maxInning = totalInnings
   const hasX = game.last_inning_x ?? false
   const xScore = game.last_inning_x_score ?? null
-  const xAdd = hasX ? (xScore ?? 0) : 0
 
-  const ourTotal =
-    inningScores.filter((s: { inning: number; our_score: number }) => s.inning <= maxInning && !(hasX && !isFirstBatting && s.inning === maxInning))
-      .reduce((sum: number, s: { our_score: number }) => sum + s.our_score, 0)
-    + (!isFirstBatting ? xAdd : 0)
-  const opponentTotal =
-    inningScores.filter((s: { inning: number; opponent_score: number }) => s.inning <= maxInning && !(hasX && isFirstBatting && s.inning === maxInning))
-      .reduce((sum: number, s: { opponent_score: number }) => sum + s.opponent_score, 0)
-    + (isFirstBatting ? xAdd : 0)
+  const { our: ourTotal, opponent: opponentTotal } = calculateGameTotals(game, inningScores)
   const isWin = ourTotal > opponentTotal
   const isLose = ourTotal < opponentTotal
 

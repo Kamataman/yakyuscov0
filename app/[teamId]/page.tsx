@@ -8,12 +8,17 @@ import { TeamPhotoCarousel } from "@/components/team-photo-carousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { LinkPendingIndicator } from "@/components/link-pending-indicator"
 import { cn } from "@/lib/utils"
+import { calculateGameTotals, getGameResult, type InningScoreLike } from "@/lib/game-score"
 
 interface GameSummary {
   id: string
   date: string
   opponent: string
-  inning_scores: { our_score: number; opponent_score: number }[]
+  total_innings: number | null
+  is_first_batting: boolean | null
+  last_inning_x: boolean | null
+  last_inning_x_score: number | null
+  inning_scores: InningScoreLike[]
 }
 
 interface TeamProfileExtra {
@@ -39,7 +44,9 @@ export default async function TeamDashboardPage({ params }: Props) {
     await Promise.all([
       supabase
         .from("games")
-        .select("id, date, opponent, inning_scores(our_score, opponent_score)")
+        .select(
+          "id, date, opponent, total_innings, is_first_batting, last_inning_x, last_inning_x_score, inning_scores(inning, our_score, opponent_score)"
+        )
         .eq("team_id", teamId)
         .order("date", { ascending: false }),
       supabase
@@ -81,18 +88,6 @@ export default async function TeamDashboardPage({ params }: Props) {
       { label: "その他", value: profile?.notes },
     ] as { label: string; value: string | null | undefined }[]
   ).filter((row): row is { label: string; value: string } => !!row.value)
-
-  const getTotalScore = (scores: GameSummary["inning_scores"]) => ({
-    our: scores?.reduce((sum, s) => sum + (s.our_score || 0), 0) || 0,
-    opponent: scores?.reduce((sum, s) => sum + (s.opponent_score || 0), 0) || 0,
-  })
-
-  const getResult = (scores: GameSummary["inning_scores"]) => {
-    const total = getTotalScore(scores)
-    if (total.our > total.opponent) return "win"
-    if (total.our < total.opponent) return "lose"
-    return "draw"
-  }
 
   const recentGames = games.slice(0, 3)
 
@@ -208,8 +203,8 @@ export default async function TeamDashboardPage({ params }: Props) {
             ) : (
               <div className="divide-y divide-border">
                 {recentGames.map((game) => {
-                  const total = getTotalScore(game.inning_scores || [])
-                  const result = getResult(game.inning_scores || [])
+                  const total = calculateGameTotals(game, game.inning_scores || [])
+                  const result = getGameResult(total)
                   return (
                     <Link
                       key={game.id}

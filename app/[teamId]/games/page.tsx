@@ -4,13 +4,18 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { requireTeamAdmin } from "@/lib/auth"
 import { LinkPendingIndicator } from "@/components/link-pending-indicator"
 import { cn } from "@/lib/utils"
+import { calculateGameTotals, getGameResult, type InningScoreLike } from "@/lib/game-score"
 
 interface GameWithScores {
   id: string
   date: string
   opponent: string
   location?: string
-  inning_scores: { inning: number; our_score: number; opponent_score: number }[]
+  total_innings: number | null
+  is_first_batting: boolean | null
+  last_inning_x: boolean | null
+  last_inning_x_score: number | null
+  inning_scores: InningScoreLike[]
 }
 
 interface Props {
@@ -24,7 +29,9 @@ export default async function GamesListPage({ params }: Props) {
   const [gamesResult, adminSession] = await Promise.all([
     supabase
       .from("games")
-      .select("id, date, opponent, location, inning_scores(inning, our_score, opponent_score)")
+      .select(
+        "id, date, opponent, location, total_innings, is_first_batting, last_inning_x, last_inning_x_score, inning_scores(inning, our_score, opponent_score)"
+      )
       .eq("team_id", teamId)
       .order("date", { ascending: false }),
     requireTeamAdmin(teamId),
@@ -32,18 +39,6 @@ export default async function GamesListPage({ params }: Props) {
 
   const games = (gamesResult.data ?? []) as unknown as GameWithScores[]
   const isAdmin = !!adminSession
-
-  const getTotalScore = (scores: GameWithScores["inning_scores"]) => ({
-    our: scores.reduce((sum, s) => sum + (s.our_score || 0), 0),
-    opponent: scores.reduce((sum, s) => sum + (s.opponent_score || 0), 0),
-  })
-
-  const getResult = (scores: GameWithScores["inning_scores"]) => {
-    const total = getTotalScore(scores)
-    if (total.our > total.opponent) return "win"
-    if (total.our < total.opponent) return "lose"
-    return "draw"
-  }
 
   return (
     <main className="min-h-screen bg-background">
@@ -67,8 +62,8 @@ export default async function GamesListPage({ params }: Props) {
         ) : (
           <div className="divide-y divide-border border-y border-border">
             {games.map((game) => {
-              const total = getTotalScore(game.inning_scores || [])
-              const result = getResult(game.inning_scores || [])
+              const total = calculateGameTotals(game, game.inning_scores || [])
+              const result = getGameResult(total)
               return (
                 <Link
                   key={game.id}
