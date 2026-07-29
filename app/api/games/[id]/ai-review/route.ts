@@ -4,6 +4,7 @@ import { requireTeamAdmin } from "@/lib/auth"
 import { getReviewGenerator } from "@/lib/ai/provider"
 import { isGameContentThin } from "@/lib/ai/thin-check"
 import { buildReviewPrompt } from "@/lib/ai/prompt"
+import { hasContradictoryClaim, stripLengthAnnotation } from "@/lib/ai/validate-review"
 import { calculateGameTotals } from "@/lib/game-score"
 import { AI_REVIEW_MAX_REGENERATE_COUNT } from "@/lib/constants"
 
@@ -102,7 +103,7 @@ export async function POST(
   let resolvedModelId: string
   try {
     const result = await generator.generate(system, user)
-    reviewText = result.text
+    reviewText = stripLengthAnnotation(result.text)
     resolvedModelId = result.resolvedModelId
   } catch (err) {
     console.error("AI戦評の生成に失敗しました:", err)
@@ -113,6 +114,13 @@ export async function POST(
 
   if (reviewText.length < 60 || reviewText.length > 220) {
     console.error(`AI戦評の文字数が想定外です(${reviewText.length}字): ${reviewText}`)
+    await supabase.from("games").update({ ai_review_error: GENERATION_FAILED_MESSAGE }).eq("id", gameId)
+    return NextResponse.json({ error: GENERATION_FAILED_MESSAGE }, { status: 500 })
+  }
+
+  const hitsAllowed = pitcherResults.reduce((sum, p) => sum + p.hits, 0)
+  if (hasContradictoryClaim(reviewText, opponentTotal, hitsAllowed)) {
+    console.error(`AI戦評がデータと矛盾しています(相手得点${opponentTotal}, 被安打${hitsAllowed}): ${reviewText}`)
     await supabase.from("games").update({ ai_review_error: GENERATION_FAILED_MESSAGE }).eq("id", gameId)
     return NextResponse.json({ error: GENERATION_FAILED_MESSAGE }, { status: 500 })
   }
