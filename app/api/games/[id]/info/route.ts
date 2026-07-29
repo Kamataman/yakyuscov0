@@ -41,5 +41,18 @@ export async function POST(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // イニング数を減らした場合、超過分のイニングスコアが残らないよう削除する
+  if (totalInnings !== undefined) {
+    const { error: deleteError } = await supabase
+      .from("inning_scores")
+      .delete()
+      .eq("game_id", gameId)
+      .gt("inning", totalInnings)
+
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    }
+  }
+
   return NextResponse.json({ success: true })
 }
