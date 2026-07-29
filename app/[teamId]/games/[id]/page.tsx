@@ -9,8 +9,10 @@ import { cn } from "@/lib/utils"
 import type { BattingResult, PitcherInningStats } from "@/lib/batting-types"
 import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
 import { calculateGameTotals } from "@/lib/game-score"
+import { isGameContentThin } from "@/lib/ai/thin-check"
 import { DeleteButton } from "./delete-button"
 import { PitcherResultsSection } from "./pitcher-results-section"
+import { AiReviewSection } from "./ai-review-section"
 
 export const dynamic = "force-dynamic"
 
@@ -107,6 +109,12 @@ export default async function GameDetailPage({ params }: Props) {
     inningStats: pitcherInningStatsMap[p.id] ?? [],
   }))
   const isAdmin = !!adminSession
+  const canGenerateAiReview = !isGameContentThin({
+    battingResults: battingResults.length,
+    pitcherResults: pitcherResults.length,
+    inningsPlayed: inningScores.length,
+    lineupEntries: lineupEntries.length,
+  })
 
   const isFirstBatting = game.is_first_batting ?? true
   const totalInnings = game.total_innings || 9
@@ -224,6 +232,16 @@ export default async function GameDetailPage({ params }: Props) {
             <p className="whitespace-pre-wrap text-sm text-muted-foreground border-t border-border pt-3">{game.memo}</p>
           )}
         </div>
+
+        <AiReviewSection
+          gameId={gameId}
+          isAdmin={isAdmin}
+          aiReview={game.ai_review}
+          aiReviewError={game.ai_review_error}
+          regenerateCount={game.ai_review_count ?? 0}
+          canGenerate={canGenerateAiReview}
+          aiFeatureEnabled={!!process.env.AI_API_KEY}
+        />
 
         <div>
           <h2 className="mb-3 text-sm font-bold text-foreground border-b-2 border-foreground pb-1">スコアボード</h2>
