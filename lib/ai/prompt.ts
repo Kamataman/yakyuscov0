@@ -4,6 +4,7 @@ interface GameInfo {
   date: string
   opponent: string
   location: string | null
+  teamName: string
 }
 
 interface InningScoreRow {
@@ -75,10 +76,11 @@ function formatInningsPitched(outs: number, isMidInningExit: boolean): string {
 }
 
 function buildScoreboardText(input: ReviewPromptInput): string {
+  const teamName = input.game.teamName
   const lines = input.inningScores
     .sort((a, b) => a.inning - b.inning)
-    .map((s) => `${s.inning}回 自チーム${s.our_score}-${s.opponent_score}${input.game.opponent}`)
-  return [`最終スコア: 自チーム${input.ourTotal} - ${input.opponentTotal}${input.game.opponent}`, ...lines].join("\n")
+    .map((s) => `${s.inning}回 ${teamName}${s.our_score}-${s.opponent_score}${input.game.opponent}`)
+  return [`最終スコア: ${teamName}${input.ourTotal} - ${input.opponentTotal}${input.game.opponent}`, ...lines].join("\n")
 }
 
 function buildBattingText(input: ReviewPromptInput): string {

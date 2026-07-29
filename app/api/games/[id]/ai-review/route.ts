@@ -58,7 +58,8 @@ export async function POST(
     return NextResponse.json({ error: "再生成の上限（3回）に達しています" }, { status: 429 })
   }
 
-  const [inningScoresResult, lineupResult, battingResult, pitcherResult] = await Promise.all([
+  const [teamResult, inningScoresResult, lineupResult, battingResult, pitcherResult] = await Promise.all([
+    supabase.from("teams").select("name").eq("id", game.team_id).single(),
     supabase.from("inning_scores").select("inning, our_score, opponent_score").eq("game_id", gameId),
     supabase.from("lineup_entries").select("batting_order, player_name, is_substitute, entered_inning").eq("game_id", gameId),
     supabase
@@ -71,6 +72,7 @@ export async function POST(
       .eq("game_id", gameId),
   ])
 
+  const teamName = teamResult.data?.name ?? "自チーム"
   const inningScores = inningScoresResult.data ?? []
   const lineupEntries = lineupResult.data ?? []
   const battingResults = battingResult.data ?? []
@@ -111,7 +113,7 @@ export async function POST(
   const { our: ourTotal, opponent: opponentTotal } = calculateGameTotals(game, inningScores)
 
   const { system, user } = buildReviewPrompt({
-    game: { date: game.date, opponent: game.opponent, location: game.location },
+    game: { date: game.date, opponent: game.opponent, location: game.location, teamName },
     ourTotal,
     opponentTotal,
     inningScores,
