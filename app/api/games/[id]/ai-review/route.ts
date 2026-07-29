@@ -4,6 +4,7 @@ import { requireTeamAdmin } from "@/lib/auth"
 import { getReviewGenerator } from "@/lib/ai/provider"
 import { isGameContentThin } from "@/lib/ai/thin-check"
 import { buildReviewPrompt } from "@/lib/ai/prompt"
+import { resolveEffectivePitcherStats } from "@/lib/ai/pitcher-stats"
 import { calculateGameTotals } from "@/lib/game-score"
 import { AI_REVIEW_MAX_REGENERATE_COUNT } from "@/lib/constants"
 
@@ -66,14 +67,35 @@ export async function POST(
       .eq("game_id", gameId),
     supabase
       .from("pitcher_results")
-      .select("player_name, innings_outs, is_mid_inning_exit, hits, runs, earned_runs, strikeouts, walks, hit_by_pitch, home_runs, pitcher_award")
+      .select("id, player_name, innings_outs, is_mid_inning_exit, hits, runs, earned_runs, strikeouts, walks, hit_by_pitch, home_runs, pitcher_award")
       .eq("game_id", gameId),
   ])
 
   const inningScores = inningScoresResult.data ?? []
   const lineupEntries = lineupResult.data ?? []
   const battingResults = battingResult.data ?? []
-  const pitcherResults = pitcherResult.data ?? []
+  const rawPitcherResults = pitcherResult.data ?? []
+
+  // 投手成績は「イニングごと」入力の場合、pitcher_resultsの集計カラムが未入力(0)のままになりうるため、
+  // pitcher_inning_statsの合計で実効値に補正する（表示側と同じロジック）
+  const pitcherIds = rawPitcherResults.map((p) => p.id)
+  const inningStatsResult =
+    pitcherIds.length > 0
+      ? await supabase
+          .from("pitcher_inning_stats")
+          .select("pitcher_result_id, inning, outs, runs, hits, strikeouts, earned_runs, walks, hit_by_pitch, home_runs")
+          .in("pitcher_result_id", pitcherIds)
+          .order("inning")
+      : { data: [] }
+  const inningStatsByPitcherId = new Map<string, typeof inningStatsResult.data>()
+  for (const stat of inningStatsResult.data ?? []) {
+    const list = inningStatsByPitcherId.get(stat.pitcher_result_id) ?? []
+    list.push(stat)
+    inningStatsByPitcherId.set(stat.pitcher_result_id, list)
+  }
+  const pitcherResults = rawPitcherResults.map((p) =>
+    resolveEffectivePitcherStats(p, inningStatsByPitcherId.get(p.id) ?? [])
+  )
 
   if (
     isGameContentThin({
