@@ -28,11 +28,12 @@ export interface BattingStats {
   rispHits: number             // 得点圏安打
 
   // 計算指標
-  battingAverage: number      // 打率
-  onBasePercentage: number    // 出塁率
-  sluggingPercentage: number  // 長打率
-  ops: number                 // OPS
-  rispAverage: number         // 得点圏打率
+  // 分母が0で算出できない場合は null（画面では "-" 表示）
+  battingAverage: number | null      // 打率
+  onBasePercentage: number | null    // 出塁率
+  sluggingPercentage: number | null  // 長打率
+  ops: number | null                 // OPS
+  rispAverage: number | null         // 得点圏打率
   
   // 今後追加予定の指標例:
   // isolatedPower: number     // ISO（純粋長打率）
@@ -76,11 +77,11 @@ export function calculateBattingStats(
     rispPlateAppearances: 0,
     rispAtBats: 0,
     rispHits: 0,
-    battingAverage: 0,
-    onBasePercentage: 0,
-    sluggingPercentage: 0,
-    ops: 0,
-    rispAverage: 0,
+    battingAverage: null,
+    onBasePercentage: null,
+    sluggingPercentage: null,
+    ops: null,
+    rispAverage: null,
   }
 
   for (const result of battingResults) {
@@ -154,12 +155,12 @@ export function calculateBattingStats(
     }
   }
 
-  // 率の計算
+  // 率の計算（分母が0のものは null のまま残し、「算出不能」と「0割」を区別する）
   if (stats.atBats > 0) {
     stats.battingAverage = stats.hits / stats.atBats
-    
+
     // 長打率 = 塁打 / 打数
-    const totalBases = 
+    const totalBases =
       (stats.hits - stats.doubles - stats.triples - stats.homeRuns) + // 単打
       stats.doubles * 2 +
       stats.triples * 3 +
@@ -174,8 +175,10 @@ export function calculateBattingStats(
     stats.onBasePercentage = onBaseNumerator / onBaseDenominator
   }
 
-  // OPS = 出塁率 + 長打率
-  stats.ops = stats.onBasePercentage + stats.sluggingPercentage
+  // OPS = 出塁率 + 長打率。どちらかが算出不能なら OPS も算出不能とする
+  if (stats.onBasePercentage !== null && stats.sluggingPercentage !== null) {
+    stats.ops = stats.onBasePercentage + stats.sluggingPercentage
+  }
 
   // 得点圏打率 = 得点圏安打 / 得点圏打数
   if (stats.rispAtBats > 0) {
@@ -206,10 +209,11 @@ export interface PitchingStats {
   battersFaced: number       // 対戦打者数
 
   // 計算指標
-  era: number                // 防御率
-  whip: number               // WHIP
-  strikeoutRate: number      // 奪三振率 (K/9)
-  walkRate: number           // 与四球率 (BB/9)
+  // 投球回0で算出できない場合は null（画面では "-" 表示）
+  era: number | null                // 防御率
+  whip: number | null               // WHIP
+  strikeoutRate: number | null      // 奪三振率 (K/9)
+  walkRate: number | null           // 与四球率 (BB/9)
 }
 
 /**
@@ -245,10 +249,10 @@ export function calculatePitchingStats(
     hitByPitch: 0,
     homeRuns: 0,
     battersFaced: 0,
-    era: 0,
-    whip: 0,
-    strikeoutRate: 0,
-    walkRate: 0,
+    era: null,
+    whip: null,
+    strikeoutRate: null,
+    walkRate: null,
   }
 
   for (const result of pitcherResults) {
@@ -283,10 +287,25 @@ export function calculatePitchingStats(
 /**
  * 統計値のフォーマット
  */
-export function formatRate(value: number, digits: number = 3): string {
-  if (value === 0) return ".000"
-  if (value >= 1) return value.toFixed(digits).replace(/^0/, "")
+export function formatRate(value: number | null, digits: number = 3): string {
+  if (value === null) return "-"
   return value.toFixed(digits).replace(/^0/, "")
+}
+
+/**
+ * 防御率・WHIP など小数表記の統計値のフォーマット
+ */
+export function formatDecimal(value: number | null, digits: number = 2): string {
+  if (value === null) return "-"
+  return value.toFixed(digits)
+}
+
+/**
+ * 整数の統計値のフォーマット
+ */
+export function formatCount(value: number | null): string {
+  if (value === null) return "-"
+  return value.toString()
 }
 
 /**

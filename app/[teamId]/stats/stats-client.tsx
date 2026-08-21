@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { formatRate, type BattingStats, type PitchingStats } from "@/lib/stats"
+import { formatCount, formatDecimal, formatRate, type BattingStats, type PitchingStats } from "@/lib/stats"
 import { cn } from "@/lib/utils"
 
 interface PlayerBattingStats {
@@ -26,8 +26,16 @@ type SortDirection = "asc" | "desc"
 type StatsTab = "batting" | "pitching"
 
 // 率のカラムは規定打席・規定投球回に達しているかどうかを第一ソートキーにする
-const QUALIFICATION_DEPENDENT_BATTING_KEYS: BattingSortKey[] = ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops", "rispAverage"]
-const QUALIFICATION_DEPENDENT_PITCHING_KEYS: PitchingSortKey[] = ["era", "whip", "strikeoutRate", "walkRate"]
+const RATE_BATTING_KEYS = ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops", "rispAverage"] as const
+const RATE_PITCHING_KEYS = ["era", "whip", "strikeoutRate", "walkRate"] as const
+
+type RateBattingKey = (typeof RATE_BATTING_KEYS)[number]
+type RatePitchingKey = (typeof RATE_PITCHING_KEYS)[number]
+
+const isRateBattingKey = (key: BattingSortKey): key is RateBattingKey =>
+  (RATE_BATTING_KEYS as readonly string[]).includes(key)
+const isRatePitchingKey = (key: PitchingSortKey): key is RatePitchingKey =>
+  (RATE_PITCHING_KEYS as readonly string[]).includes(key)
 
 // 防御率・WHIP・BB/9 は値が小さいほど好成績なので、既定のソート方向を昇順にする
 const LOWER_IS_BETTER_PITCHING_KEYS: PitchingSortKey[] = ["era", "whip", "walkRate"]
@@ -39,56 +47,57 @@ const BATTING_COLUMNS: Array<{
   key: keyof BattingStats
   label: string
   shortLabel: string
-  format: (value: number) => string
+  format: (value: number | null) => string
   primary?: boolean
 }> = [
-  { key: "games", label: "試合", shortLabel: "試", format: (v) => v.toString(), primary: true },
-  { key: "plateAppearances", label: "打席", shortLabel: "席", format: (v) => v.toString() },
-  { key: "atBats", label: "打数", shortLabel: "数", format: (v) => v.toString(), primary: true },
-  { key: "hits", label: "安打", shortLabel: "安", format: (v) => v.toString(), primary: true },
-  { key: "doubles", label: "二塁打", shortLabel: "二", format: (v) => v.toString() },
-  { key: "triples", label: "三塁打", shortLabel: "三", format: (v) => v.toString() },
-  { key: "homeRuns", label: "本塁打", shortLabel: "本", format: (v) => v.toString() },
-  { key: "rbi", label: "打点", shortLabel: "点", format: (v) => v.toString(), primary: true },
-  { key: "runs", label: "得点", shortLabel: "得", format: (v) => v.toString() },
-  { key: "walks", label: "四球", shortLabel: "四", format: (v) => v.toString() },
-  { key: "strikeouts", label: "三振", shortLabel: "振", format: (v) => v.toString() },
-  { key: "stolenBases", label: "盗塁", shortLabel: "盗", format: (v) => v.toString() },
-  { key: "battingAverage", label: "打率", shortLabel: "率", format: (v) => formatRate(v), primary: true },
-  { key: "onBasePercentage", label: "出塁率", shortLabel: "出", format: (v) => formatRate(v), primary: true },
-  { key: "sluggingPercentage", label: "長打率", shortLabel: "長", format: (v) => formatRate(v) },
-  { key: "rispAverage", label: "得点圏打率", shortLabel: "圏", format: (v) => formatRate(v) },
-  { key: "ops", label: "OPS", shortLabel: "OPS", format: (v) => formatRate(v), primary: true },
+  { key: "games", label: "試合", shortLabel: "試", format: formatCount, primary: true },
+  { key: "plateAppearances", label: "打席", shortLabel: "席", format: formatCount },
+  { key: "atBats", label: "打数", shortLabel: "数", format: formatCount, primary: true },
+  { key: "hits", label: "安打", shortLabel: "安", format: formatCount, primary: true },
+  { key: "doubles", label: "二塁打", shortLabel: "二", format: formatCount },
+  { key: "triples", label: "三塁打", shortLabel: "三", format: formatCount },
+  { key: "homeRuns", label: "本塁打", shortLabel: "本", format: formatCount },
+  { key: "rbi", label: "打点", shortLabel: "点", format: formatCount, primary: true },
+  { key: "runs", label: "得点", shortLabel: "得", format: formatCount },
+  { key: "walks", label: "四球", shortLabel: "四", format: formatCount },
+  { key: "strikeouts", label: "三振", shortLabel: "振", format: formatCount },
+  { key: "stolenBases", label: "盗塁", shortLabel: "盗", format: formatCount },
+  { key: "battingAverage", label: "打率", shortLabel: "率", format: formatRate, primary: true },
+  { key: "onBasePercentage", label: "出塁率", shortLabel: "出", format: formatRate, primary: true },
+  { key: "sluggingPercentage", label: "長打率", shortLabel: "長", format: formatRate },
+  { key: "rispAverage", label: "得点圏打率", shortLabel: "圏", format: formatRate },
+  { key: "ops", label: "OPS", shortLabel: "OPS", format: formatRate, primary: true },
 ]
 
 const PITCHING_COLUMNS: Array<{
   key: keyof PitchingStats
   label: string
   shortLabel: string
-  format: (value: number) => string
+  format: (value: number | null) => string
   primary?: boolean
 }> = [
-  { key: "games", label: "登板", shortLabel: "登", format: (v) => v.toString(), primary: true },
-  { key: "wins", label: "勝", shortLabel: "勝", format: (v) => v.toString(), primary: true },
-  { key: "losses", label: "敗", shortLabel: "敗", format: (v) => v.toString(), primary: true },
-  { key: "saves", label: "S", shortLabel: "S", format: (v) => v.toString() },
-  { key: "holds", label: "H", shortLabel: "H", format: (v) => v.toString() },
+  { key: "games", label: "登板", shortLabel: "登", format: formatCount, primary: true },
+  { key: "wins", label: "勝", shortLabel: "勝", format: formatCount, primary: true },
+  { key: "losses", label: "敗", shortLabel: "敗", format: formatCount, primary: true },
+  { key: "saves", label: "S", shortLabel: "S", format: formatCount },
+  { key: "holds", label: "H", shortLabel: "H", format: formatCount },
   { key: "totalOuts", label: "投球回", shortLabel: "回", format: (v) => {
+    if (v === null) return "-"
     const whole = Math.floor(v / 3)
     const rem = v % 3
     return rem === 0 ? `${whole}` : `${whole} ${rem}/3`
   }, primary: true },
-  { key: "battersFaced", label: "打者", shortLabel: "打者", format: (v) => v.toString() },
-  { key: "hits", label: "被安打", shortLabel: "被安", format: (v) => v.toString() },
-  { key: "runs", label: "失点", shortLabel: "失", format: (v) => v.toString() },
-  { key: "earnedRuns", label: "自責", shortLabel: "自", format: (v) => v.toString(), primary: true },
-  { key: "strikeouts", label: "奪三振", shortLabel: "K", format: (v) => v.toString(), primary: true },
-  { key: "walks", label: "四球", shortLabel: "四", format: (v) => v.toString() },
-  { key: "homeRuns", label: "被本", shortLabel: "被本", format: (v) => v.toString() },
-  { key: "era", label: "防御率", shortLabel: "防", format: (v) => v.toFixed(2), primary: true },
-  { key: "whip", label: "WHIP", shortLabel: "WHIP", format: (v) => v.toFixed(2), primary: true },
-  { key: "strikeoutRate", label: "K/9", shortLabel: "K/9", format: (v) => v.toFixed(2) },
-  { key: "walkRate", label: "BB/9", shortLabel: "BB/9", format: (v) => v.toFixed(2) },
+  { key: "battersFaced", label: "打者", shortLabel: "打者", format: formatCount },
+  { key: "hits", label: "被安打", shortLabel: "被安", format: formatCount },
+  { key: "runs", label: "失点", shortLabel: "失", format: formatCount },
+  { key: "earnedRuns", label: "自責", shortLabel: "自", format: formatCount, primary: true },
+  { key: "strikeouts", label: "奪三振", shortLabel: "K", format: formatCount, primary: true },
+  { key: "walks", label: "四球", shortLabel: "四", format: formatCount },
+  { key: "homeRuns", label: "被本", shortLabel: "被本", format: formatCount },
+  { key: "era", label: "防御率", shortLabel: "防", format: formatDecimal, primary: true },
+  { key: "whip", label: "WHIP", shortLabel: "WHIP", format: formatDecimal, primary: true },
+  { key: "strikeoutRate", label: "K/9", shortLabel: "K/9", format: formatDecimal },
+  { key: "walkRate", label: "BB/9", shortLabel: "BB/9", format: formatDecimal },
 ]
 
 interface StatsClientProps {
@@ -127,11 +136,19 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
   }
 
   const sortedBattingStats = [...battingStats].sort((a, b) => {
-    if (QUALIFICATION_DEPENDENT_BATTING_KEYS.includes(battingSortKey) && a.isQualified !== b.isQualified) {
-      return a.isQualified ? -1 : 1
+    if (isRateBattingKey(battingSortKey)) {
+      // 分母0で率を算出できない選手は、昇順ソートで先頭に来ないよう常に最後尾へ送る
+      const aHasRate = a.stats[battingSortKey] !== null
+      const bHasRate = b.stats[battingSortKey] !== null
+      if (aHasRate !== bHasRate) {
+        return aHasRate ? -1 : 1
+      }
+      if (a.isQualified !== b.isQualified) {
+        return a.isQualified ? -1 : 1
+      }
     }
-    const aValue: number | string = battingSortKey === "playerName" ? a.playerName : (a.stats[battingSortKey] || 0)
-    const bValue: number | string = battingSortKey === "playerName" ? b.playerName : (b.stats[battingSortKey] || 0)
+    const aValue: number | string = battingSortKey === "playerName" ? a.playerName : (a.stats[battingSortKey] ?? 0)
+    const bValue: number | string = battingSortKey === "playerName" ? b.playerName : (b.stats[battingSortKey] ?? 0)
     if (typeof aValue === "string" && typeof bValue === "string") {
       return battingSortDirection === "asc" ? aValue.localeCompare(bValue, "ja") : bValue.localeCompare(aValue, "ja")
     }
@@ -139,19 +156,19 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
   })
 
   const sortedPitchingStats = [...pitchingStats].sort((a, b) => {
-    if (QUALIFICATION_DEPENDENT_PITCHING_KEYS.includes(pitchingSortKey)) {
-      // 投球回0の投手は率指標が0のままなので、昇順ソートで先頭に来ないよう常に最後尾へ送る
-      const aHasInnings = a.stats.totalOuts > 0
-      const bHasInnings = b.stats.totalOuts > 0
-      if (aHasInnings !== bHasInnings) {
-        return aHasInnings ? -1 : 1
+    if (isRatePitchingKey(pitchingSortKey)) {
+      // 分母0（投球回0）で率を算出できない投手は、昇順ソートで先頭に来ないよう常に最後尾へ送る
+      const aHasRate = a.stats[pitchingSortKey] !== null
+      const bHasRate = b.stats[pitchingSortKey] !== null
+      if (aHasRate !== bHasRate) {
+        return aHasRate ? -1 : 1
       }
       if (a.isQualified !== b.isQualified) {
         return a.isQualified ? -1 : 1
       }
     }
-    const aValue: number | string = pitchingSortKey === "playerName" ? a.playerName : (a.stats[pitchingSortKey] || 0)
-    const bValue: number | string = pitchingSortKey === "playerName" ? b.playerName : (b.stats[pitchingSortKey] || 0)
+    const aValue: number | string = pitchingSortKey === "playerName" ? a.playerName : (a.stats[pitchingSortKey] ?? 0)
+    const bValue: number | string = pitchingSortKey === "playerName" ? b.playerName : (b.stats[pitchingSortKey] ?? 0)
     if (typeof aValue === "string" && typeof bValue === "string") {
       return pitchingSortDirection === "asc" ? aValue.localeCompare(bValue, "ja") : bValue.localeCompare(aValue, "ja")
     }
@@ -242,7 +259,7 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
                       >
                         <td className={cn("sticky left-0 z-10 px-3 py-3 font-medium whitespace-nowrap", player.isQualified ? "bg-background" : "bg-muted")}>{player.playerName}</td>
                         {visibleBattingColumns.map((col) => (
-                          <td key={col.key} className={cn("px-2 py-3 text-center", ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops", "rispAverage"].includes(col.key) && "font-display")}>
+                          <td key={col.key} className={cn("px-2 py-3 text-center", isRateBattingKey(col.key) && "font-display")}>
                             {col.format(player.stats[col.key])}
                           </td>
                         ))}
@@ -294,7 +311,7 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
                       >
                         <td className={cn("sticky left-0 z-10 px-3 py-3 font-medium whitespace-nowrap", player.isQualified ? "bg-background" : "bg-muted")}>{player.playerName}</td>
                         {visiblePitchingColumns.map((col) => (
-                          <td key={col.key} className={cn("px-2 py-3 text-center", ["era", "whip", "strikeoutRate", "walkRate"].includes(col.key) && "font-display")}>
+                          <td key={col.key} className={cn("px-2 py-3 text-center", isRatePitchingKey(col.key) && "font-display")}>
                             {col.format(player.stats[col.key])}
                           </td>
                         ))}
