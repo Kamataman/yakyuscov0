@@ -1,12 +1,11 @@
 "use server"
 
-import { headers } from "next/headers"
-import { createHash } from "crypto"
 import { z } from "zod"
 import { createServiceClient } from "@/lib/supabase/service"
 import { sendContactEmail } from "@/lib/email"
 import { verifyTurnstileToken } from "@/lib/turnstile"
 import { checkAndRecordContactRateLimit } from "@/lib/rate-limit"
+import { getClientIp, hashIp } from "@/lib/client-ip"
 
 const contactSchema = z.object({
   name: z.string().trim().max(50, "お名前は50文字以内で入力してください"),
@@ -31,23 +30,6 @@ export interface ContactFormInput {
   agreedToPrivacy: boolean
   turnstileToken: string
   honeypot: string
-}
-
-async function getClientIp(): Promise<string> {
-  const hdrs = await headers()
-  const forwardedFor = hdrs.get("x-forwarded-for")
-  if (forwardedFor) {
-    return forwardedFor.split(",")[0].trim()
-  }
-  return hdrs.get("x-real-ip") ?? "unknown"
-}
-
-function hashIp(ip: string): string {
-  const salt = process.env.CONTACT_IP_HASH_SALT
-  if (!salt) {
-    throw new Error("CONTACT_IP_HASH_SALT が未設定です")
-  }
-  return createHash("sha256").update(`${ip}:${salt}`).digest("hex")
 }
 
 export async function submitContactForm(teamId: string, input: ContactFormInput): Promise<void> {

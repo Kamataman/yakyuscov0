@@ -10,6 +10,8 @@ import type { BattingResult, PitcherInningStats } from "@/lib/batting-types"
 import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
 import { calculateGameTotals } from "@/lib/game-score"
 import { isGameContentThin } from "@/lib/ai/thin-check"
+import { getReactionState } from "@/lib/reactions"
+import { ReactionButton } from "@/components/reaction-button"
 import { DeleteButton } from "./delete-button"
 import { PitcherResultsSection } from "./pitcher-results-section"
 import { AiReviewSection } from "./ai-review-section"
@@ -45,7 +47,7 @@ export default async function GameDetailPage({ params }: Props) {
   const { teamId, id: gameId } = await params
   const supabase = createServiceClient()
 
-  const [adminSession, gameResult, inningScoresResult, rawLineupResult, battingResultsResult, rawPitcherResult] =
+  const [adminSession, gameResult, inningScoresResult, rawLineupResult, battingResultsResult, rawPitcherResult, reactionState] =
     await Promise.all([
       requireTeamAdmin(teamId),
       supabase.from("games").select("*").eq("id", gameId).single(),
@@ -54,6 +56,10 @@ export default async function GameDetailPage({ params }: Props) {
         .order("batting_order").order("entered_inning", { nullsFirst: true }),
       supabase.from("batting_results").select("*").eq("game_id", gameId),
       supabase.from("pitcher_results").select("*, players(name)").eq("game_id", gameId).order("order_index"),
+      // 件数のみを取得する。押下済みかどうかはIPハッシュを必要とするため、
+      // 表示はクライアント側の localStorage に任せ、実際の重複判定は
+      // POST /api/reactions 側で行う（公開ページをソルト設定に依存させない）。
+      getReactionState({ teamId, targetType: "game", targetId: gameId, kind: "nice_game" }),
     ])
 
   if (gameResult.error || !gameResult.data) notFound()
@@ -231,6 +237,17 @@ export default async function GameDetailPage({ params }: Props) {
           {game.memo && (
             <p className="whitespace-pre-wrap text-sm text-muted-foreground border-t border-border pt-3">{game.memo}</p>
           )}
+        </div>
+
+        <div className="border-b border-border pb-6">
+          <ReactionButton
+            teamId={teamId}
+            targetType="game"
+            targetId={gameId}
+            kind="nice_game"
+            label="ナイスゲーム！"
+            initialCount={reactionState.count}
+          />
         </div>
 
         <AiReviewSection
