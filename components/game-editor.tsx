@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
+import { detectGameInconsistencies } from "@/lib/game-validation"
 import type { BattingResult, CellPosition, LineupSlot, InningScore, Player, PitcherResult, HitResult, HitDirection, FieldPosition } from "@/lib/batting-types"
 
 interface GameEditorProps {
@@ -573,6 +574,27 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
     ? lineupSlots.find((s) => s.order === selectedLineupOrder)
     : undefined
 
+  // 入力チェック（スコアと打撃・投手成績の突き合わせ）。管理者の編集画面のみで表示する
+  const inconsistencies = !isAdmin ? [] : detectGameInconsistencies(
+    {
+      total_innings: totalInnings,
+      is_first_batting: isFirstBatting,
+      last_inning_x: hasX,
+      last_inning_x_score: xScore,
+    },
+    inningScores.map((score, index) => ({
+      inning: index + 1,
+      our_score: score.our,
+      opponent_score: score.opponent,
+    })),
+    Object.entries(results).map(([key, result]) => ({
+      inning: Number(key.split("-")[1]),
+      rbiCount: result.rbiCount,
+      scored: result.scored,
+    })),
+    pitchers
+  )
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -669,6 +691,26 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           </div>
         </div>
         
+        {/* 入力チェック（不整合があるときのみ表示。保存はブロックしない） */}
+        {inconsistencies.length > 0 && (
+          <div className="space-y-2">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {inconsistencies.map((inconsistency) => (
+                <div
+                  key={`${inconsistency.kind}-${inconsistency.inning ?? "total"}`}
+                  className="flex items-center gap-2 border border-stitch bg-stitch-tint px-3 py-2"
+                >
+                  <AlertCircle className="h-4 w-4 shrink-0 text-stitch" />
+                  <span className="text-sm text-foreground">{inconsistency.message}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              入力途中や助っ人の記録漏れでも表示されます。保存はできます。
+            </p>
+          </div>
+        )}
+
         <ScoreInput
           inningScores={inningScores}
           onScoresChange={handleScoresChange}
@@ -721,6 +763,7 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           isAdmin={isAdmin}
           shareToken={shareToken}
         />
+
       </div>
 
       <BattingInputDialog
