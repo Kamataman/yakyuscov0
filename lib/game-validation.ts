@@ -4,6 +4,7 @@ export type GameInconsistencyKind = "runs" | "rbi" | "opponentRuns"
 
 export interface GameInconsistency {
   kind: GameInconsistencyKind
+  inning: number | null // イニング単位で判定できない場合（投手の集約入力）は null
   message: string
 }
 
@@ -58,6 +59,7 @@ function sumByInning<T>(items: T[], inningOf: (item: T) => number, valueOf: (ite
 }
 
 // 試合1件分のデータから、イニングごとにスコアと打撃・投手成績の不整合を検出する。
+// 1件の不整合＝1件の警告として、イニング単位で返す。
 // 助っ人の記録も検証対象に含める（除外するとスコアと合わなくなるため）。
 export function detectGameInconsistencies(
   game: GameForScore,
@@ -71,53 +73,56 @@ export function detectGameInconsistencies(
   const scoredByInning = sumByInning(battingResults, (r) => r.inning, (r) => (r.scored ? 1 : 0))
   const rbiByInning = sumByInning(battingResults, (r) => r.inning, (r) => r.rbiCount || 0)
 
-  // 自チーム得点 vs 生還記録
-  const runsMismatch = inningRuns
-    .filter((row) => (scoredByInning.get(row.inning) ?? 0) !== row.our)
-    .map((row) => `${row.inning}回(${row.our}点/生還${scoredByInning.get(row.inning) ?? 0})`)
-  if (runsMismatch.length > 0) {
-    inconsistencies.push({
-      kind: "runs",
-      message: `得点と生還が不一致: ${runsMismatch.join(" ")}`,
-    })
-  }
-
-  // 打点の上限（エラーや暴投による得点があるため、下回るのは正常）
-  const rbiOver = inningRuns
-    .filter((row) => (rbiByInning.get(row.inning) ?? 0) > row.our)
-    .map((row) => `${row.inning}回(打点${rbiByInning.get(row.inning) ?? 0}/${row.our}点)`)
-  if (rbiOver.length > 0) {
-    inconsistencies.push({
-      kind: "rbi",
-      message: `打点が得点を超過: ${rbiOver.join(" ")}`,
-    })
-  }
-
   // 相手得点 vs 投手の失点。全投手がイニング入力ならイニングごとに、
   // 集約入力が混ざる場合はイニングに割り振れないため合計で比較する
   const hasAllInningStats = pitchers.length > 0 && pitchers.every((p) => (p.inningStats?.length ?? 0) > 0)
-  if (hasAllInningStats) {
-    const runsAllowedByInning = sumByInning(
-      pitchers.flatMap((pitcher) => pitcher.inningStats ?? []),
-      (stat) => stat.inning,
-      (stat) => stat.runs || 0
-    )
-    const opponentMismatch = inningRuns
-      .filter((row) => (runsAllowedByInning.get(row.inning) ?? 0) !== row.opponent)
-      .map((row) => `${row.inning}回(${row.opponent}点/失点${runsAllowedByInning.get(row.inning) ?? 0})`)
-    if (opponentMismatch.length > 0) {
+  const runsAllowedByInning = sumByInning(
+    pitchers.flatMap((pitcher) => pitcher.inningStats ?? []),
+    (stat) => stat.inning,
+    (stat) => stat.runs || 0
+  )
+
+  for (const row of inningRuns) {
+    // 自チーム得点 vs 生還記録
+    const scored = scoredByInning.get(row.inning) ?? 0
+    if (scored !== row.our) {
       inconsistencies.push({
-        kind: "opponentRuns",
-        message: `相手得点と失点が不一致: ${opponentMismatch.join(" ")}`,
+        kind: "runs",
+        inning: row.inning,
+        message: `${row.inning}回: 得点${row.our}点に対し生還${scored}人`,
       })
     }
-  } else {
+
+    // 打点の上限（エラーや暴投による得点があるため、下回るのは正常）
+    const rbi = rbiByInning.get(row.inning) ?? 0
+    if (rbi > row.our) {
+      inconsistencies.push({
+        kind: "rbi",
+        inning: row.inning,
+        message: `${row.inning}回: 打点${rbi}が得点${row.our}点を超過`,
+      })
+    }
+
+    if (hasAllInningStats) {
+      const runsAllowed = runsAllowedByInning.get(row.inning) ?? 0
+      if (runsAllowed !== row.opponent) {
+        inconsistencies.push({
+          kind: "opponentRuns",
+          inning: row.inning,
+          message: `${row.inning}回: 相手得点${row.opponent}点に対し失点${runsAllowed}`,
+        })
+      }
+    }
+  }
+
+  if (!hasAllInningStats) {
     const opponentTotal = inningRuns.reduce((sum, row) => sum + row.opponent, 0)
     const runsAllowedTotal = pitchers.reduce((sum, pitcher) => sum + (pitcher.runs || 0), 0)
     if (runsAllowedTotal !== opponentTotal) {
       inconsistencies.push({
         kind: "opponentRuns",
-        message: `相手得点と失点が不一致: 合計(${opponentTotal}点/失点${runsAllowedTotal})`,
+        inning: null,
+        message: `合計: 相手得点${opponentTotal}点に対し失点${runsAllowedTotal}`,
       })
     }
   }

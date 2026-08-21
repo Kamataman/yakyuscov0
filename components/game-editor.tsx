@@ -693,18 +693,21 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
         
         {/* 入力チェック（不整合があるときのみ表示。保存はブロックしない） */}
         {inconsistencies.length > 0 && (
-          <div className="flex items-start gap-2 border border-stitch bg-stitch-tint px-4 py-3">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-stitch" />
-            <div className="min-w-0 space-y-1">
+          <div className="space-y-2">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {inconsistencies.map((inconsistency) => (
-                <p key={inconsistency.kind} className="text-sm text-foreground">
-                  {inconsistency.message}
-                </p>
+                <div
+                  key={`${inconsistency.kind}-${inconsistency.inning ?? "total"}`}
+                  className="flex items-center gap-2 border border-stitch bg-stitch-tint px-3 py-2"
+                >
+                  <AlertCircle className="h-4 w-4 shrink-0 text-stitch" />
+                  <span className="text-sm text-foreground">{inconsistency.message}</span>
+                </div>
               ))}
-              <p className="text-xs text-muted-foreground">
-                入力途中や助っ人の記録漏れでも表示されます。保存はできます。
-              </p>
             </div>
+            <p className="text-xs text-muted-foreground">
+              入力途中や助っ人の記録漏れでも表示されます。保存はできます。
+            </p>
           </div>
         )}
 
