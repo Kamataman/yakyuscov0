@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
+import { detectGameInconsistencies } from "@/lib/game-validation"
 import type { BattingResult, CellPosition, LineupSlot, InningScore, Player, PitcherResult, HitResult, HitDirection, FieldPosition } from "@/lib/batting-types"
 
 interface GameEditorProps {
@@ -573,6 +574,26 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
     ? lineupSlots.find((s) => s.order === selectedLineupOrder)
     : undefined
 
+  // 入力チェック（スコアと打撃・投手成績の突き合わせ）。管理者の編集画面のみで表示する
+  const inconsistencies = !isAdmin ? [] : detectGameInconsistencies(
+    {
+      total_innings: totalInnings,
+      is_first_batting: isFirstBatting,
+      last_inning_x: hasX,
+      last_inning_x_score: xScore,
+    },
+    inningScores.map((score, index) => ({
+      inning: index + 1,
+      our_score: score.our,
+      opponent_score: score.opponent,
+    })),
+    Object.values(results).map((result) => ({
+      rbiCount: result.rbiCount,
+      scored: result.scored,
+    })),
+    pitchers
+  )
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -721,6 +742,26 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           isAdmin={isAdmin}
           shareToken={shareToken}
         />
+
+        {/* 入力チェック（不整合があるときのみ表示。保存はブロックしない） */}
+        {inconsistencies.length > 0 && (
+          <div className="border border-stitch overflow-hidden">
+            <div className="flex items-center gap-2 border-b border-stitch bg-stitch-tint px-4 py-3">
+              <AlertCircle className="h-4 w-4 text-stitch" />
+              <h2 className="font-bold text-foreground">入力チェック</h2>
+            </div>
+            <ul className="space-y-2 p-4">
+              {inconsistencies.map((inconsistency) => (
+                <li key={inconsistency.kind} className="text-sm text-foreground">
+                  {inconsistency.message}
+                </li>
+              ))}
+            </ul>
+            <p className="border-t border-border px-4 py-3 text-xs text-muted-foreground">
+              入力途中や助っ人の記録漏れでも表示されます。内容を確認のうえ問題なければそのままで構いません。
+            </p>
+          </div>
+        )}
       </div>
 
       <BattingInputDialog
