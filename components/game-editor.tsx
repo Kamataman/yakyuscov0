@@ -587,7 +587,8 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
       our_score: score.our,
       opponent_score: score.opponent,
     })),
-    Object.values(results).map((result) => ({
+    Object.entries(results).map(([key, result]) => ({
+      inning: Number(key.split("-")[1]),
       rbiCount: result.rbiCount,
       scored: result.scored,
     })),
@@ -690,6 +691,23 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           </div>
         </div>
         
+        {/* 入力チェック（不整合があるときのみ表示。保存はブロックしない） */}
+        {inconsistencies.length > 0 && (
+          <div className="flex items-start gap-2 border border-stitch bg-stitch-tint px-4 py-3">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-stitch" />
+            <div className="min-w-0 space-y-1">
+              {inconsistencies.map((inconsistency) => (
+                <p key={inconsistency.kind} className="text-sm text-foreground">
+                  {inconsistency.message}
+                </p>
+              ))}
+              <p className="text-xs text-muted-foreground">
+                入力途中や助っ人の記録漏れでも表示されます。保存はできます。
+              </p>
+            </div>
+          </div>
+        )}
+
         <ScoreInput
           inningScores={inningScores}
           onScoresChange={handleScoresChange}
@@ -743,25 +761,6 @@ export function GameEditor({ gameId, teamId, shareToken, isAdmin, onBack, player
           shareToken={shareToken}
         />
 
-        {/* 入力チェック（不整合があるときのみ表示。保存はブロックしない） */}
-        {inconsistencies.length > 0 && (
-          <div className="border border-stitch overflow-hidden">
-            <div className="flex items-center gap-2 border-b border-stitch bg-stitch-tint px-4 py-3">
-              <AlertCircle className="h-4 w-4 text-stitch" />
-              <h2 className="font-bold text-foreground">入力チェック</h2>
-            </div>
-            <ul className="space-y-2 p-4">
-              {inconsistencies.map((inconsistency) => (
-                <li key={inconsistency.kind} className="text-sm text-foreground">
-                  {inconsistency.message}
-                </li>
-              ))}
-            </ul>
-            <p className="border-t border-border px-4 py-3 text-xs text-muted-foreground">
-              入力途中や助っ人の記録漏れでも表示されます。内容を確認のうえ問題なければそのままで構いません。
-            </p>
-          </div>
-        )}
       </div>
 
       <BattingInputDialog
