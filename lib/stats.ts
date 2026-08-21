@@ -22,11 +22,17 @@ export interface BattingStats {
   sacrificeFlies: number  // 犠飛
   stolenBases: number     // 盗塁
   
+  // 得点圏（二塁または三塁に走者がいる打席）
+  rispPlateAppearances: number // 得点圏打席数
+  rispAtBats: number           // 得点圏打数
+  rispHits: number             // 得点圏安打
+
   // 計算指標
   battingAverage: number      // 打率
   onBasePercentage: number    // 出塁率
   sluggingPercentage: number  // 長打率
   ops: number                 // OPS
+  rispAverage: number         // 得点圏打率
   
   // 今後追加予定の指標例:
   // isolatedPower: number     // ISO（純粋長打率）
@@ -46,6 +52,8 @@ export function calculateBattingStats(
     stolen_second?: boolean
     stolen_third?: boolean
     stolen_home?: boolean
+    runner_second?: boolean
+    runner_third?: boolean
   }>,
   gamesPlayed: number
 ): BattingStats {
@@ -65,10 +73,14 @@ export function calculateBattingStats(
     sacrificeHits: 0,
     sacrificeFlies: 0,
     stolenBases: 0,
+    rispPlateAppearances: 0,
+    rispAtBats: 0,
+    rispHits: 0,
     battingAverage: 0,
     onBasePercentage: 0,
     sluggingPercentage: 0,
     ops: 0,
+    rispAverage: 0,
   }
 
   for (const result of battingResults) {
@@ -81,25 +93,33 @@ export function calculateBattingStats(
     if (result.stolen_third) stats.stolenBases++
     if (result.stolen_home) stats.stolenBases++
 
+    // 得点圏 = 二塁または三塁に走者がいる打席（一塁のみは含めない）
+    const isRisp = !!(result.runner_second || result.runner_third)
+    if (isRisp) stats.rispPlateAppearances++
+
+    // 打数・安打の判定は通算・得点圏で共通のロジックを使う
+    let isAtBat = false
+    let isHit = false
+
     switch (result.hit_result) {
       case "単打":
-        stats.hits++
-        stats.atBats++
+        isHit = true
+        isAtBat = true
         break
       case "二塁打":
-        stats.hits++
+        isHit = true
+        isAtBat = true
         stats.doubles++
-        stats.atBats++
         break
       case "三塁打":
-        stats.hits++
+        isHit = true
+        isAtBat = true
         stats.triples++
-        stats.atBats++
         break
       case "本塁打":
-        stats.hits++
+        isHit = true
+        isAtBat = true
         stats.homeRuns++
-        stats.atBats++
         break
       case "四球":
         stats.walks++
@@ -109,8 +129,8 @@ export function calculateBattingStats(
         break
       case "三振":
       case "振り逃げ":
+        isAtBat = true
         stats.strikeouts++
-        stats.atBats++
         break
       case "犠打":
         stats.sacrificeHits++
@@ -120,8 +140,17 @@ export function calculateBattingStats(
         break
       default:
         // ゴロ、フライ、ライナー、併殺、エラー、野選
-        stats.atBats++
+        isAtBat = true
         break
+    }
+
+    if (isAtBat) {
+      stats.atBats++
+      if (isRisp) stats.rispAtBats++
+    }
+    if (isHit) {
+      stats.hits++
+      if (isRisp) stats.rispHits++
     }
   }
 
@@ -147,6 +176,11 @@ export function calculateBattingStats(
 
   // OPS = 出塁率 + 長打率
   stats.ops = stats.onBasePercentage + stats.sluggingPercentage
+
+  // 得点圏打率 = 得点圏安打 / 得点圏打数
+  if (stats.rispAtBats > 0) {
+    stats.rispAverage = stats.rispHits / stats.rispAtBats
+  }
 
   return stats
 }
@@ -280,6 +314,8 @@ export class SimpleStatsCalculator implements StatsCalculator {
         stolen_second?: boolean
         stolen_third?: boolean
         stolen_home?: boolean
+        runner_second?: boolean
+        runner_third?: boolean
       }>
       gamesPlayed: number
     }>

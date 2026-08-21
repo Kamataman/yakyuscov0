@@ -120,7 +120,7 @@ export default async function StatsPage({ params }: Props) {
   // 選手ごとの打撃結果を集計
   const playerResultsMap = new Map<string, {
     name: string
-    results: Array<{ hit_result: HitResult; rbi_count: number; scored?: boolean; stolen_second?: boolean; stolen_third?: boolean; stolen_home?: boolean }>
+    results: Array<{ hit_result: HitResult; rbi_count: number; scored?: boolean; stolen_second?: boolean; stolen_third?: boolean; stolen_home?: boolean; runner_second?: boolean; runner_third?: boolean }>
     gameIds: Set<string>
   }>()
 
@@ -140,6 +140,8 @@ export default async function StatsPage({ params }: Props) {
       stolen_second: result.stolen_second,
       stolen_third: result.stolen_third,
       stolen_home: result.stolen_home,
+      runner_second: result.runner_second,
+      runner_third: result.runner_third,
     })
     playerData.gameIds.add(result.game_id)
   }
