@@ -57,8 +57,8 @@ const BATTING_COLUMNS: Array<{
   { key: "battingAverage", label: "打率", shortLabel: "率", format: (v) => formatRate(v), primary: true },
   { key: "onBasePercentage", label: "出塁率", shortLabel: "出", format: (v) => formatRate(v), primary: true },
   { key: "sluggingPercentage", label: "長打率", shortLabel: "長", format: (v) => formatRate(v) },
-  { key: "ops", label: "OPS", shortLabel: "OPS", format: (v) => formatRate(v), primary: true },
   { key: "rispAverage", label: "得点圏打率", shortLabel: "圏", format: (v) => formatRate(v) },
+  { key: "ops", label: "OPS", shortLabel: "OPS", format: (v) => formatRate(v), primary: true },
 ]
 
 const PITCHING_COLUMNS: Array<{
@@ -317,8 +317,8 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
               <div><span className="font-medium text-foreground">打率</span>: 安打 / 打数</div>
               <div><span className="font-medium text-foreground">出塁率</span>: (安打+四球+死球) / (打数+四球+死球+犠飛)</div>
               <div><span className="font-medium text-foreground">長打率</span>: 塁打 / 打数</div>
-              <div><span className="font-medium text-foreground">OPS</span>: 出塁率 + 長打率</div>
               <div><span className="font-medium text-foreground">得点圏打率</span>: 二塁または三塁に走者がいる打席での 安打 / 打数</div>
+              <div><span className="font-medium text-foreground">OPS</span>: 出塁率 + 長打率</div>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-3 lg:grid-cols-4">
