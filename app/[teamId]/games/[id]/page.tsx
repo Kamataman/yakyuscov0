@@ -219,6 +219,16 @@ export default async function GameDetailPage({ params }: Props) {
               <p className="text-sm text-muted-foreground">{game.date}</p>
               <p className="text-xl font-black text-foreground md:text-2xl">vs {game.opponent}</p>
               {game.location && <p className="text-sm text-muted-foreground">{game.location}</p>}
+              <div className="mt-3">
+                <ReactionButton
+                  teamId={teamId}
+                  targetType="game"
+                  targetId={gameId}
+                  kind="nice_game"
+                  label="ナイスゲーム！"
+                  initialCount={reactionState.count}
+                />
+              </div>
             </div>
             <div className="text-right">
               <div className="font-display whitespace-nowrap text-4xl font-black text-foreground md:text-5xl">
@@ -237,17 +247,6 @@ export default async function GameDetailPage({ params }: Props) {
           {game.memo && (
             <p className="whitespace-pre-wrap text-sm text-muted-foreground border-t border-border pt-3">{game.memo}</p>
           )}
-        </div>
-
-        <div className="border-b border-border pb-6">
-          <ReactionButton
-            teamId={teamId}
-            targetType="game"
-            targetId={gameId}
-            kind="nice_game"
-            label="ナイスゲーム！"
-            initialCount={reactionState.count}
-          />
         </div>
 
         <AiReviewSection
