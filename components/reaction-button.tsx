@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Check, Loader2 } from "lucide-react"
+import { Loader2, ThumbsUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface ReactionButtonProps {
@@ -9,6 +9,7 @@ interface ReactionButtonProps {
   targetType: "game"
   targetId: string
   kind: "nice_game"
+  /** アイコンのみのボタンのため、スクリーンリーダー・ツールチップ用の名前として使う */
   label: string
   /** サーバー側で集計した初期件数 */
   initialCount: number
@@ -87,23 +88,22 @@ export function ReactionButton({
         onClick={handleClick}
         disabled={reacted || isSending}
         aria-pressed={reacted}
+        aria-label={label}
+        title={label}
         className={cn(
-          "diagonal-cut flex items-center gap-2 px-4 py-2 text-sm font-bold transition-opacity",
+          "flex items-center gap-1.5 border px-2.5 py-1 transition-colors",
           reacted
-            ? "border border-turf text-turf"
-            : "bg-turf text-turf-foreground hover:opacity-90 active:scale-[0.98]"
+            ? "border-turf bg-turf-tint text-turf"
+            : "border-border text-muted-foreground hover:border-turf hover:text-turf active:scale-[0.98]"
         )}
       >
         {isSending ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : reacted ? (
-          <Check className="h-4 w-4" />
-        ) : null}
-        {reacted ? "送信済み" : label}
+          <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+        ) : (
+          <ThumbsUp aria-hidden className="h-4 w-4" />
+        )}
+        <span className="font-display text-sm font-bold">{count}</span>
       </button>
-      <p className="text-sm text-muted-foreground">
-        <span className="font-display text-lg font-bold text-foreground">{count}</span> 件のリアクション
-      </p>
       {error && <p className="text-sm text-stitch">{error}</p>}
     </div>
   )
