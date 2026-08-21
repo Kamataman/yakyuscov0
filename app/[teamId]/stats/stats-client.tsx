@@ -26,7 +26,7 @@ type SortDirection = "asc" | "desc"
 type StatsTab = "batting" | "pitching"
 
 // 率のカラムは規定打席・規定投球回に達しているかどうかを第一ソートキーにする
-const QUALIFICATION_DEPENDENT_BATTING_KEYS: BattingSortKey[] = ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops"]
+const QUALIFICATION_DEPENDENT_BATTING_KEYS: BattingSortKey[] = ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops", "rispAverage"]
 const QUALIFICATION_DEPENDENT_PITCHING_KEYS: PitchingSortKey[] = ["era", "whip", "strikeoutRate", "walkRate"]
 
 // 防御率・WHIP・BB/9 は値が小さいほど好成績なので、既定のソート方向を昇順にする
@@ -57,6 +57,7 @@ const BATTING_COLUMNS: Array<{
   { key: "battingAverage", label: "打率", shortLabel: "率", format: (v) => formatRate(v), primary: true },
   { key: "onBasePercentage", label: "出塁率", shortLabel: "出", format: (v) => formatRate(v), primary: true },
   { key: "sluggingPercentage", label: "長打率", shortLabel: "長", format: (v) => formatRate(v) },
+  { key: "rispAverage", label: "得点圏打率", shortLabel: "圏", format: (v) => formatRate(v) },
   { key: "ops", label: "OPS", shortLabel: "OPS", format: (v) => formatRate(v), primary: true },
 ]
 
@@ -241,7 +242,7 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
                       >
                         <td className={cn("sticky left-0 z-10 px-3 py-3 font-medium whitespace-nowrap", player.isQualified ? "bg-background" : "bg-muted")}>{player.playerName}</td>
                         {visibleBattingColumns.map((col) => (
-                          <td key={col.key} className={cn("px-2 py-3 text-center", ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops"].includes(col.key) && "font-display")}>
+                          <td key={col.key} className={cn("px-2 py-3 text-center", ["battingAverage", "onBasePercentage", "sluggingPercentage", "ops", "rispAverage"].includes(col.key) && "font-display")}>
                             {col.format(player.stats[col.key])}
                           </td>
                         ))}
@@ -316,6 +317,7 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
               <div><span className="font-medium text-foreground">打率</span>: 安打 / 打数</div>
               <div><span className="font-medium text-foreground">出塁率</span>: (安打+四球+死球) / (打数+四球+死球+犠飛)</div>
               <div><span className="font-medium text-foreground">長打率</span>: 塁打 / 打数</div>
+              <div><span className="font-medium text-foreground">得点圏打率</span>: 二塁または三塁に走者がいる打席での 安打 / 打数</div>
               <div><span className="font-medium text-foreground">OPS</span>: 出塁率 + 長打率</div>
             </div>
           ) : (
