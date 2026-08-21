@@ -24,6 +24,19 @@ const THIN_CONTENT_MESSAGE = "試合内容を充実させてください"
 const EXTERNAL_ERROR_MESSAGE = "時間をおいて再度お試しください"
 const GENERATION_FAILED_MESSAGE = "戦評の生成に失敗しました。時間をおいて再度お試しください。"
 
+function extractErrorStatus(err: unknown): number | null {
+  if (typeof err === "object" && err !== null && "status" in err) {
+    const status = (err as { status: unknown }).status
+    if (typeof status === "number") return status
+  }
+  return null
+}
+
+function extractErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  return String(err)
+}
+
 // AI試合戦評を生成・再生成する
 export async function POST(
   request: Request,
@@ -129,7 +142,10 @@ export async function POST(
     reviewText = result.text
     resolvedModelId = result.resolvedModelId
   } catch (err) {
-    console.error("AI戦評の生成に失敗しました:", err)
+    // ApiErrorはネストしたオブジェクトを持ちログ上で省略されるため、status/messageを平文で出す
+    console.error(
+      `AI戦評の生成に失敗しました(status=${extractErrorStatus(err) ?? "unknown"}): ${extractErrorMessage(err)}`
+    )
     // 生成開始後の失敗は、離脱していても次回訪問時に気づけるようDBに保存する
     await supabase.from("games").update({ ai_review_error: EXTERNAL_ERROR_MESSAGE }).eq("id", gameId)
     return NextResponse.json({ error: EXTERNAL_ERROR_MESSAGE }, { status: 503 })
