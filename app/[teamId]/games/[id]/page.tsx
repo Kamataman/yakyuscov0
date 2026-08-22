@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import type { BattingResult, PitcherInningStats } from "@/lib/batting-types"
 import { getResultSummary, isHit, isOnBase } from "@/lib/batting-types"
 import { calculateGameTotals } from "@/lib/game-score"
+import { buildActiveRanges } from "@/lib/lineup-assignment"
 import { isGameContentThin } from "@/lib/ai/thin-check"
 import { getReactionState } from "@/lib/reactions"
 import { ReactionButton } from "@/components/reaction-button"
@@ -171,23 +172,18 @@ export default async function GameDetailPage({ params }: Props) {
   const displayRows: DisplayRow[] = []
   for (let order = 1; order <= maxOrder; order++) {
     const entries = lineupByOrder.get(order) ?? []
-    const sorted = [...entries].sort((a, b) => {
-      if (!a.is_substitute && b.is_substitute) return -1
-      if (a.is_substitute && !b.is_substitute) return 1
-      return (a.entered_inning ?? 1) - (b.entered_inning ?? 1)
-    })
-    if (sorted.length === 0) {
+    if (entries.length === 0) {
       displayRows.push({ battingOrder: order, playerName: "-", positions: [], activeFrom: 1, activeTo: maxInning, isStarter: false, isFirstOfOrder: true })
       continue
     }
-    sorted.forEach((entry, idx) => {
-      const activeFrom = entry.is_substitute ? (entry.entered_inning ?? 1) : 1
-      const activeTo = idx < sorted.length - 1 ? (sorted[idx + 1].entered_inning ?? maxInning) - 1 : maxInning
+    // 打席の担当イニング範囲は個人成績の集計と共通のロジックで求める
+    buildActiveRanges(entries).forEach(({ entry, activeFrom, activeTo }, idx) => {
       displayRows.push({
         battingOrder: order,
         playerName: entry.player_name,
         positions: entry.positions ?? [],
-        activeFrom, activeTo,
+        activeFrom,
+        activeTo: Math.min(activeTo, maxInning),
         isStarter: !entry.is_substitute,
         isFirstOfOrder: idx === 0,
       })
