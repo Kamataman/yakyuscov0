@@ -30,8 +30,8 @@ const HIT_RESULTS: { label: string; value: HitResult; category: "hit" | "onbase"
   // 出塁
   { label: "四球", value: "四球", category: "onbase" },
   { label: "死球", value: "死球", category: "onbase" },
-  // 表示ラベルのみ「失策出塁」。値は既存データと揃えて "エラー" のまま
-  { label: "失策出塁", value: "エラー", category: "onbase" },
+  // 表示ラベルのみ「失策」。値は既存データと揃えて "エラー" のまま
+  { label: "失策", value: "エラー", category: "onbase" },
   { label: "振逃", value: "振り逃げ", category: "onbase" },
   { label: "野選", value: "野選", category: "onbase" },
   // 凡退
@@ -130,7 +130,7 @@ export function BattingInputDialog({
       case "hit": return "bg-turf hover:bg-turf/90 text-turf-foreground"
       case "onbase": return "bg-foreground hover:bg-foreground/90 text-background"
       case "out": return "bg-muted hover:bg-muted/80 text-foreground font-bold"
-      case "other": return "bg-turf-tint hover:bg-turf-tint/80 text-turf font-bold"
+      case "other": return "bg-turf-tint hover:bg-turf-tint/80 text-foreground font-bold"
       default: return "bg-muted"
     }
   }
