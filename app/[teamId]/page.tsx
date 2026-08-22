@@ -220,7 +220,7 @@ export default async function TeamDashboardPage({ params }: Props) {
               <h2 className="text-lg font-bold text-foreground">{formatSeasonLabel(currentSeason)}の成績</h2>
               <Link
                 href={seasonHref(`/${teamId}/games`, currentSeason)}
-                className="text-sm font-medium text-turf hover:underline"
+                className="text-sm font-medium text-turf transition-all duration-200 hover:underline active:opacity-75"
               >
                 試合一覧へ
               </Link>
