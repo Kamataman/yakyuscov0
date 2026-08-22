@@ -18,6 +18,7 @@ export interface BattingStats {
   walks: number           // 四球
   hitByPitch: number      // 死球
   strikeouts: number      // 三振
+  groundedIntoDoublePlay: number // 併殺打
   sacrificeHits: number   // 犠打
   sacrificeFlies: number  // 犠飛
   stolenBases: number     // 盗塁
@@ -71,6 +72,7 @@ export function calculateBattingStats(
     walks: 0,
     hitByPitch: 0,
     strikeouts: 0,
+    groundedIntoDoublePlay: 0,
     sacrificeHits: 0,
     sacrificeFlies: 0,
     stolenBases: 0,
@@ -133,6 +135,11 @@ export function calculateBattingStats(
         isAtBat = true
         stats.strikeouts++
         break
+      case "併殺打":
+        // 打数1・アウトの扱いは従来の default と同じまま、併殺打としてカウントする
+        isAtBat = true
+        stats.groundedIntoDoublePlay++
+        break
       case "犠打":
         stats.sacrificeHits++
         break
@@ -140,7 +147,7 @@ export function calculateBattingStats(
         stats.sacrificeFlies++
         break
       default:
-        // ゴロ、フライ、ライナー、併殺、エラー、野選
+        // ゴロ、フライ、ライナー、エラー、野選
         isAtBat = true
         break
     }

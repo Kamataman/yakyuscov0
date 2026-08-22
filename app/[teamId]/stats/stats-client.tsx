@@ -64,6 +64,7 @@ const BATTING_COLUMNS: Array<{
   { key: "walks", label: "四球", shortLabel: "四", format: formatCount },
   { key: "hitByPitch", label: "死球", shortLabel: "死", format: formatCount },
   { key: "strikeouts", label: "三振", shortLabel: "振", format: formatCount },
+  { key: "groundedIntoDoublePlay", label: "併殺打", shortLabel: "併", format: formatCount },
   { key: "sacrificeHits", label: "犠打", shortLabel: "犠", format: formatCount },
   { key: "sacrificeFlies", label: "犠飛", shortLabel: "飛", format: formatCount },
   { key: "stolenBases", label: "盗塁", shortLabel: "盗", format: formatCount },
