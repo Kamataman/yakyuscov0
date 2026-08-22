@@ -14,13 +14,14 @@ interface SeasonFilterProps {
 
 /**
  * 年度の切り替えタブ。
- * 年度が1つしかないチームでは通算と同じ内容になるため表示しない。
+ * 年度が1つだけのチームでは通算と同じ内容になるが、年度という軸があることを
+ * 示すためタブは表示する。試合が1件もない場合のみ表示しない。
  * 年度の切り替えは同一ルート内のクエリ遷移で loading.tsx に頼れないため、
  * タップ直後の active スタイルと遷移待ちのスピナーを各タブに持たせる。
  * スピナーはラベルに重ねて出し、待機中もタブの幅を変えない。
  */
 export function SeasonFilter({ seasons, current, basePath, className }: SeasonFilterProps) {
-  if (seasons.length <= 1) return null
+  if (seasons.length === 0) return null
 
   const options: SeasonValue[] = [...seasons, SEASON_ALL]
 
