@@ -4,6 +4,7 @@ import { requireTeamAdmin } from "@/lib/auth"
 import { buildTeamDescription, fetchTeamSeoProfile, noindexMetadata } from "@/lib/seo"
 import { calculateBattingStats, calculatePitchingStats, type BattingStats, type PitchingStats } from "@/lib/stats"
 import type { HitResult } from "@/lib/batting-types"
+import { filterBySeason, listSeasonYears, resolveSeason } from "@/lib/season"
 import { StatsClient } from "./stats-client"
 
 interface PlayerBattingStats {
@@ -22,6 +23,7 @@ interface PlayerPitchingStats {
 
 interface Props {
   params: Promise<{ teamId: string }>
+  searchParams: Promise<{ season?: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -36,22 +38,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function StatsPage({ params }: Props) {
+export default async function StatsPage({ params, searchParams }: Props) {
   const { teamId } = await params
+  const { season: seasonParam } = await searchParams
   const supabase = createServiceClient()
 
   const [adminSession, gamesResult, teamResult] = await Promise.all([
     requireTeamAdmin(teamId),
-    supabase.from("games").select("id").eq("team_id", teamId),
+    supabase.from("games").select("id, date").eq("team_id", teamId),
     supabase.from("teams").select("qualified_pa_coefficient, qualified_ip_coefficient").eq("id", teamId).single(),
   ])
 
-  const gameIds = gamesResult.data?.map((g) => g.id) ?? []
-  const teamGamesCount = gameIds.length
+  // 成績は年度単位で集計する。規定打席・規定投球回もその年度の試合数から算出する
+  const allGames = gamesResult.data ?? []
+  const seasons = listSeasonYears(allGames)
+  const season = resolveSeason(seasonParam, seasons)
+  const gameIds = filterBySeason(allGames, season).map((game) => game.id)
+  const seasonGamesCount = gameIds.length
   const paCoefficient = teamResult.data?.qualified_pa_coefficient ?? 3.1
   const ipCoefficient = teamResult.data?.qualified_ip_coefficient ?? 1
-  const qualifiedPlateAppearances = teamGamesCount * paCoefficient
-  const qualifiedInningsPitched = teamGamesCount * ipCoefficient
+  const qualifiedPlateAppearances = seasonGamesCount * paCoefficient
+  const qualifiedInningsPitched = seasonGamesCount * ipCoefficient
 
   if (gameIds.length === 0) {
     return (
@@ -62,6 +69,9 @@ export default async function StatsPage({ params }: Props) {
         teamId={teamId}
         qualifiedPlateAppearances={qualifiedPlateAppearances}
         qualifiedInningsPitched={qualifiedInningsPitched}
+        seasons={seasons}
+        season={season}
+        seasonGamesCount={seasonGamesCount}
       />
     )
   }
@@ -227,6 +237,9 @@ export default async function StatsPage({ params }: Props) {
       teamId={teamId}
       qualifiedPlateAppearances={qualifiedPlateAppearances}
       qualifiedInningsPitched={qualifiedInningsPitched}
+      seasons={seasons}
+      season={season}
+      seasonGamesCount={seasonGamesCount}
     />
   )
 }

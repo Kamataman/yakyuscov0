@@ -40,8 +40,35 @@ export function calculateGameTotals(
   return { our, opponent }
 }
 
-export function getGameResult(totals: GameTotals): "win" | "lose" | "draw" {
+export function getGameResult(totals: GameTotals): GameResult {
   if (totals.our > totals.opponent) return "win"
   if (totals.our < totals.opponent) return "lose"
   return "draw"
+}
+
+export type GameResult = "win" | "lose" | "draw"
+
+export interface TeamRecord {
+  wins: number
+  losses: number
+  draws: number
+  games: number
+}
+
+/** 勝敗分の内訳を集計する */
+export function summarizeTeamRecord(results: GameResult[]): TeamRecord {
+  const record: TeamRecord = { wins: 0, losses: 0, draws: 0, games: results.length }
+  for (const result of results) {
+    if (result === "win") record.wins++
+    else if (result === "lose") record.losses++
+    else record.draws++
+  }
+  return record
+}
+
+/** 勝率（引き分けは分母に含めない）。勝敗がつかず算出できない場合は null */
+export function calculateWinningPercentage(record: TeamRecord): number | null {
+  const decided = record.wins + record.losses
+  if (decided === 0) return null
+  return record.wins / decided
 }

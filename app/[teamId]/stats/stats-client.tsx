@@ -4,6 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { formatCount, formatDecimal, formatRate, type BattingStats, type PitchingStats } from "@/lib/stats"
+import { formatSeasonLabel, type SeasonFilter as SeasonValue } from "@/lib/season"
+import { SeasonFilter } from "@/components/season-filter"
 import { cn } from "@/lib/utils"
 
 interface PlayerBattingStats {
@@ -112,9 +114,25 @@ interface StatsClientProps {
   teamId: string
   qualifiedPlateAppearances: number
   qualifiedInningsPitched: number
+  /** 試合が存在する年度（新しい順） */
+  seasons: number[]
+  /** 表示中の年度 */
+  season: SeasonValue
+  /** 表示中の年度の試合数（規定打席・規定投球回の算出根拠） */
+  seasonGamesCount: number
 }
 
-export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qualifiedPlateAppearances, qualifiedInningsPitched }: StatsClientProps) {
+export function StatsClient({
+  battingStats,
+  pitchingStats,
+  isAdmin,
+  teamId,
+  qualifiedPlateAppearances,
+  qualifiedInningsPitched,
+  seasons,
+  season,
+  seasonGamesCount,
+}: StatsClientProps) {
   const [activeTab, setActiveTab] = useState<StatsTab>("batting")
   const [battingSortKey, setBattingSortKey] = useState<BattingSortKey>("battingAverage")
   const [pitchingSortKey, setPitchingSortKey] = useState<PitchingSortKey>("era")
@@ -197,6 +215,8 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl p-4 md:p-6">
+        <SeasonFilter seasons={seasons} current={season} basePath={`/${teamId}/stats`} className="mb-4" />
+
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex border border-border p-1">
             <button
@@ -221,6 +241,7 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
         </div>
 
         <p className="mb-2 text-xs text-muted-foreground">
+          {formatSeasonLabel(season)}・{seasonGamesCount}試合 /{" "}
           {activeTab === "batting"
             ? `規定打席: ${qualifiedPlateAppearancesLabel}以上（未到達選手は網掛け表示）`
             : `規定投球回: ${qualifiedInningsPitchedLabel}以上（未到達選手は網掛け表示）`}
@@ -229,7 +250,7 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
         {activeTab === "batting" ? (
           battingStats.length === 0 ? (
             <div className="border border-border p-8 text-center">
-              <p className="text-muted-foreground">まだ打撃成績データがありません</p>
+              <p className="text-muted-foreground">{formatSeasonLabel(season)}の打撃成績データはまだありません</p>
               {isAdmin && (
                 <Link href={`/${teamId}/games/new`} className="mt-4 inline-block bg-turf px-4 py-2 text-sm font-bold text-turf-foreground hover:bg-turf/90">
                   試合を記録する
@@ -281,7 +302,7 @@ export function StatsClient({ battingStats, pitchingStats, isAdmin, teamId, qual
         ) : (
           pitchingStats.length === 0 ? (
             <div className="border border-border p-8 text-center">
-              <p className="text-muted-foreground">まだ投手成績データがありません</p>
+              <p className="text-muted-foreground">{formatSeasonLabel(season)}の投手成績データはまだありません</p>
               {isAdmin && (
                 <Link href={`/${teamId}/games/new`} className="mt-4 inline-block bg-turf px-4 py-2 text-sm font-bold text-turf-foreground hover:bg-turf/90">
                   試合を記録する
