@@ -146,6 +146,9 @@ export function calculateBattingStats(
       case "犠飛":
         stats.sacrificeFlies++
         break
+      case "妨害":
+        // 打撃妨害・走塁妨害による出塁は打席には数えるが打数に数えない（規則 9.02(a)(1)）
+        break
       default:
         // ゴロ、フライ、ライナー、エラー、野選
         isAtBat = true
