@@ -207,6 +207,8 @@ export interface PitchingStats {
   hitByPitch: number         // 与死球
   homeRuns: number           // 被本塁打
   battersFaced: number       // 対戦打者数
+  completeGames: number      // 完投
+  shutouts: number           // 完封
 
   // 計算指標
   // 投球回0で算出できない場合は null（画面では "-" 表示）
@@ -231,6 +233,10 @@ export function calculatePitchingStats(
     home_runs: number
     batters_faced: number
     pitcher_award: string | null
+    // その試合を1人で投げ切ったか（試合単位の投手数から呼び出し側が判定する）
+    isCompleteGame?: boolean
+    // 完投かつ失点0か
+    isShutout?: boolean
   }>
 ): PitchingStats {
   const stats: PitchingStats = {
@@ -249,6 +255,8 @@ export function calculatePitchingStats(
     hitByPitch: 0,
     homeRuns: 0,
     battersFaced: 0,
+    completeGames: 0,
+    shutouts: 0,
     era: null,
     whip: null,
     strikeoutRate: null,
@@ -269,6 +277,8 @@ export function calculatePitchingStats(
     stats.hitByPitch += result.hit_by_pitch || 0
     stats.homeRuns += result.home_runs || 0
     stats.battersFaced += result.batters_faced || 0
+    if (result.isCompleteGame) stats.completeGames++
+    if (result.isShutout) stats.shutouts++
   }
 
   stats.inningsPitched = stats.totalOuts / 3

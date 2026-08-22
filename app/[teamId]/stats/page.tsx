@@ -66,7 +66,7 @@ export default async function StatsPage({ params }: Props) {
     )
   }
 
-  const [battingResultsResult, lineupResult, pitcherResultsResult] = await Promise.all([
+  const [battingResultsResult, lineupResult, pitcherResultsResult, allPitcherGameIdsResult] = await Promise.all([
     supabase.from("batting_results").select("*").in("game_id", gameIds),
     supabase.from("lineup_entries")
       .select("player_id, player_name, game_id, batting_order, is_helper, players(name)")
@@ -76,7 +76,17 @@ export default async function StatsPage({ params }: Props) {
       .select("*, players(name)")
       .eq("is_helper", false)
       .in("game_id", gameIds),
+    // 完投判定用に、助っ人も含めた試合ごとの登板投手数を数える
+    supabase.from("pitcher_results")
+      .select("game_id")
+      .in("game_id", gameIds),
   ])
+
+  // 試合ごとの登板投手数（助っ人を含む）。1人だけならその投手は完投
+  const pitcherCountByGame = new Map<string, number>()
+  for (const row of allPitcherGameIdsResult.data ?? []) {
+    pitcherCountByGame.set(row.game_id, (pitcherCountByGame.get(row.game_id) ?? 0) + 1)
+  }
 
   // イニングごとの成績を取得（存在する場合は集計値として使用）
   const pitcherResultIds = (pitcherResultsResult.data ?? []).map((r: { id: string }) => r.id)
@@ -161,7 +171,7 @@ export default async function StatsPage({ params }: Props) {
   // 投手ごとの成績を集計
   const pitcherResultsMap = new Map<string, {
     name: string
-    results: Array<{ outs_pitched: number; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; batters_faced: number; pitcher_award: string | null }>
+    results: Array<{ outs_pitched: number; hits: number; runs: number; earned_runs: number; strikeouts: number; walks: number; hit_by_pitch: number; home_runs: number; batters_faced: number; pitcher_award: string | null; isCompleteGame: boolean; isShutout: boolean }>
   }>()
 
   for (const result of pitcherResultsResult.data ?? []) {
@@ -173,13 +183,18 @@ export default async function StatsPage({ params }: Props) {
     // イニングデータがある場合はその合計を使用、なければ集約フィールドを使用
     const inning = inningStatsMap.get(result.id)
 
+    // 完投 = その試合の投手が自分1人だけ / 完封 = 完投かつ失点0
+    const runs = inning ? inning.runs : (result.runs || 0)
+    const isCompleteGame = pitcherCountByGame.get(result.game_id) === 1
+    const isShutout = isCompleteGame && runs === 0
+
     if (!pitcherResultsMap.has(result.player_id)) {
       pitcherResultsMap.set(result.player_id, { name: pitcherName, results: [] })
     }
     pitcherResultsMap.get(result.player_id)!.results.push({
       outs_pitched: inning ? inning.outs_pitched : (result.innings_outs || 0),
       hits: inning ? inning.hits : (result.hits || 0),
-      runs: inning ? inning.runs : (result.runs || 0),
+      runs,
       earned_runs: inning ? inning.earned_runs : (result.earned_runs || 0),
       strikeouts: inning ? inning.strikeouts : (result.strikeouts || 0),
       walks: inning ? inning.walks : (result.walks || 0),
@@ -187,6 +202,8 @@ export default async function StatsPage({ params }: Props) {
       home_runs: inning ? inning.home_runs : (result.home_runs || 0),
       batters_faced: inning ? inning.batters_faced : (result.batters_faced || 0),
       pitcher_award: result.pitcher_award ?? null,
+      isCompleteGame,
+      isShutout,
     })
   }
 
