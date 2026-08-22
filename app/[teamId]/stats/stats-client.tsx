@@ -97,6 +97,8 @@ const PITCHING_COLUMNS: Array<{
   { key: "strikeouts", label: "奪三振", shortLabel: "K", format: formatCount, primary: true },
   { key: "walks", label: "四球", shortLabel: "四", format: formatCount },
   { key: "homeRuns", label: "被本", shortLabel: "被本", format: formatCount },
+  { key: "completeGames", label: "完投", shortLabel: "完", format: formatCount },
+  { key: "shutouts", label: "完封", shortLabel: "封", format: formatCount },
   { key: "era", label: "防御率", shortLabel: "防", format: formatDecimal, primary: true },
   { key: "whip", label: "WHIP", shortLabel: "WHIP", format: formatDecimal, primary: true },
   { key: "strikeoutRate", label: "K/9", shortLabel: "K/9", format: formatDecimal },
