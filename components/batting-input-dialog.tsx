@@ -21,34 +21,37 @@ interface BattingInputDialogProps {
   onDelete: () => void
 }
 
-const HIT_RESULTS: { label: string; value: HitResult; category: "hit" | "walk" | "out" | "other" }[] = [
+const HIT_RESULTS: { label: string; value: HitResult; category: "hit" | "onbase" | "out" | "other" }[] = [
   // 安打
   { label: "安打", value: "単打", category: "hit" },
   { label: "二塁打", value: "二塁打", category: "hit" },
   { label: "三塁打", value: "三塁打", category: "hit" },
   { label: "本塁打", value: "本塁打", category: "hit" },
-  // 四死球
-  { label: "四球", value: "四球", category: "walk" },
-  { label: "死球", value: "死球", category: "walk" },
+  // 出塁
+  { label: "四球", value: "四球", category: "onbase" },
+  { label: "死球", value: "死球", category: "onbase" },
+  // 表示ラベルのみ「失策出塁」。値は既存データと揃えて "エラー" のまま
+  { label: "失策出塁", value: "エラー", category: "onbase" },
+  { label: "振逃", value: "振り逃げ", category: "onbase" },
+  { label: "野選", value: "野選", category: "onbase" },
   // 凡退
   { label: "三振", value: "三振", category: "out" },
   { label: "ゴロ", value: "ゴロ", category: "out" },
   { label: "フライ", value: "フライ", category: "out" },
   { label: "ライナー", value: "ライナー", category: "out" },
+  { label: "併殺", value: "併殺打", category: "out" },
   // その他
-  { label: "併殺", value: "併殺打", category: "other" },
   { label: "犠打", value: "犠打", category: "other" },
   { label: "犠飛", value: "犠飛", category: "other" },
-  { label: "エラー", value: "エラー", category: "other" },
-  { label: "振逃", value: "振り逃げ", category: "other" },
-  { label: "野選", value: "野選", category: "other" },
 ]
 
+// dotColor はカテゴリ見出しのドット色。ボタンの背景色と一致させる
+// （淡い色は 8px のドットだと見えないため境界線を足す）
 const CATEGORIES = [
-  { key: "hit" as const, label: "安打", color: "bg-turf" },
-  { key: "walk" as const, label: "四死球", color: "bg-foreground" },
-  { key: "out" as const, label: "凡退", color: "bg-muted-foreground/40" },
-  { key: "other" as const, label: "その他", color: "bg-stitch" },
+  { key: "hit" as const, label: "安打", dotColor: "bg-turf" },
+  { key: "onbase" as const, label: "出塁", dotColor: "bg-foreground" },
+  { key: "out" as const, label: "凡退", dotColor: "bg-muted border border-border" },
+  { key: "other" as const, label: "その他", dotColor: "bg-turf-tint border border-turf/30" },
 ]
 
 export function BattingInputDialog({
@@ -125,9 +128,9 @@ export function BattingInputDialog({
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "hit": return "bg-turf hover:bg-turf/90 text-turf-foreground"
-      case "walk": return "bg-foreground hover:bg-foreground/90 text-background"
+      case "onbase": return "bg-foreground hover:bg-foreground/90 text-background"
       case "out": return "bg-muted hover:bg-muted/80 text-foreground font-bold"
-      case "other": return "bg-stitch hover:bg-stitch/90 text-stitch-foreground"
+      case "other": return "bg-turf-tint hover:bg-turf-tint/80 text-turf font-bold"
       default: return "bg-muted"
     }
   }
@@ -379,7 +382,7 @@ export function BattingInputDialog({
             {CATEGORIES.map((category) => (
               <div key={category.key} className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <div className={cn("w-2 h-2", category.color)} />
+                  <div className={cn("w-2 h-2", category.dotColor)} />
                   <span className="text-xs font-medium text-muted-foreground">{category.label}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
