@@ -13,6 +13,8 @@ export default function StatsLoading() {
       className="min-h-screen bg-background"
     >
       <div className="mx-auto max-w-6xl p-4 md:p-6">
+        <SkeletonBlock className="mb-4 h-12 w-64" />
+
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <SkeletonBlock className="h-12 w-56" />
           <SkeletonBlock className="h-10 w-28" />

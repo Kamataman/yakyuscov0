@@ -10,7 +10,14 @@ import { TeamPhotoCarousel } from "@/components/team-photo-carousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { LinkPendingIndicator } from "@/components/link-pending-indicator"
 import { cn } from "@/lib/utils"
-import { calculateGameTotals, getGameResult, type InningScoreLike } from "@/lib/game-score"
+import {
+  calculateGameTotals,
+  getGameResult,
+  summarizeTeamRecord,
+  type InningScoreLike,
+} from "@/lib/game-score"
+import { defaultSeason, filterBySeason, formatSeasonLabel, listSeasonYears, seasonHref } from "@/lib/season"
+import { TeamRecordSummary } from "@/components/team-record-summary"
 
 interface GameSummary {
   id: string
@@ -105,6 +112,15 @@ export default async function TeamDashboardPage({ params }: Props) {
 
   const recentGames = games.slice(0, 3)
 
+  // トップでは今年度の成績を出す。今年の試合がまだない場合は直近の年度にフォールバックする
+  const seasons = listSeasonYears(games)
+  const currentSeason = defaultSeason(seasons)
+  const seasonRecord = summarizeTeamRecord(
+    filterBySeason(games, currentSeason).map((game) =>
+      getGameResult(calculateGameTotals(game, game.inning_scores || []))
+    )
+  )
+
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl p-4 md:p-6">
@@ -194,6 +210,22 @@ export default async function TeamDashboardPage({ params }: Props) {
               <span className="text-lg font-bold">新しい試合を記録</span>
               <LinkPendingIndicator className="h-6 w-6" />
             </Link>
+          </div>
+        )}
+
+        {/* 年度の成績 */}
+        {seasons.length > 0 && (
+          <div className="mt-8">
+            <div className="flex items-baseline justify-between border-b-4 border-foreground pb-2">
+              <h2 className="text-lg font-bold text-foreground">{formatSeasonLabel(currentSeason)}の成績</h2>
+              <Link
+                href={seasonHref(`/${teamId}/games`, currentSeason)}
+                className="text-sm font-medium text-turf hover:underline"
+              >
+                試合一覧へ
+              </Link>
+            </div>
+            <TeamRecordSummary record={seasonRecord} className="mt-3" />
           </div>
         )}
 
