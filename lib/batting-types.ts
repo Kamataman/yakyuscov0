@@ -15,6 +15,7 @@ export type HitResult =
   | "併殺打" 
   | "エラー"
   | "野選"
+  | "妨害"
 
 export type HitDirection = 
   | "投" 
@@ -175,6 +176,7 @@ export function getResultSummary(result: BattingResult): string {
     "併殺打": "併",
     "エラー": "失",
     "野選": "野",
+    "妨害": "妨害",
   }
 
   let summary = shortResult[hitResult] || hitResult
@@ -204,7 +206,7 @@ export function isHit(result: HitResult): boolean {
 
 // 結果が出塁かどうか
 export function isOnBase(result: HitResult): boolean {
-  return ["単打", "二塁打", "三塁打", "本塁打", "四球", "死球", "エラー", "野選", "振り逃げ"].includes(result)
+  return ["単打", "二塁打", "三塁打", "本塁打", "四球", "死球", "エラー", "野選", "振り逃げ", "妨害"].includes(result)
 }
 
 // 試合データ

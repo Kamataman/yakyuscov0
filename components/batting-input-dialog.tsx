@@ -34,6 +34,8 @@ const HIT_RESULTS: { label: string; value: HitResult; category: "hit" | "onbase"
   { label: "失策", value: "エラー", category: "onbase" },
   { label: "振逃", value: "振り逃げ", category: "onbase" },
   { label: "野選", value: "野選", category: "onbase" },
+  // 打撃妨害・走塁妨害は記録上の扱いが同じため区別せず「妨害」1つにまとめる
+  { label: "妨害", value: "妨害", category: "onbase" },
   // 凡退
   { label: "三振", value: "三振", category: "out" },
   { label: "ゴロ", value: "ゴロ", category: "out" },
@@ -100,13 +102,13 @@ export function BattingInputDialog({
     })
   }
 
-  // 打撃結果が未選択、または四球・死球・三振以外の場合は打球方向を入力可能
-  const needsDirection = !hitResult || !["四球", "死球", "三振", "振り逃げ"].includes(hitResult)
+  // 打撃結果が未選択、または四球・死球・三振・妨害以外の場合は打球方向を入力可能
+  const needsDirection = !hitResult || !["四球", "死球", "三振", "振り逃げ", "妨害"].includes(hitResult)
 
   const handleHitResultClick = (value: HitResult) => {
     setHitResult(value)
-    // 四球、死球、三振は打球方向不要なのでクリア
-    if (["四球", "死球", "三振", "振り逃げ"].includes(value)) {
+    // 四球、死球、三振、妨害は打球方向不要なのでクリア
+    if (["四球", "死球", "三振", "振り逃げ", "妨害"].includes(value)) {
       setDirection(undefined)
     }
   }
