@@ -35,12 +35,17 @@ export interface ActiveRange<T extends LineupEntryLike> {
  *
  * 代走は「出塁した打者の代わりに走る」だけで、その回の打席は交代前の選手が完了している。
  * そのため代走のみ翌イニングからの担当とする。代打・守備交代は出場イニングから担当。
+ *
+ * 出場イニングが不明な途中出場には打席を割り当てない（Number.POSITIVE_INFINITY を返す）。
+ * 1 に丸めると先発と担当範囲が衝突し、先発の範囲が潰れて打席を全て奪ってしまうため。
+ * 書き込み経路（app/api/games/[id]/lineup/route.ts、app/api/games/[id]/route.ts）は
+ * entered_inning を検証していないので、ここで防ぐ。
  */
 export function getBattingActiveFrom(entry: LineupEntryLike): number {
   if (!entry.is_substitute) return 1
-  const enteredInning = entry.entered_inning ?? 1
+  if (entry.entered_inning == null) return Number.POSITIVE_INFINITY
   const isPinchRunner = (entry.positions ?? []).includes(PINCH_RUNNER_POSITION)
-  return isPinchRunner ? enteredInning + 1 : enteredInning
+  return isPinchRunner ? entry.entered_inning + 1 : entry.entered_inning
 }
 
 /**
@@ -53,11 +58,18 @@ export function buildActiveRanges<T extends LineupEntryLike>(entries: T[]): Acti
   const sorted = [...entries].sort((a, b) => {
     if (!a.is_substitute && b.is_substitute) return -1
     if (a.is_substitute && !b.is_substitute) return 1
-    return getBattingActiveFrom(a) - getBattingActiveFrom(b)
+    // 出場イニング不明どうしの比較で Infinity - Infinity = NaN にならないようにする
+    const fromA = getBattingActiveFrom(a)
+    const fromB = getBattingActiveFrom(b)
+    if (fromA === fromB) return 0
+    return fromA < fromB ? -1 : 1
   })
 
   return sorted.map((entry, index) => {
-    const activeFrom = getBattingActiveFrom(entry)
+    const rawActiveFrom = getBattingActiveFrom(entry)
+    // 打順の先頭が出場イニング不明の途中出場なら、他に担当がいないので初回から担当させる
+    const activeFrom =
+      index === 0 && rawActiveFrom === Number.POSITIVE_INFINITY ? 1 : rawActiveFrom
     const activeTo =
       index < sorted.length - 1
         ? getBattingActiveFrom(sorted[index + 1]) - 1

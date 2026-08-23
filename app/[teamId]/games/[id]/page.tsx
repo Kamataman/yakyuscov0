@@ -161,6 +161,8 @@ export default async function GameDetailPage({ params }: Props) {
 
   type DisplayRow = {
     battingOrder: number
+    /** 打順内の並び順。activeFrom が同じエントリでも行 key が衝突しないようにする */
+    orderIndex: number
     playerName: string
     positions: string[]
     activeFrom: number
@@ -173,13 +175,14 @@ export default async function GameDetailPage({ params }: Props) {
   for (let order = 1; order <= maxOrder; order++) {
     const entries = lineupByOrder.get(order) ?? []
     if (entries.length === 0) {
-      displayRows.push({ battingOrder: order, playerName: "-", positions: [], activeFrom: 1, activeTo: maxInning, isStarter: false, isFirstOfOrder: true })
+      displayRows.push({ battingOrder: order, orderIndex: 0, playerName: "-", positions: [], activeFrom: 1, activeTo: maxInning, isStarter: false, isFirstOfOrder: true })
       continue
     }
     // 打席の担当イニング範囲は個人成績の集計と共通のロジックで求める
     buildActiveRanges(entries).forEach(({ entry, activeFrom, activeTo }, idx) => {
       displayRows.push({
         battingOrder: order,
+        orderIndex: idx,
         playerName: entry.player_name,
         positions: entry.positions ?? [],
         activeFrom,
@@ -339,7 +342,7 @@ export default async function GameDetailPage({ params }: Props) {
               </thead>
               <tbody>
                 {displayRows.map((row) => (
-                  <tr key={`${row.battingOrder}-${row.activeFrom}`} className="border-b border-border">
+                  <tr key={`${row.battingOrder}-${row.orderIndex}`} className="border-b border-border">
                     <td className="sticky left-0 z-10 bg-background w-10 min-w-[40px] px-2 py-2 text-center font-bold border-r border-border">
                       {row.isStarter ? `(${row.battingOrder})` : row.battingOrder}
                     </td>
