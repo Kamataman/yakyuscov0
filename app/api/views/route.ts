@@ -23,8 +23,9 @@ export async function POST(request: Request) {
 
   try {
     const ipHash = await getClientIpHash()
-    const count = await incrementGameView(parsed.data.teamId, parsed.data.targetId, ipHash)
-    return NextResponse.json({ count, counted: true })
+    // counted は「実際に加算したか」。30分以内の再訪では false になる
+    const result = await incrementGameView(parsed.data.teamId, parsed.data.targetId, ipHash)
+    return NextResponse.json(result)
   } catch (error) {
     if (error instanceof ViewTargetNotFoundError) {
       return NextResponse.json({ error: error.message }, { status: 404 })

@@ -45,28 +45,38 @@ GRANT ALL ON TABLE public.view_dedup TO anon, authenticated, service_role;
 --
 -- 「デデュープ行のUPSERT → 新規だった場合のみインクリメント」を1関数に
 -- 閉じることで、同時アクセス時の競合で数字が飛ぶのを避ける。
--- 対象が存在しない、または指定チームのものでない場合は NULL を返す。
+--
+-- 戻り値は (view_count, counted) の1行。
+--   counted = true : 加算した
+--   counted = false: 30分以内に同一IPからの閲覧が記録済みで加算しなかった
+-- 対象が存在しない、または指定チームのものでない場合は0行を返す。
 -- ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.increment_game_view(
+
+-- 戻り値の型を変えるため CREATE OR REPLACE では置き換えられない
+DROP FUNCTION IF EXISTS public.increment_game_view(TEXT, UUID, TEXT);
+
+CREATE FUNCTION public.increment_game_view(
   p_team_id TEXT,
   p_game_id UUID,
   p_ip_hash TEXT
 )
-RETURNS BIGINT
+RETURNS TABLE (view_count BIGINT, counted BOOLEAN)
 LANGUAGE plpgsql
-SECURITY DEFINER
+-- SECURITY DEFINER にはしない。呼び出し元は service role のみのため動作は変わらず、
+-- 万一 EXECUTE 権限が再付与されても各テーブルのRLSが最後の砦として残る。
 SET search_path = public
 AS $$
 DECLARE
   v_count BIGINT;
 BEGIN
   -- 対象がそのチームの試合かを検証しつつ現在値を取得する
-  SELECT view_count INTO v_count
-    FROM public.games
-   WHERE id = p_game_id AND team_id = p_team_id;
+  -- （OUTパラメータ view_count と列名が衝突するため列参照は必ず修飾する）
+  SELECT g.view_count INTO v_count
+    FROM public.games g
+   WHERE g.id = p_game_id AND g.team_id = p_team_id;
 
   IF NOT FOUND THEN
-    RETURN NULL;
+    RETURN;
   END IF;
 
   -- 加算のついでに期限切れの判定行を掃除する（定期実行の仕組みに依存しない）
@@ -79,17 +89,25 @@ BEGIN
 
   -- 30分以内に同一IPからの閲覧が記録済みなら加算しない
   IF NOT FOUND THEN
-    RETURN v_count;
+    RETURN QUERY SELECT v_count, false;
+    RETURN;
   END IF;
 
   UPDATE public.games
-     SET view_count = view_count + 1
+     SET view_count = public.games.view_count + 1
    WHERE id = p_game_id
-   RETURNING view_count INTO v_count;
+   RETURNING public.games.view_count INTO v_count;
 
-  RETURN v_count;
+  RETURN QUERY SELECT v_count, true;
 END;
 $$;
 
-GRANT ALL ON FUNCTION public.increment_game_view(TEXT, UUID, TEXT)
-  TO anon, authenticated, service_role;
+-- 20260725040947_grant_client_roles.sql の
+-- ALTER DEFAULT PRIVILEGES ... GRANT ALL ON FUNCTIONS TO ... anon ... により、
+-- GRANT を書かなくても anon/authenticated に EXECUTE が付いてしまう。
+-- この関数は閲覧数を書き込むため、公開されている anon キーで PostgREST から
+-- 直接呼べると p_ip_hash を偽装して閲覧数を水増しできる。
+-- 呼び出しは service role 経由（lib/view-counts.ts）のみのため明示的に剥がす。
+REVOKE ALL ON FUNCTION public.increment_game_view(TEXT, UUID, TEXT)
+  FROM PUBLIC, anon, authenticated;
+GRANT ALL ON FUNCTION public.increment_game_view(TEXT, UUID, TEXT) TO service_role;
