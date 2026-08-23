@@ -13,6 +13,7 @@ import { buildActiveRanges } from "@/lib/lineup-assignment"
 import { isGameContentThin } from "@/lib/ai/thin-check"
 import { getReactionState } from "@/lib/reactions"
 import { ReactionButton } from "@/components/reaction-button"
+import { ViewCounter } from "@/components/view-counter"
 import { DeleteButton } from "./delete-button"
 import { PitcherResultsSection } from "./pitcher-results-section"
 import { AiReviewSection } from "./ai-review-section"
@@ -218,7 +219,7 @@ export default async function GameDetailPage({ params }: Props) {
               <p className="text-sm text-muted-foreground">{game.date}</p>
               <p className="text-xl font-black text-foreground md:text-2xl">vs {game.opponent}</p>
               {game.location && <p className="text-sm text-muted-foreground">{game.location}</p>}
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap items-center gap-3">
                 <ReactionButton
                   teamId={teamId}
                   targetType="game"
@@ -227,6 +228,7 @@ export default async function GameDetailPage({ params }: Props) {
                   label="ナイスゲーム！"
                   initialCount={reactionState.count}
                 />
+                <ViewCounter teamId={teamId} gameId={gameId} initialCount={game.view_count ?? 0} />
               </div>
             </div>
             <div className="text-right">
