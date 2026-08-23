@@ -10,7 +10,8 @@
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
-    "supabase:reset": "supabase db reset"
+    "supabase:reset": "supabase db reset",
+    "seed:demo-images": "node --env-file=.env.local scripts/seed-demo-images.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.13.0",

@@ -1,38 +1,120 @@
--- デモ用チーム（/demo からアクセスされるサンプルデータ）
--- ローカル開発 (`supabase start` / `supabase db reset`) のたびに自動投入される。
+-- ============================================================
+-- デモチーム（/demo）のデータを既存機能に追随させる
 --
--- 本番へは supabase/migrations/20260823010000_demo_team_showcase.sql が
--- 同じ内容を適用する（マイグレーションは seed より前に走るため、ローカルでは
--- 何もせずスキップされる）。デモデータを変更するときは両方を更新すること。
+-- デモデータは初回投入時のままで、その後に追加された機能（打席結果の種別追加・
+-- 盗塁・生還・代打／代走・助っ人・イニング別投手成績・チームプロフィール・
+-- 試合戦評・閲覧数・リアクションなど）をほとんど使っていなかった。
+-- /demo は機能紹介の入り口なので、ひと通りの機能が現れるデータに差し替える。
+--
+-- 併せて、生還フラグ（scored）が未設定で試合詳細に整合性の警告が出ていた状態と、
+-- 打点がイニング得点を超えていた箇所も解消する。
 --
 -- ヘッダー画像・チーム写真（team_images）はファイル本体が Storage 側にあり
 -- SQL では復元できないため、scripts/seed-demo-images.mjs で別途投入する。
+--
+-- 変更対象は team_id = 'demo' のデータのみ。デモチームが存在しない環境
+-- （ローカルの db reset は seed.sql より前にマイグレーションが走る）では
+-- 何もせずスキップする。冪等なので再実行しても同じ状態になる。
+-- ============================================================
 
-INSERT INTO public.teams (id, name, admin_email, created_at, updated_at, description, activity_area, activity_days, team_level, league, founded_period, average_age, notes, qualified_pa_coefficient, qualified_ip_coefficient) VALUES
-  ('demo', 'デモチーム', 'demo@example.com', '2026-04-26 06:20:38.718152+00', '2026-08-23 00:00:00+00', '「やきゅスコ」の機能をひと通り試せるサンプルチームです。実在のチームではありません。
-スコアの記録・共有と個人成績の集計がどう見えるかを、2024年度の4試合分のデータで確認できます。', '東京都 多摩地区', '毎週日曜 9:00〜12:00', 'エンジョイ〜中級', '多摩草野球リーグ 2部', '2015年4月', '32歳', '経験者・初心者どちらも歓迎。人数が足りないときは助っ人の参加もお願いしています。', 2.5, 0.8);
+DO $do$
+BEGIN
+
+IF NOT EXISTS (SELECT 1 FROM public.teams WHERE id = 'demo') THEN
+  RAISE NOTICE 'demo チームが存在しないため、デモデータの更新をスキップします';
+  RETURN;
+END IF;
+
+
+-- ------------------------------------------------------------
+-- 1. チームプロフィール（紹介文・活動情報・規定打席／規定投球回の係数）
+-- ------------------------------------------------------------
+UPDATE public.teams SET
+  description = '「やきゅスコ」の機能をひと通り試せるサンプルチームです。実在のチームではありません。
+スコアの記録・共有と個人成績の集計がどう見えるかを、2024年度の4試合分のデータで確認できます。',
+  activity_area = '東京都 多摩地区',
+  activity_days = '毎週日曜 9:00〜12:00',
+  team_level = 'エンジョイ〜中級',
+  league = '多摩草野球リーグ 2部',
+  founded_period = '2015年4月',
+  average_age = '32歳',
+  notes = '経験者・初心者どちらも歓迎。人数が足りないときは助っ人の参加もお願いしています。',
+  qualified_pa_coefficient = 2.5,
+  qualified_ip_coefficient = 0.8,
+  updated_at = '2026-08-23 00:00:00+00'
+WHERE id = 'demo';
+
+
+-- ------------------------------------------------------------
+-- 2. 選手（ポジション・投打を設定し、控え／監督／スタッフ／助っ人を追加）
+--    背番号が3人重複していたため、投手2人と中堅手の番号も併せて整理する
+-- ------------------------------------------------------------
+UPDATE public.players SET number = '8', position = '外野手', throw_bat = '右左', updated_at = '2026-08-23 00:00:00+00'
+ WHERE id = 'ada35b88-00fc-44a4-8519-d0922c357f53' AND team_id = 'demo';
+UPDATE public.players SET number = '5', position = '内野手', throw_bat = '右右', updated_at = '2026-08-23 00:00:00+00'
+ WHERE id = '20ed1b10-6a13-4ae7-92d4-5640b90abb6f' AND team_id = 'demo';
+UPDATE public.players SET number = '3', position = '内野手', throw_bat = '右右', updated_at = '2026-08-23 00:00:00+00'
+ WHERE id = '2ec72fad-b1a6-434f-8fa6-c3a4b01f2ad3' AND team_id = 'demo';
+UPDATE public.players SET number = '7', position = '内野手', throw_bat = '右右', updated_at = '2026-08-23 00:00:00+00'
+ WHERE id = '40d19439-2209-4bcf-bbf0-6260594a575f' AND team_id = 'demo';
+UPDATE public.players SET number = '11', position = '投手', throw_bat = '右右', updated_at = '2026-08-23 00:00:00+00'
+ WHERE id = 'a914f55a-a5d1-45d0-a13d-76250dd13251' AND team_id = 'demo';
+UPDATE public.players SET number = '2', position = '捕手', throw_bat = '右右', updated_at = '2026-08-23 00:00:00+00'
+ WHERE id = '4e6c0b64-00f3-4a17-b85b-25967f25f8fb' AND team_id = 'demo';
+UPDATE public.players SET number = '9', position = '外野手', throw_bat = '左左', updated_at = '2026-08-23 00:00:00+00'
+ WHERE id = '2d597b84-ecd5-442a-ae21-4572bcdf3785' AND team_id = 'demo';
+UPDATE public.players SET number = '4', position = '内野手', throw_bat = '右左', updated_at = '2026-08-23 00:00:00+00'
+ WHERE id = '326bd425-b7a1-4d0e-8768-a55f5a87f47b' AND team_id = 'demo';
+UPDATE public.players SET number = '18', position = '投手', throw_bat = '左左', updated_at = '2026-08-23 00:00:00+00'
+ WHERE id = '69ed2468-0ab9-40ed-8d35-c806171b7331' AND team_id = 'demo';
 
 INSERT INTO public.players (id, name, number, position, throw_bat, created_at, updated_at, team_id) VALUES
-  ('ada35b88-00fc-44a4-8519-d0922c357f53', '山田太郎', '8', '外野手', '右左', '2026-04-26 06:20:38.718152+00', '2026-08-23 00:00:00+00', 'demo'),
-  ('20ed1b10-6a13-4ae7-92d4-5640b90abb6f', '鈴木一郎', '5', '内野手', '右右', '2026-04-26 06:20:38.718152+00', '2026-08-23 00:00:00+00', 'demo'),
-  ('2ec72fad-b1a6-434f-8fa6-c3a4b01f2ad3', '佐藤健', '3', '内野手', '右右', '2026-04-26 06:20:38.718152+00', '2026-08-23 00:00:00+00', 'demo'),
-  ('40d19439-2209-4bcf-bbf0-6260594a575f', '田中誠', '7', '内野手', '右右', '2026-04-26 06:20:38.718152+00', '2026-08-23 00:00:00+00', 'demo'),
-  ('a914f55a-a5d1-45d0-a13d-76250dd13251', '高橋雄太', '11', '投手', '右右', '2026-04-26 06:20:38.718152+00', '2026-08-23 00:00:00+00', 'demo'),
-  ('4e6c0b64-00f3-4a17-b85b-25967f25f8fb', '伊藤大輝', '2', '捕手', '右右', '2026-04-26 06:20:38.718152+00', '2026-08-23 00:00:00+00', 'demo'),
-  ('2d597b84-ecd5-442a-ae21-4572bcdf3785', '渡辺翔', '9', '外野手', '左左', '2026-04-26 06:20:38.718152+00', '2026-08-23 00:00:00+00', 'demo'),
-  ('326bd425-b7a1-4d0e-8768-a55f5a87f47b', '中村勇気', '4', '内野手', '右左', '2026-04-26 06:20:38.718152+00', '2026-08-23 00:00:00+00', 'demo'),
-  ('69ed2468-0ab9-40ed-8d35-c806171b7331', '小林優', '18', '投手', '左左', '2026-04-26 06:20:38.718152+00', '2026-08-23 00:00:00+00', 'demo'),
   ('aaaaaaa1-0000-4000-8000-000000000001', '松井蓮', '10', '内野手', '右右', '2026-08-23 00:00:00+00', '2026-08-23 00:00:00+00', 'demo'),
   ('aaaaaaa1-0000-4000-8000-000000000002', '川口駿', '25', '外野手', '右左', '2026-08-23 00:00:00+00', '2026-08-23 00:00:00+00', 'demo'),
   ('aaaaaaa1-0000-4000-8000-000000000003', '大和田茂', '30', '監督・コーチ', '右右', '2026-08-23 00:00:00+00', '2026-08-23 00:00:00+00', 'demo'),
   ('aaaaaaa1-0000-4000-8000-000000000004', '森本ゆかり', NULL, 'スタッフ', NULL, '2026-08-23 00:00:00+00', '2026-08-23 00:00:00+00', 'demo'),
-  ('aaaaaaa1-0000-4000-8000-000000000005', '大西亮', '99', '投手', '右右', '2026-08-23 00:00:00+00', '2026-08-23 00:00:00+00', 'demo');
+  ('aaaaaaa1-0000-4000-8000-000000000005', '大西亮', '99', '投手', '右右', '2026-08-23 00:00:00+00', '2026-08-23 00:00:00+00', 'demo')
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name, number = EXCLUDED.number, position = EXCLUDED.position,
+  throw_bat = EXCLUDED.throw_bat, updated_at = EXCLUDED.updated_at,
+  team_id = EXCLUDED.team_id;
 
+
+-- ------------------------------------------------------------
+-- 3. 試合（試合戦評・閲覧数を設定し、後攻＋サヨナラの4試合目を追加）
+-- ------------------------------------------------------------
 INSERT INTO public.games (id, date, opponent, location, memo, created_at, updated_at, team_id, is_first_batting, total_innings, last_inning_x, last_inning_x_score, ai_review, ai_review_generated_at, ai_review_model, ai_review_count, ai_review_error, view_count) VALUES
   ('11111111-1111-1111-1111-111111111111', '2024-04-07', '東京ジャイアンツ', '市民球場', '開幕戦', '2026-04-26 06:27:31.348492+00', '2026-08-23 00:00:00+00', 'demo', TRUE, 9, FALSE, NULL, '開幕戦は序盤の失点を跳ね返す粘りの一勝。2回、田中の死球と渡辺の安打で作った好機を高橋の2点適時打が生かして逆転した。4回には渡辺のソロ本塁打で加点、7回は佐藤の犠飛と中村の適時打で突き放している。先発小林は6回0/3を3失点にまとめ、7回途中から救援した高橋が3イニングを無失点。7回の代走・川口、8回の代打・松井とベンチも機能した試合だった。', '2026-08-20 12:30:00+00', 'gemini-flash-lite-latest', 0, NULL, 128),
   ('22222222-2222-2222-2222-222222222222', '2024-04-14', '横浜ベイズ', '県営球場', '', '2026-04-26 06:28:11.970374+00', '2026-08-23 00:00:00+00', 'demo', TRUE, 9, FALSE, NULL, NULL, NULL, NULL, 0, NULL, 94),
   ('33333333-3333-3333-3333-333333333333', '2024-04-21', '大阪タイガース', '市民球場', '打線爆発', '2026-04-26 06:28:49.179086+00', '2026-08-23 00:00:00+00', 'demo', TRUE, 9, FALSE, NULL, '打線が3回に大爆発。中村の死球から続いた集中打で打者11人を送り、鈴木の2点打を含む一挙6点で試合を決めた。7回にも小林の2点二塁打が飛び出し、11得点。指名打者の渡辺は犠飛2本で確実に走者を還した。高橋は被安打6・10奪三振で9回を投げ切り、今季初完投。', '2026-08-20 12:35:00+00', 'gemini-flash-lite-latest', 1, NULL, 213),
-  ('44444444-4444-4444-4444-444444444444', '2024-04-29', '千葉マリンズ', '中央運動公園野球場', '後攻・サヨナラ勝ち', '2026-08-23 00:00:00+00', '2026-08-23 00:00:00+00', 'demo', FALSE, 9, TRUE, 2, '助っ人の大西を立てた一戦は、5回までに3点を追う苦しい展開。3回に鈴木の二塁打と山田の適時打で1点を返し、7回は渡辺の安打を起点に鈴木の犠飛で1点差に詰め寄った。9回裏、伊藤の安打と松井の死球、鈴木の犠打、小林の四球で満塁とし、最後は山田の中越え2点二塁打でサヨナラ勝ち。8回から救援した小林が2回を無失点に封じた。', '2026-08-20 12:40:00+00', 'gemini-flash-lite-latest', 0, NULL, 57);
+  ('44444444-4444-4444-4444-444444444444', '2024-04-29', '千葉マリンズ', '中央運動公園野球場', '後攻・サヨナラ勝ち', '2026-08-23 00:00:00+00', '2026-08-23 00:00:00+00', 'demo', FALSE, 9, TRUE, 2, '助っ人の大西を立てた一戦は、5回までに3点を追う苦しい展開。3回に鈴木の二塁打と山田の適時打で1点を返し、7回は渡辺の安打を起点に鈴木の犠飛で1点差に詰め寄った。9回裏、伊藤の安打と松井の死球、鈴木の犠打、小林の四球で満塁とし、最後は山田の中越え2点二塁打でサヨナラ勝ち。8回から救援した小林が2回を無失点に封じた。', '2026-08-20 12:40:00+00', 'gemini-flash-lite-latest', 0, NULL, 57)
+ON CONFLICT (id) DO UPDATE SET
+  date = EXCLUDED.date,
+  opponent = EXCLUDED.opponent,
+  location = EXCLUDED.location,
+  memo = EXCLUDED.memo,
+  updated_at = EXCLUDED.updated_at,
+  team_id = EXCLUDED.team_id,
+  is_first_batting = EXCLUDED.is_first_batting,
+  total_innings = EXCLUDED.total_innings,
+  last_inning_x = EXCLUDED.last_inning_x,
+  last_inning_x_score = EXCLUDED.last_inning_x_score,
+  ai_review = EXCLUDED.ai_review,
+  ai_review_generated_at = EXCLUDED.ai_review_generated_at,
+  ai_review_model = EXCLUDED.ai_review_model,
+  ai_review_count = EXCLUDED.ai_review_count,
+  ai_review_error = EXCLUDED.ai_review_error,
+  view_count = EXCLUDED.view_count;
+
+
+-- ------------------------------------------------------------
+-- 4. 試合の明細（スコア・打順・打席・投手成績）を作り直す
+--    部分更新より入れ替えたほうが冪等性を保ちやすく、差分も追いやすい
+-- ------------------------------------------------------------
+DELETE FROM public.pitcher_results WHERE game_id IN ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333', '44444444-4444-4444-4444-444444444444');  -- pitcher_inning_stats は ON DELETE CASCADE
+DELETE FROM public.batting_results WHERE game_id IN ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333', '44444444-4444-4444-4444-444444444444');
+DELETE FROM public.lineup_entries  WHERE game_id IN ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333', '44444444-4444-4444-4444-444444444444');
+DELETE FROM public.inning_scores   WHERE game_id IN ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333', '44444444-4444-4444-4444-444444444444');
 
 INSERT INTO public.inning_scores (id, game_id, inning, our_score, opponent_score) VALUES
   ('165482b0-c83e-5114-be82-5401718dc8bd', '11111111-1111-1111-1111-111111111111', 1, 0, 1),
@@ -304,6 +386,14 @@ INSERT INTO public.pitcher_inning_stats (id, pitcher_result_id, inning, outs, ru
   ('42a9e63e-1c98-52b8-937b-0c4590280fc6', 'e283bd82-9b88-5276-a275-dc89c0b74630', 8, 3, 0, 0, 1, 0, 0, 0, 0, 3),
   ('e2bb4ff7-4212-5ab6-af73-1df5b21cea6e', 'e283bd82-9b88-5276-a275-dc89c0b74630', 9, 3, 0, 1, 2, 0, 0, 0, 0, 4);
 
+
+-- ------------------------------------------------------------
+-- 5. リアクション（ナイスゲーム！）
+--    IPアドレスは保存せずハッシュで重複判定する仕様のため、
+--    デモ用に決定的なダミーハッシュを入れる
+-- ------------------------------------------------------------
+DELETE FROM public.reactions WHERE team_id = 'demo';
+
 INSERT INTO public.reactions (id, team_id, target_type, target_id, kind, ip_hash, created_at) VALUES
   ('1ed66422-8846-5b38-8e4d-422966ad8e65', 'demo', 'game', '11111111-1111-1111-1111-111111111111', 'nice_game', '04b77a231d478e253aff66ff95d4eff8153ffa0b081677f8ef1e22a9ddfa8ab0', '2024-04-07 12:00:00+00'),
   ('cfd6605a-9889-56d1-aa25-38b22e5d135d', 'demo', 'game', '11111111-1111-1111-1111-111111111111', 'nice_game', 'a5fa346affc0d647f952b97bcdbde5065ec524556a227c745e1fba119894ef7b', '2024-04-07 12:00:00+00'),
@@ -349,3 +439,6 @@ INSERT INTO public.reactions (id, team_id, target_type, target_id, kind, ip_hash
   ('ea258a95-1f9a-5fe0-b346-1469dfa427e9', 'demo', 'game', '44444444-4444-4444-4444-444444444444', 'nice_game', '77c7d0fc7a9c2ff2b167a681ebb8ff7178be11ec17445f198c35728f80de307b', '2024-04-29 12:00:00+00'),
   ('c35c772e-4f15-5061-8ad7-8bfb20204ede', 'demo', 'game', '44444444-4444-4444-4444-444444444444', 'nice_game', 'd0b07f5e69f22259d100e87e494cddc9dfa3cbd9cc18aac4e89c5d6f0cb9787c', '2024-04-29 12:00:00+00'),
   ('c3f57d7c-86fa-546d-910c-d41539c51630', 'demo', 'game', '44444444-4444-4444-4444-444444444444', 'nice_game', '824780b816e1cb364ba660a7ac18306f7c2deff1a58158e9f465bd44962a75b2', '2024-04-29 12:00:00+00');
+
+END
+$do$;
