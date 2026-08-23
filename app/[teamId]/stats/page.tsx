@@ -5,6 +5,7 @@ import { buildTeamDescription, fetchTeamSeoProfile, noindexMetadata } from "@/li
 import { calculateBattingStats, calculatePitchingStats, type BattingStats, type PitchingStats } from "@/lib/stats"
 import type { HitResult } from "@/lib/batting-types"
 import { filterBySeason, listSeasonYears, resolveSeason } from "@/lib/season"
+import { buildActiveRanges, resolveEntryForInning, type ActiveRange } from "@/lib/lineup-assignment"
 import { StatsClient } from "./stats-client"
 
 interface PlayerBattingStats {
@@ -79,9 +80,10 @@ export default async function StatsPage({ params, searchParams }: Props) {
   const [battingResultsResult, lineupResult, pitcherResultsResult, allPitcherGameIdsResult] = await Promise.all([
     supabase.from("batting_results").select("*").in("game_id", gameIds),
     supabase.from("lineup_entries")
-      .select("player_id, player_name, game_id, batting_order, is_helper, players(name)")
-      .eq("is_helper", false)
-      .in("game_id", gameIds),
+      .select("player_id, player_name, game_id, batting_order, is_substitute, entered_inning, positions, is_helper, players(name)")
+      .in("game_id", gameIds)
+      .order("batting_order")
+      .order("entered_inning", { nullsFirst: true }),
     supabase.from("pitcher_results")
       .select("*, players(name)")
       .eq("is_helper", false)
@@ -124,17 +126,31 @@ export default async function StatsPage({ params, searchParams }: Props) {
     }
   }
 
-  // 打順エントリーから選手とゲームの紐付けを作成
-  const battingOrderMap = new Map<string, { playerId: string; playerName: string }>()
-  for (const entry of lineupResult.data ?? []) {
-    if (!entry.player_id) continue
+  // 打順ごとにエントリーをまとめ、打席を担当するイニング範囲を求める。
+  // 助っ人や未登録選手のエントリーも範囲計算には含める（除外するとその打席が
+  // 同じ打順の別の選手に加算されてしまうため）。
+  type LineupRow = {
+    player_id: string | null
+    player_name: string
+    game_id: string
+    batting_order: number
+    is_substitute: boolean | null
+    entered_inning: number | null
+    positions: string[] | null
+    is_helper: boolean | null
+    players: { name: string } | null
+  }
+  const lineupRows = (lineupResult.data ?? []) as unknown as LineupRow[]
+
+  const rangesByOrder = new Map<string, ActiveRange<LineupRow>[]>()
+  const entriesByOrder = new Map<string, LineupRow[]>()
+  for (const entry of lineupRows) {
     const key = `${entry.game_id}-${entry.batting_order}`
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const playerData = (entry as any).players as { name: string } | null
-    battingOrderMap.set(key, {
-      playerId: entry.player_id,
-      playerName: playerData?.name || entry.player_name,
-    })
+    if (!entriesByOrder.has(key)) entriesByOrder.set(key, [])
+    entriesByOrder.get(key)!.push(entry)
+  }
+  for (const [key, entries] of entriesByOrder) {
+    rangesByOrder.set(key, buildActiveRanges(entries))
   }
 
   // 選手ごとの打撃結果を集計
@@ -144,15 +160,32 @@ export default async function StatsPage({ params, searchParams }: Props) {
     gameIds: Set<string>
   }>()
 
-  for (const result of battingResultsResult.data ?? []) {
-    const key = `${result.game_id}-${result.batting_order}`
-    const lineup = battingOrderMap.get(key)
-    if (!lineup) continue
-
-    if (!playerResultsMap.has(lineup.playerId)) {
-      playerResultsMap.set(lineup.playerId, { name: lineup.playerName, results: [], gameIds: new Set() })
+  const ensurePlayerData = (entry: LineupRow) => {
+    const playerId = entry.player_id!
+    if (!playerResultsMap.has(playerId)) {
+      playerResultsMap.set(playerId, {
+        name: entry.players?.name || entry.player_name,
+        results: [],
+        gameIds: new Set(),
+      })
     }
-    const playerData = playerResultsMap.get(lineup.playerId)!
+    return playerResultsMap.get(playerId)!
+  }
+
+  // 試合数は出場登録ベース（打席が無い代走・守備固めも1試合として数える）
+  for (const entry of lineupRows) {
+    if (entry.is_helper || !entry.player_id) continue
+    ensurePlayerData(entry).gameIds.add(entry.game_id)
+  }
+
+  for (const result of battingResultsResult.data ?? []) {
+    const ranges = rangesByOrder.get(`${result.game_id}-${result.batting_order}`)
+    if (!ranges) continue
+    const entry = resolveEntryForInning(ranges, result.inning)
+    // 助っ人・未登録選手の打席は集計対象外（他の選手には加算しない）
+    if (!entry || entry.is_helper || !entry.player_id) continue
+
+    const playerData = ensurePlayerData(entry)
     playerData.results.push({
       hit_result: result.hit_result as HitResult,
       rbi_count: result.rbi_count || 0,
@@ -163,7 +196,6 @@ export default async function StatsPage({ params, searchParams }: Props) {
       runner_second: result.runner_second,
       runner_third: result.runner_third,
     })
-    playerData.gameIds.add(result.game_id)
   }
 
   const battingStats: PlayerBattingStats[] = []

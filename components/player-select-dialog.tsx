@@ -10,7 +10,21 @@ import {
 import { cn } from "@/lib/utils"
 import type { LineupEntry, FieldPosition, Player } from "@/lib/batting-types"
 import { FIELD_POSITIONS, SUBSTITUTE_ROLES } from "@/lib/batting-types"
+import { PINCH_HITTER_POSITION, PINCH_RUNNER_POSITION } from "@/lib/lineup-assignment"
 import { PlayerCombobox } from "@/components/player-combobox"
+
+/** 途中出場の打席がどのイニングから成績に反映されるかを説明する */
+function describeSubstituteScoring(positions: string[], enteredInning?: number): string {
+  const inning = enteredInning ? `${enteredInning}回` : "出場イニング"
+  if (positions.includes(PINCH_RUNNER_POSITION)) {
+    const next = enteredInning ? `${enteredInning + 1}回` : "次のイニング"
+    return `代走: ${inning}の打席には立たないため、${next}の打席から成績が付きます`
+  }
+  if (positions.includes(PINCH_HITTER_POSITION)) {
+    return `代打: ${inning}の打席から成績が付きます`
+  }
+  return `${inning}の打席から成績が付きます`
+}
 
 interface PlayerSelectDialogProps {
   open: boolean
@@ -89,9 +103,16 @@ export function PlayerSelectDialog({
   const handlePositionAdd = (index: number, pos: FieldPosition) => {
     setEntries((prev) => {
       const newEntries = [...prev]
+      const current = newEntries[index].positions ?? []
+      if (current.includes(pos)) return prev
+      // 代打と代走は同時に成立しないため、片方を選んだらもう片方を外す
+      const isRole = pos === PINCH_HITTER_POSITION || pos === PINCH_RUNNER_POSITION
+      const kept = isRole
+        ? current.filter((p) => p !== PINCH_HITTER_POSITION && p !== PINCH_RUNNER_POSITION)
+        : current
       newEntries[index] = {
         ...newEntries[index],
-        positions: [...(newEntries[index].positions ?? []), pos],
+        positions: [...kept, pos],
       }
       return newEntries
     })
@@ -278,6 +299,9 @@ export function PlayerSelectDialog({
                       </button>
                     ))}
                   </div>
+                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                    {describeSubstituteScoring(entry.positions ?? [], entry.enteredInning)}
+                  </p>
                 </div>
               )}
             </div>
